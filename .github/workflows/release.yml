@@ -1,0 +1,251 @@
+name: 🧪 Release
+
+on:
+  push:
+    branches:
+      - main
+      - feat/serde_yml
+  pull_request:
+    branches:
+      - feat/serde_yml
+  release:
+    types: [created]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Build the project for all the targets and generate artifacts.
+  build:
+    # This job builds the project for all the targets and generates a
+    # release artifact that contains the binaries for all the targets.
+    name: ❯ Build 🛠
+
+    # Only run this job on the main branch when a commit is pushed.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    # Set up the job environment variables.
+    env:
+      BUILD_ID: ${{ github.run_id }}
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OS: ${{ matrix.platform.os }}
+      TARGET: ${{ matrix.platform.target }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+
+    runs-on: ${{ matrix.platform.os }}
+
+    steps:
+      # Check out the repository code.
+      - name: Checkout sources
+        id: checkout
+        uses: actions/checkout@v4
+
+      # Install the stable Rust toolchain.
+      - name: Install stable toolchain
+        id: install-toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      # Cache dependencies to speed up subsequent builds.
+      - name: Cache dependencies
+        id: cache-dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      # Install the targets for the cross-compilation toolchain
+      - name: Install target
+        id: install-target
+        run: rustup target add ${{ env.TARGET }}
+
+      # Build the targets
+      - name: Build targets
+        id: build-targets
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose --workspace --release --target ${{ env.TARGET }}
+
+      # Package the binary for each target
+      - name: Package the binary
+        id: package-binary
+        run: |
+          mkdir -p target/package
+          tar czf target/package/${{ env.TARGET }}.tar.gz -C target/${{ env.TARGET }}/release .
+          echo "${{ env.TARGET }}.tar.gz=target/package/${{ env.TARGET }}.tar.gz" >> $GITHUB_ENV
+
+      # Upload the binary for each target
+      - name: Upload the binary
+        id: upload-binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.TARGET }}.tar.gz
+          path: target/package/${{ env.TARGET }}.tar.gz
+
+  # Release the binary to GitHub Releases
+  release:
+    name: ❯ Release 🚀
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the repository code
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      # Install the stable Rust toolchain
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      # Update the version number based on the Cargo.toml file
+      - name: Update version number
+        run: |
+          NEW_VERSION=$(grep version Cargo.toml | sed -n 2p | cut -d '"' -f 2)
+          echo "VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
+        shell: /bin/bash -e {0}
+
+      # Cache dependencies to speed up subsequent builds
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      # Download the artifacts from the build job
+      - name: Download artifacts
+        run: |
+          for target in ${{ env.TARGET }}; do
+            echo "Downloading $target artifact"
+            name="${target}.tar.gz"
+            echo "Artifact name: $name"
+            mkdir -p target/package
+            curl -sSL -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3+json" -L "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${BUILD_ID}/artifacts/${name}" -o "target/package/${name}"
+          done
+
+        env:
+          VERSION: ${{ env.VERSION }}
+          TARGET: ${{ env.TARGET }}
+          OS: ${{ env.OS }}
+
+      # Generate the changelog based on the git log
+      - name: Generate Changelog
+        id: generate-changelog
+        env:
+          BUILD_ID: ${{ github.run_id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_URL: https://github.com/sebastienrousseau/serde_yml/releases
+          TARGET: ${{ env.TARGET }}
+
+        run: |
+          if [[ ! -f CHANGELOG.md ]]; then
+            # Set path to changelog file
+            changelog_file="${{ github.workspace }}/CHANGELOG.md"
+
+            # Get version from Cargo.toml
+            version=$(grep version Cargo.toml | sed -n 2p | cut -d '"' -f 2)
+
+            # Append version information to changelog
+            echo "## Release v${version} - $(date +'%Y-%m-%d')" >> "${changelog_file}"
+
+            # Copy content of template file to changelog
+            cat TEMPLATE.md >> "${changelog_file}"
+
+            # Append git log to changelog
+            echo "$(git log --pretty=format:'%s' --reverse HEAD)" >> "${changelog_file}"
+
+            # Append empty line to changelog
+            echo "" >> "${changelog_file}"
+
+          fi
+        shell: bash
+
+      # Create the release on GitHub releases
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: Serde YML 🦀 v${{ env.VERSION }}
+          body_path: ${{ github.workspace }}/CHANGELOG.md
+          draft: true
+          prerelease: false
+
+  # Publish the release to Crates.io automatically
+  crate:
+    name: ❯ Crate.io 🦀
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repository code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install the stable Rust toolchain
+      - name: Install stable toolchain
+        id: install-toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      # Cache dependencies to speed up subsequent builds
+      - name: Cache dependencies
+        id: cache-dependencies
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.cargo/registry/index/
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-index-
+
+      # Update the version number based on the Cargo.toml file
+      - name: Update version number
+        id: update-version
+        run: |
+          NEW_VERSION=$(grep version Cargo.toml | sed -n 2p | cut -d '"' -f 2)
+          echo "VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
+        shell: /bin/bash -e {0}
+
+      # Log in to crates.io
+      - name: Log in to crates.io
+        id: login-crate-io
+        run: cargo login ${{ secrets.CARGO_API_TOKEN }}
+
+      # Publish the Rust library to Crate.io
+      - name: Publish Library to Crate.io
+        id: publish-library
+        uses: actions-rs/cargo@v1
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
+        with:
+          command: publish
+          args: "--no-verify --allow-dirty"
+          use-cross: false
