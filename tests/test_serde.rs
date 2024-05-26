@@ -8,33 +8,36 @@
 use indoc::indoc;
 use serde::ser::SerializeMap;
 use serde_derive::{Deserialize, Serialize};
-use serde_yaml::{Mapping, Number, Value};
+use serde_yml::{Mapping, Number, Value};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::iter;
 
 fn test_serde<T>(thing: &T, yaml: &str)
 where
-    T: serde::Serialize + serde::de::DeserializeOwned + PartialEq + Debug,
+    T: serde::Serialize
+        + serde::de::DeserializeOwned
+        + PartialEq
+        + Debug,
 {
-    let serialized = serde_yaml::to_string(&thing).unwrap();
+    let serialized = serde_yml::to_string(&thing).unwrap();
     assert_eq!(yaml, serialized);
 
-    let value = serde_yaml::to_value(thing).unwrap();
-    let serialized = serde_yaml::to_string(&value).unwrap();
+    let value = serde_yml::to_value(thing).unwrap();
+    let serialized = serde_yml::to_string(&value).unwrap();
     assert_eq!(yaml, serialized);
 
-    let deserialized: T = serde_yaml::from_str(yaml).unwrap();
+    let deserialized: T = serde_yml::from_str(yaml).unwrap();
     assert_eq!(*thing, deserialized);
 
-    let value: Value = serde_yaml::from_str(yaml).unwrap();
+    let value: Value = serde_yml::from_str(yaml).unwrap();
     let deserialized = T::deserialize(&value).unwrap();
     assert_eq!(*thing, deserialized);
 
-    let deserialized: T = serde_yaml::from_value(value).unwrap();
+    let deserialized: T = serde_yml::from_value(value).unwrap();
     assert_eq!(*thing, deserialized);
 
-    serde_yaml::from_str::<serde::de::IgnoredAny>(yaml).unwrap();
+    serde_yml::from_str::<serde::de::IgnoredAny>(yaml).unwrap();
 }
 
 #[test]
@@ -122,7 +125,7 @@ fn test_float() {
     "};
     test_serde(&thing, yaml);
 
-    let float: f64 = serde_yaml::from_str(indoc! {"
+    let float: f64 = serde_yml::from_str(indoc! {"
         .nan
     "})
     .unwrap();
@@ -149,7 +152,7 @@ fn test_float32() {
     "};
     test_serde(&thing, yaml);
 
-    let single_float: f32 = serde_yaml::from_str(indoc! {"
+    let single_float: f32 = serde_yml::from_str(indoc! {"
         .nan
     "})
     .unwrap();
@@ -162,19 +165,19 @@ fn test_char() {
     let yaml = indoc! {"
         '.'
     "};
-    assert_eq!(yaml, serde_yaml::to_string(&ch).unwrap());
+    assert_eq!(yaml, serde_yml::to_string(&ch).unwrap());
 
     let ch = '#';
     let yaml = indoc! {"
         '#'
     "};
-    assert_eq!(yaml, serde_yaml::to_string(&ch).unwrap());
+    assert_eq!(yaml, serde_yml::to_string(&ch).unwrap());
 
     let ch = '-';
     let yaml = indoc! {"
         '-'
     "};
-    assert_eq!(yaml, serde_yaml::to_string(&ch).unwrap());
+    assert_eq!(yaml, serde_yml::to_string(&ch).unwrap());
 }
 
 #[test]
@@ -195,7 +198,7 @@ fn test_map() {
     thing.insert("y".to_owned(), 2);
     let yaml = indoc! {"
         x: 1
-        y: 2
+        'y': 2
     "};
     test_serde(&thing, yaml);
 }
@@ -220,7 +223,7 @@ fn test_map_key_value() {
     let yaml = indoc! {"
         k: v
     "};
-    assert_eq!(yaml, serde_yaml::to_string(&Map).unwrap());
+    assert_eq!(yaml, serde_yml::to_string(&Map).unwrap());
 }
 
 #[test]
@@ -238,7 +241,7 @@ fn test_basic_struct() {
     };
     let yaml = indoc! {r#"
         x: -4
-        y: "hi\tquoted"
+        'y': "hi\tquoted"
         z: true
     "#};
     test_serde(&thing, yaml);
@@ -255,7 +258,8 @@ fn test_string_escapes() {
         "\0\a\b\t\n\v\f\r\e\"\\\N\L\P"
     "#};
     test_serde(
-        &"\0\u{7}\u{8}\t\n\u{b}\u{c}\r\u{1b}\"\\\u{85}\u{2028}\u{2029}".to_owned(),
+        &"\0\u{7}\u{8}\t\n\u{b}\u{c}\r\u{1b}\"\\\u{85}\u{2028}\u{2029}"
+            .to_owned(),
         yaml,
     );
 
@@ -268,6 +272,66 @@ fn test_string_escapes() {
         🎉
     "};
     test_serde(&"\u{1f389}".to_owned(), yaml);
+}
+
+#[test]
+fn test_boolish_serialization() {
+    // See https://yaml.org/type/bool.html
+    let thing = vec![
+        Value::String("y".to_owned()),
+        Value::String("Y".to_owned()),
+        Value::String("yes".to_owned()),
+        Value::String("Yes".to_owned()),
+        Value::String("YES".to_owned()),
+        Value::String("n".to_owned()),
+        Value::String("N".to_owned()),
+        Value::String("no".to_owned()),
+        Value::String("No".to_owned()),
+        Value::String("NO".to_owned()),
+        Value::String("true".to_owned()),
+        Value::String("True".to_owned()),
+        Value::String("TRUE".to_owned()),
+        Value::String("false".to_owned()),
+        Value::String("False".to_owned()),
+        Value::String("FALSE".to_owned()),
+        Value::String("on".to_owned()),
+        Value::String("On".to_owned()),
+        Value::String("ON".to_owned()),
+        Value::String("off".to_owned()),
+        Value::String("Off".to_owned()),
+        Value::String("OFF".to_owned()),
+        Value::Bool(true),
+        Value::Bool(false),
+    ];
+
+    let yaml = indoc! {"
+        - 'y'
+        - 'Y'
+        - 'yes'
+        - 'Yes'
+        - 'YES'
+        - 'n'
+        - 'N'
+        - 'no'
+        - 'No'
+        - 'NO'
+        - 'true'
+        - 'True'
+        - 'TRUE'
+        - 'false'
+        - 'False'
+        - 'FALSE'
+        - 'on'
+        - 'On'
+        - 'ON'
+        - 'off'
+        - 'Off'
+        - 'OFF'
+        - true
+        - false
+    "};
+
+    test_serde(&thing, yaml);
 }
 
 #[test]
@@ -316,6 +380,75 @@ fn test_strings_needing_quote() {
     test_serde(&thing, yaml);
 }
 
+#[test]
+fn test_moar_strings_needing_quote() {
+    #[derive(Serialize, Deserialize, PartialEq, Debug)]
+    struct Struct {
+        s: String,
+    }
+
+    for s in &[
+        // Short hex values.
+        "0x0",
+        "0x1",
+        // Long hex values that don't fit in a u64 need to be quoted.
+        "0xffaed20B7B67e498A3bEEf97386ec1849EFeE6Ac",
+        // "empty" strings.
+        "",
+        " ",
+        // The norway problem https://hitchdev.com/strictyaml/why/implicit-typing-removed/
+        "NO",
+        "no",
+        "No",
+        "Yes",
+        "YES",
+        "yes",
+        "True",
+        "TRUE",
+        "true",
+        "False",
+        "FALSE",
+        "false",
+        "y",
+        "Y",
+        "n",
+        "N",
+        "on",
+        "On",
+        "ON",
+        "off",
+        "Off",
+        "OFF",
+        "0",
+        "1",
+        "null",
+        "Null",
+        "NULL",
+        "nil",
+        "Nil",
+        "NIL",
+        // https://hitchdev.com/strictyaml/why/implicit-typing-removed/#string-or-float
+        "9.3",
+        // https://github.com/dtolnay/serde_yml/pull/398#discussion_r1432944356
+        "2E234567",
+        // https://yaml.org/spec/1.2.2/#1022-tag-resolution
+        "0o7",
+        "0x3A",
+        "+12.3",
+        "0.",
+        "-0.0",
+        "12e3",
+        "-2E+05",
+        "0",
+        "-0",
+        "3",
+        "-19",
+    ] {
+        let thing = Struct { s: s.to_string() };
+        let yaml = format!("s: '{}'\n", s);
+        test_serde(&thing, &yaml);
+    }
+}
 #[test]
 fn test_nested_vec() {
     let thing = vec![vec![1, 2, 3], vec![4, 5, 6]];
@@ -502,10 +635,10 @@ fn test_tagged_map_value() {
 #[test]
 fn test_value() {
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
-    pub struct GenericInstructions {
+    pub(crate) struct GenericInstructions {
         #[serde(rename = "type")]
-        pub typ: String,
-        pub config: Value,
+        pub(crate) typ: String,
+        pub(crate) config: Value,
     }
     let thing = GenericInstructions {
         typ: "primary".to_string(),
@@ -535,7 +668,7 @@ fn test_value() {
 fn test_mapping() {
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct Data {
-        pub substructure: Mapping,
+        pub(crate) substructure: Mapping,
     }
 
     let mut thing = Data {
@@ -563,11 +696,14 @@ fn test_mapping() {
 fn test_long_string() {
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct Data {
-        pub string: String,
+        pub(crate) string: String,
     }
 
     let thing = Data {
-        string: iter::repeat(["word", " "]).flatten().take(69).collect(),
+        string: iter::repeat(["word", " "])
+            .flatten()
+            .take(69)
+            .collect(),
     };
 
     let yaml = indoc! {"

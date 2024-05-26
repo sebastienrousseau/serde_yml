@@ -5,19 +5,20 @@ use serde::de::Deserialize;
 #[cfg(not(miri))]
 use serde::de::{SeqAccess, Visitor};
 use serde_derive::{Deserialize, Serialize};
-use serde_yaml::value::{Tag, TaggedValue};
-use serde_yaml::{Deserializer, Value};
+use serde_yml::value::{Tag, TaggedValue};
+use serde_yml::{Deserializer, Value};
 #[cfg(not(miri))]
 use std::collections::BTreeMap;
 #[cfg(not(miri))]
 use std::fmt;
 use std::fmt::Debug;
+use std::fmt::Formatter;
 
 fn test_error<'de, T>(yaml: &'de str, expected: &str)
 where
     T: Deserialize<'de> + Debug,
 {
-    let result = serde_yaml::from_str::<T>(yaml);
+    let result = serde_yml::from_str::<T>(yaml);
     assert_eq!(expected, result.unwrap_err().to_string());
 
     let mut deserializer = Deserializer::from_str(yaml);
@@ -42,32 +43,33 @@ fn test_incorrect_type() {
         ---
         str
     "};
-    let expected = "invalid type: string \"str\", expected i16 at line 2 column 1";
+    let expected =
+        "invalid type: string \"str\", expected i16 at line 2 column 1";
     test_error::<i16>(yaml, expected);
 }
 
 #[test]
 fn test_incorrect_nested_type() {
     #[derive(Deserialize, Debug)]
-    pub struct A {
+    pub(crate) struct A {
         #[allow(dead_code)]
-        pub b: Vec<B>,
+        pub(crate) b: Vec<B>,
     }
     #[derive(Deserialize, Debug)]
-    pub enum B {
+    pub(crate) enum B {
         C(#[allow(dead_code)] C),
     }
     #[derive(Deserialize, Debug)]
-    pub struct C {
+    pub(crate) struct C {
         #[allow(dead_code)]
-        pub d: bool,
+        pub(crate) d: bool,
     }
     let yaml = indoc! {"
         b:
           - !C
             d: fase
     "};
-    let expected = "b[0].d: invalid type: string \"fase\", expected a boolean at line 3 column 8";
+    let expected = "b.\\[0\\].d: invalid type: string \"fase\", expected a boolean at line 3 column 8";
     test_error::<A>(yaml, expected);
 }
 
@@ -80,11 +82,11 @@ fn test_empty() {
 #[test]
 fn test_missing_field() {
     #[derive(Deserialize, Debug)]
-    pub struct Basic {
+    pub(crate) struct Basic {
         #[allow(dead_code)]
-        pub v: bool,
+        pub(crate) v: bool,
         #[allow(dead_code)]
-        pub w: bool,
+        pub(crate) w: bool,
     }
     let yaml = indoc! {"
         ---
@@ -107,9 +109,9 @@ fn test_unknown_anchor() {
 #[test]
 fn test_ignored_unknown_anchor() {
     #[derive(Deserialize, Debug)]
-    pub struct Wrapper {
+    pub(crate) struct Wrapper {
         #[allow(dead_code)]
-        pub c: (),
+        pub(crate) c: (),
     }
     let yaml = indoc! {"
         b: [*a]
@@ -148,11 +150,11 @@ fn test_second_document_syntax_error() {
 
     let mut de = Deserializer::from_str(yaml);
     let first_doc = de.next().unwrap();
-    let result = <usize as serde::Deserialize>::deserialize(first_doc);
+    let result = <usize as Deserialize>::deserialize(first_doc);
     assert_eq!(0, result.unwrap());
 
     let second_doc = de.next().unwrap();
-    let result = <usize as serde::Deserialize>::deserialize(second_doc);
+    let result = <usize as Deserialize>::deserialize(second_doc);
     let expected =
         "did not find expected node content at line 4 column 1, while parsing a block node";
     assert_eq!(expected, result.unwrap_err().to_string());
@@ -161,42 +163,44 @@ fn test_second_document_syntax_error() {
 #[test]
 fn test_missing_enum_tag() {
     #[derive(Deserialize, Debug)]
-    pub enum E {
+    pub(crate) enum E {
         V(#[allow(dead_code)] usize),
     }
     let yaml = indoc! {r#"
         "V": 16
         "other": 32
     "#};
-    let expected = "invalid type: map, expected a YAML tag starting with '!'";
+    let expected =
+        "invalid type: map, expected a YAML tag starting with '!'";
     test_error::<E>(yaml, expected);
 }
 
 #[test]
 fn test_serialize_nested_enum() {
     #[derive(Serialize, Debug)]
-    pub enum Outer {
+    pub(crate) enum Outer {
         Inner(Inner),
     }
     #[derive(Serialize, Debug)]
-    pub enum Inner {
+    pub(crate) enum Inner {
         Newtype(usize),
         Tuple(usize, usize),
         Struct { x: usize },
     }
 
-    let expected = "serializing nested enums in YAML is not supported yet";
+    let expected =
+        "serializing nested enums in YAML is not supported yet";
 
     let e = Outer::Inner(Inner::Newtype(0));
-    let error = serde_yaml::to_string(&e).unwrap_err();
+    let error = serde_yml::to_string(&e).unwrap_err();
     assert_eq!(error.to_string(), expected);
 
     let e = Outer::Inner(Inner::Tuple(0, 0));
-    let error = serde_yaml::to_string(&e).unwrap_err();
+    let error = serde_yml::to_string(&e).unwrap_err();
     assert_eq!(error.to_string(), expected);
 
     let e = Outer::Inner(Inner::Struct { x: 0 });
-    let error = serde_yaml::to_string(&e).unwrap_err();
+    let error = serde_yml::to_string(&e).unwrap_err();
     assert_eq!(error.to_string(), expected);
 
     let e = Value::Tagged(Box::new(TaggedValue {
@@ -206,18 +210,18 @@ fn test_serialize_nested_enum() {
             value: Value::Null,
         })),
     }));
-    let error = serde_yaml::to_string(&e).unwrap_err();
+    let error = serde_yml::to_string(&e).unwrap_err();
     assert_eq!(error.to_string(), expected);
 }
 
 #[test]
 fn test_deserialize_nested_enum() {
     #[derive(Deserialize, Debug)]
-    pub enum Outer {
+    pub(crate) enum Outer {
         Inner(#[allow(dead_code)] Inner),
     }
     #[derive(Deserialize, Debug)]
-    pub enum Inner {
+    pub(crate) enum Inner {
         Variant(#[allow(dead_code)] Vec<usize>),
     }
 
@@ -246,7 +250,7 @@ fn test_deserialize_nested_enum() {
 #[test]
 fn test_variant_not_a_seq() {
     #[derive(Deserialize, Debug)]
-    pub enum E {
+    pub(crate) enum E {
         V(#[allow(dead_code)] usize),
     }
     let yaml = indoc! {"
@@ -254,18 +258,19 @@ fn test_variant_not_a_seq() {
         !V
         value: 0
     "};
-    let expected = "invalid type: map, expected usize at line 2 column 1";
+    let expected =
+        "invalid type: map, expected usize at line 2 column 1";
     test_error::<E>(yaml, expected);
 }
 
 #[test]
 fn test_struct_from_sequence() {
     #[derive(Deserialize, Debug)]
-    pub struct Struct {
+    pub(crate) struct Struct {
         #[allow(dead_code)]
-        pub x: usize,
+        pub(crate) x: usize,
         #[allow(dead_code)]
-        pub y: usize,
+        pub(crate) y: usize,
     }
     let yaml = indoc! {"
         [0, 0]
@@ -337,9 +342,9 @@ fn test_long_tuple() {
 #[test]
 fn test_invalid_scalar_type() {
     #[derive(Deserialize, Debug)]
-    pub struct S {
+    pub(crate) struct S {
         #[allow(dead_code)]
-        pub x: [i32; 1],
+        pub(crate) x: [i32; 1],
     }
 
     let yaml = "x: ''\n";
@@ -351,9 +356,9 @@ fn test_invalid_scalar_type() {
 #[test]
 fn test_infinite_recursion_objects() {
     #[derive(Deserialize, Debug)]
-    pub struct S {
+    pub(crate) struct S {
         #[allow(dead_code)]
-        pub x: Option<Box<S>>,
+        pub(crate) x: Option<Box<S>>,
     }
 
     let yaml = "&a {'x': *a}";
@@ -365,9 +370,9 @@ fn test_infinite_recursion_objects() {
 #[test]
 fn test_infinite_recursion_arrays() {
     #[derive(Deserialize, Debug)]
-    pub struct S(
-        #[allow(dead_code)] pub usize,
-        #[allow(dead_code)] pub Option<Box<S>>,
+    pub(crate) struct S(
+        #[allow(dead_code)] pub(crate) usize,
+        #[allow(dead_code)] pub(crate) Option<Box<S>>,
     );
 
     let yaml = "&a [0, *a]";
@@ -379,7 +384,7 @@ fn test_infinite_recursion_arrays() {
 #[test]
 fn test_infinite_recursion_newtype() {
     #[derive(Deserialize, Debug)]
-    pub struct S(#[allow(dead_code)] pub Option<Box<S>>);
+    pub(crate) struct S(#[allow(dead_code)] pub(crate) Option<Box<S>>);
 
     let yaml = "&a [*a]";
     let expected = "recursion limit exceeded";
@@ -390,9 +395,9 @@ fn test_infinite_recursion_newtype() {
 #[test]
 fn test_finite_recursion_objects() {
     #[derive(Deserialize, Debug)]
-    pub struct S {
+    pub(crate) struct S {
         #[allow(dead_code)]
-        pub x: Option<Box<S>>,
+        pub(crate) x: Option<Box<S>>,
     }
 
     let yaml = "{'x':".repeat(1_000) + &"}".repeat(1_000);
@@ -404,9 +409,9 @@ fn test_finite_recursion_objects() {
 #[test]
 fn test_finite_recursion_arrays() {
     #[derive(Deserialize, Debug)]
-    pub struct S(
-        #[allow(dead_code)] pub usize,
-        #[allow(dead_code)] pub Option<Box<S>>,
+    pub(crate) struct S(
+        #[allow(dead_code)] pub(crate) usize,
+        #[allow(dead_code)] pub(crate) Option<Box<S>>,
     );
 
     let yaml = "[0, ".repeat(1_000) + &"]".repeat(1_000);
@@ -423,7 +428,10 @@ fn test_billion_laughs() {
     impl<'de> Visitor<'de> for X {
         type Value = X;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(
+            &self,
+            formatter: &mut Formatter<'_>,
+        ) -> fmt::Result {
             formatter.write_str("exponential blowup")
         }
 
@@ -471,7 +479,8 @@ fn test_duplicate_keys() {
         thing: true
         thing: false
     "};
-    let expected = "duplicate entry with key \"thing\" at line 2 column 1";
+    let expected =
+        "duplicate entry with key \"thing\" at line 2 column 1";
     test_error::<Value>(yaml, expected);
 
     let yaml = indoc! {"

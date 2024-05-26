@@ -1,183 +1,162 @@
-//! [![github]](https://github.com/dtolnay/serde-yaml)&ensp;[![crates-io]](https://crates.io/crates/serde-yaml)&ensp;[![docs-rs]](https://docs.rs/serde-yaml)
+//! # Serde YML
 //!
-//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
-//! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
-//! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
+//! [![Serde YML Logo](https://kura.pro/serde_yml/images/banners/banner-serde_yml.svg)](https://serde_yml.one "Serde YML: Seamless YAML Serialization for Rust")
 //!
-//! <br>
+//! ## Seamless YAML Serialization for [Rust][rust-lang]
 //!
-//! Rust library for using the [Serde] serialization framework with data in
-//! [YAML] file format. _(This project is no longer maintained.)_
+//! [![Crates.io](https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=success&labelColor=27A006)][crates-io]
+//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.7-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)][lib-rs]
+//! [![License](https://img.shields.io/crates/l/serde_yml.svg?style=for-the-badge&color=007EC6&labelColor=03589B)][license]
+//! [![Rust](https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust)][rust-lang]
 //!
-//! [Serde]: https://github.com/serde-rs/serde
-//! [YAML]: https://yaml.org/
+//! [Serde YML][serde-yml] is a Rust library that simplifies YAML serialization and deserialization using the popular [Serde][serde] framework. It provides a convenient and efficient way to convert Rust data structures to YAML format and vice versa.
 //!
-//! # Examples
+//! ## Features
 //!
+//! - Serialization and deserialization of Rust data structures to/from YAML format
+//! - Support for custom structs and enums using Serde's derive macros
+//! - Handling of YAML's `!tag` syntax for representing enum variants
+//! - Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`
+//! - Comprehensive error handling with `Error`, `Location`, and `Result` types
+//! - Serialization to YAML using `to_string` and `to_writer` functions
+//! - Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions
+//! - Customizable serialization and deserialization behavior using Serde's `#[serde(with = ...)]` attribute
+//! - Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module
+//! - Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module
+//! - Serialization and deserialization of optional enum fields using the `singleton_map_optional` module
+//! - Handling of nested enum structures with optional inner enums using the `singleton_map_recursive` module
+//! - Customization of serialization and deserialization logic for enums using the `singleton_map_with` module and custom helper functions
+//!
+//! ## Rust Version Compatibility
+//!
+//! This library is compatible with Rust 1.60 and above.
+//!
+//! ## Installation
+//!
+//! Add the following dependency to your `Cargo.toml` file:
+//!
+//! ```toml
+//! [dependencies]
+//! serde_yml = "0.0.7"
 //! ```
-//! use std::collections::BTreeMap;
 //!
-//! fn main() -> Result<(), serde_yaml::Error> {
-//!     // You have some type.
-//!     let mut map = BTreeMap::new();
-//!     map.insert("x".to_string(), 1.0);
-//!     map.insert("y".to_string(), 2.0);
+//! ## Usage
 //!
-//!     // Serialize it to a YAML string.
-//!     let yaml = serde_yaml::to_string(&map)?;
-//!     assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
+//! Serde YML offers a straightforward and intuitive API for working with YAML data in Rust. Here's a quick example of how to serialize and deserialize a Rust type:
 //!
-//!     // Deserialize it back to a Rust type.
-//!     let deserialized_map: BTreeMap<String, f64> = serde_yaml::from_str(&yaml)?;
-//!     assert_eq!(map, deserialized_map);
-//!     Ok(())
-//! }
-//! ```
-//!
-//! ## Using Serde derive
-//!
-//! It can also be used with Serde's derive macros to handle structs and enums
-//! defined in your program.
-//!
-//! Structs serialize in the obvious way:
-//!
-//! ```
-//! # use serde_derive::{Serialize, Deserialize};
+//! ```rust
 //! use serde::{Serialize, Deserialize};
 //!
-//! #[derive(Serialize, Deserialize, PartialEq, Debug)]
+//! #[derive(Serialize, Deserialize,Debug,PartialEq)]
 //! struct Point {
 //!     x: f64,
 //!     y: f64,
 //! }
 //!
-//! fn main() -> Result<(), serde_yaml::Error> {
+//! fn main() -> Result<(), serde_yml::Error> {
 //!     let point = Point { x: 1.0, y: 2.0 };
 //!
-//!     let yaml = serde_yaml::to_string(&point)?;
-//!     assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
+//!     // Serialize to YAML
+//!     let yaml = serde_yml::to_string(&point)?;
+//!     assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
 //!
-//!     let deserialized_point: Point = serde_yaml::from_str(&yaml)?;
+//!     // Deserialize from YAML
+//!     let deserialized_point: Point = serde_yml::from_str(&yaml)?;
 //!     assert_eq!(point, deserialized_point);
-//!     Ok(())
-//! }
-//! ```
-//!
-//! Enums serialize using YAML's `!tag` syntax to identify the variant name.
-//!
-//! ```
-//! # use serde_derive::{Serialize, Deserialize};
-//! use serde::{Serialize, Deserialize};
-//!
-//! #[derive(Serialize, Deserialize, PartialEq, Debug)]
-//! enum Enum {
-//!     Unit,
-//!     Newtype(usize),
-//!     Tuple(usize, usize, usize),
-//!     Struct { x: f64, y: f64 },
-//! }
-//!
-//! fn main() -> Result<(), serde_yaml::Error> {
-//!     let yaml = "
-//!         - !Newtype 1
-//!         - !Tuple [0, 0, 0]
-//!         - !Struct {x: 1.0, y: 2.0}
-//!     ";
-//!     let values: Vec<Enum> = serde_yaml::from_str(yaml).unwrap();
-//!     assert_eq!(values[0], Enum::Newtype(1));
-//!     assert_eq!(values[1], Enum::Tuple(0, 0, 0));
-//!     assert_eq!(values[2], Enum::Struct { x: 1.0, y: 2.0 });
-//!
-//!     // The last two in YAML's block style instead:
-//!     let yaml = "
-//!         - !Tuple
-//!           - 0
-//!           - 0
-//!           - 0
-//!         - !Struct
-//!           x: 1.0
-//!           y: 2.0
-//!     ";
-//!     let values: Vec<Enum> = serde_yaml::from_str(yaml).unwrap();
-//!     assert_eq!(values[0], Enum::Tuple(0, 0, 0));
-//!     assert_eq!(values[1], Enum::Struct { x: 1.0, y: 2.0 });
-//!
-//!     // Variants with no data can be written using !Tag or just the string name.
-//!     let yaml = "
-//!         - Unit  # serialization produces this one
-//!         - !Unit
-//!     ";
-//!     let values: Vec<Enum> = serde_yaml::from_str(yaml).unwrap();
-//!     assert_eq!(values[0], Enum::Unit);
-//!     assert_eq!(values[1], Enum::Unit);
 //!
 //!     Ok(())
 //! }
 //! ```
-
-#![doc(html_root_url = "https://docs.rs/serde_yaml/0.9.34+deprecated")]
-#![deny(missing_docs, unsafe_op_in_unsafe_fn)]
-// Suppressed clippy_pedantic lints
-#![allow(
-    // buggy
-    clippy::iter_not_returning_iterator, // https://github.com/rust-lang/rust-clippy/issues/8285
-    clippy::ptr_arg, // https://github.com/rust-lang/rust-clippy/issues/9218
-    clippy::question_mark, // https://github.com/rust-lang/rust-clippy/issues/7859
-    // private Deserializer::next
-    clippy::should_implement_trait,
-    // things are often more readable this way
-    clippy::cast_lossless,
-    clippy::checked_conversions,
-    clippy::if_not_else,
-    clippy::manual_assert,
-    clippy::match_like_matches_macro,
-    clippy::match_same_arms,
-    clippy::module_name_repetitions,
-    clippy::needless_pass_by_value,
-    clippy::redundant_else,
-    clippy::single_match_else,
-    // code is acceptable
-    clippy::blocks_in_conditions,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss,
-    clippy::derive_partial_eq_without_eq,
-    clippy::derived_hash_with_manual_eq,
-    clippy::doc_markdown,
-    clippy::items_after_statements,
-    clippy::let_underscore_untyped,
-    clippy::manual_map,
-    clippy::missing_panics_doc,
-    clippy::never_loop,
-    clippy::return_self_not_must_use,
-    clippy::too_many_lines,
-    clippy::uninlined_format_args,
-    clippy::unsafe_removed_from_name,
-    clippy::wildcard_in_or_patterns,
-    // noisy
-    clippy::missing_errors_doc,
-    clippy::must_use_candidate,
+//!
+//! ## Examples
+//!
+//! Serde YML provides a set of comprehensive examples to demonstrate its usage and capabilities. You can find them in the `examples` directory of the project.
+//!
+//! To run the examples, clone the repository and execute the following command in your terminal from the project root directory:
+//!
+//! ```shell
+//! cargo run --example example
+//! ```
+//!
+//! The examples cover various scenarios, including serializing and deserializing structs, enums, optional fields, custom structs, and more.
+//!
+//! ## Best Practices and Common Pitfalls
+//!
+//! - When serializing large datasets, consider using `serde_yml::to_writer` to write the YAML output directly to a file or a writer instead of keeping the entire serialized string in memory.
+//! - Be cautious when deserializing untrusted YAML input, as it may contain unexpected or malicious data. Always validate and handle the deserialized data appropriately.
+//! - When working with custom structs or enums, ensure that they implement the necessary Serde traits (`Serialize` and `Deserialize`) for proper serialization and deserialization.
+//! - If you encounter any issues or have questions, refer to the library's documentation and examples for guidance. If the problem persists, consider opening an issue on the library's [GitHub repository][repo].
+//!
+//! ## Credits and Acknowledgements
+//!
+//! Serde YML draws inspiration from the excellent work done by [David Tolnay][dtolnay] and the maintainers of the [serde-yaml][serde-yaml] library. While Serde YML started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind.
+//!
+//! If you are currently using serde-yaml in your projects, we recommend carefully evaluating your requirements and considering the stability and maturity of the original library before migrating to Serde YML.
+//!
+//! Finally, we would like to express our sincere gratitude to [David Tolnay][dtolnay] and the [serde-yaml][serde-yaml] team for their valuable contributions to the Rust community and for inspiring this project.
+//!
+//! [serde-yml]: https://serdeyml.com "Serde YML"
+//! [serde]: https://github.com/serde-rs/serde
+//! [rust-lang]: https://www.rust-lang.org/ "Rust"
+//! [dtolnay]: https://github.com/dtolnay "David Tolnay"
+//! [serde-yaml]: https://github.com/dtolnay/serde-yaml "Serde YAML"
+//! [crates-io]: https://crates.io/crates/serde_yml "Crates.io"
+//! [lib-rs]: https://lib.rs/crates/serde_yml "Lib.rs"
+//! [license]: https://opensource.org/license/apache-2-0/ "MIT or Apache License, Version 2.0"
+//! [repo]: https://github.com/your-repo/serde_yml "Serde YML Repository"
+//!
+#![deny(missing_docs)]
+#![doc(
+    html_favicon_url = "https://kura.pro/serde_yml/images/favicon.ico",
+    html_logo_url = "https://kura.pro/serde_yml/images/logos/serde_yml.svg",
+    html_root_url = "https://docs.rs/serde_yml"
 )]
+#![crate_name = "serde_yml"]
+#![crate_type = "lib"]
 
-pub use crate::de::{from_reader, from_slice, from_str, Deserializer};
-pub use crate::error::{Error, Location, Result};
-pub use crate::ser::{to_string, to_writer, Serializer};
+// Re-export commonly used items from other modules
+pub use crate::de::{from_reader, from_slice, from_str, Deserializer}; // Deserialization functions
+pub use crate::modules::error::{Error, Location, Result}; // Error handling types
+pub use crate::ser::{to_string, to_writer, Serializer, State}; // Serialization functions
 #[doc(inline)]
-pub use crate::value::{from_value, to_value, Index, Number, Sequence, Value};
+pub use crate::value::{
+    from_value, to_value, Index, Number, Sequence, Value,
+}; // Value manipulation functions
+
+/// The `macros` module contains functions for generating macros.
+pub mod macros;
+
+/// The `utilities` module contains utility functions for the library.
+pub mod utilities;
 
 #[doc(inline)]
-pub use crate::mapping::Mapping;
+pub use crate::mapping::Mapping; // Re-export the Mapping type for YAML mappings
 
-mod de;
-mod error;
-mod libyaml;
-mod loader;
+/// The `de` module contains the library's YAML deserializer.
+pub mod de;
+
+/// The `libyml` module contains the library's YAML parser and emitter.
+pub mod libyml;
+
+/// The `loader` module contains the `Loader` type for YAML loading.
+pub mod loader;
+
+/// The `mapping` module contains the `Mapping` type for YAML mappings.
 pub mod mapping;
-mod number;
-mod path;
-mod ser;
+
+/// The `modules` module contains the library's modules.
+pub mod modules;
+
+/// The `number` module contains the `Number` type for YAML numbers.
+pub mod number;
+
+/// The `ser` module contains the library's YAML serializer.
+pub mod ser;
+
+/// The `value` module contains the `Value` type for YAML values.
 pub mod value;
+
+/// The `with` module contains the `With` type for YAML values.
 pub mod with;
 
 // Prevent downstream code from implementing the Index trait.
@@ -187,5 +166,5 @@ mod private {
     impl Sealed for str {}
     impl Sealed for String {}
     impl Sealed for crate::Value {}
-    impl<'a, T> Sealed for &'a T where T: ?Sized + Sealed {}
+    impl<T> Sealed for &T where T: ?Sized + Sealed {}
 }

@@ -1,0 +1,60 @@
+name: 🧪 Document
+
+on:
+  push:
+    branches:
+      - main
+      - feat/serde_yml
+  pull_request:
+    branches:
+      - feat/serde_yml
+  release:
+    types: [created]
+
+jobs:
+  all:
+    name: Document
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: hecrj/setup-rust-action@v2
+        with:
+          rust-version: nightly
+
+      - uses: actions/checkout@v4
+
+      - name: Update libssl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl1.1
+
+      - name: Generate documentation for all features and publish it
+        run: |
+          RUSTDOCFLAGS="--cfg docsrs" \
+            cargo doc --no-deps --all-features --workspace
+            # Write index.html with redirect
+            echo '<html><head><meta http-equiv="refresh" content="0; url=/serde_yml/"></head><body></body></html>' > ./target/doc/index.html
+
+      - name: Deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: target/doc
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Write CNAME file
+        run: echo 'doc.serdeyml.com' > ./target/doc/CNAME
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/doc
+          publish_branch: gh-pages
+          cname: true
+          commit_message: Deploy documentation at ${{ github.sha }}
+          user_name: github-actions
+          user_email: actions@users.noreply.github.com

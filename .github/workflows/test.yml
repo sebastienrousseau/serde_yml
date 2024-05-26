@@ -1,0 +1,42 @@
+name: 🧪 Test
+
+on: [pull_request, push]
+jobs:
+  test-lib:
+    name: Test library
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        toolchain: [stable, nightly]
+    continue-on-error: true
+
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Rust
+      - name: Setup Rust
+        run: |
+          rustup toolchain add ${{ matrix.toolchain }} --component llvm-tools-preview
+          rustup override set ${{ matrix.toolchain }}
+
+      # Configure cache
+      - name: Configure cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: test-${{ runner.os }}-cargo-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+
+      # Run tests with all features
+      - name: Run tests with all features
+        id: run-tests-all-features
+        run: |
+          cargo test --verbose --workspace
+          cargo test --verbose --workspace --all-features

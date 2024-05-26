@@ -1,6 +1,8 @@
-use crate::error::{self, Error, ErrorImpl};
+use crate::modules::error::{self, Error, ErrorImpl};
 use crate::value::tagged::{self, MaybeTag};
-use crate::value::{to_value, Mapping, Number, Sequence, Tag, TaggedValue, Value};
+use crate::value::{
+    to_value, Mapping, Number, Sequence, Tag, TaggedValue, Value,
+};
 use serde::ser::{self, Serialize};
 use std::fmt::Display;
 use std::mem;
@@ -8,6 +10,7 @@ use std::mem;
 type Result<T, E = Error> = std::result::Result<T, E>;
 
 impl Serialize for Value {
+    // Serializes a `Value` into the given serializer.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -20,7 +23,8 @@ impl Serialize for Value {
             Value::Sequence(seq) => seq.serialize(serializer),
             Value::Mapping(mapping) => {
                 use serde::ser::SerializeMap;
-                let mut map = serializer.serialize_map(Some(mapping.len()))?;
+                let mut map =
+                    serializer.serialize_map(Some(mapping.len()))?;
                 for (k, v) in mapping {
                     map.serialize_entry(k, v)?;
                 }
@@ -33,24 +37,25 @@ impl Serialize for Value {
 
 /// Serializer whose output is a `Value`.
 ///
-/// This is the serializer that backs [`serde_yaml::to_value`][crate::to_value].
-/// Unlike the main serde_yaml serializer which goes from some serializable
+/// This is the serializer that backs [`serde_yml::to_value`][crate::to_value].
+/// Unlike the main serde_yml serializer which goes from some serializable
 /// value of type `T` to YAML text, this one goes from `T` to
-/// `serde_yaml::Value`.
+/// `serde_yml::Value`.
 ///
 /// The `to_value` function is implementable as:
 ///
 /// ```
 /// use serde::Serialize;
-/// use serde_yaml::{Error, Value};
+/// use serde_yml::{Error, Value};
 ///
 /// pub fn to_value<T>(input: T) -> Result<Value, Error>
 /// where
 ///     T: Serialize,
 /// {
-///     input.serialize(serde_yaml::value::Serializer)
+///     input.serialize(serde_yml::value::Serializer)
 /// }
 /// ```
+#[derive(Clone, Copy, Debug)]
 pub struct Serializer;
 
 impl ser::Serializer for Serializer {
@@ -147,7 +152,10 @@ impl ser::Serializer for Serializer {
         Ok(Value::Null)
     }
 
-    fn serialize_unit_struct(self, _name: &'static str) -> Result<Value> {
+    fn serialize_unit_struct(
+        self,
+        _name: &'static str,
+    ) -> Result<Value> {
         self.serialize_unit()
     }
 
@@ -160,9 +168,13 @@ impl ser::Serializer for Serializer {
         Ok(Value::String(variant.to_owned()))
     }
 
-    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<Value>
+    fn serialize_newtype_struct<T>(
+        self,
+        _name: &'static str,
+        value: &T,
+    ) -> Result<Value>
     where
-        T: ?Sized + ser::Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(self)
     }
@@ -175,7 +187,7 @@ impl ser::Serializer for Serializer {
         value: &T,
     ) -> Result<Value>
     where
-        T: ?Sized + ser::Serialize,
+        T: ?Sized + Serialize,
     {
         if variant.is_empty() {
             return Err(error::new(ErrorImpl::EmptyTag));
@@ -192,12 +204,15 @@ impl ser::Serializer for Serializer {
 
     fn serialize_some<V>(self, value: &V) -> Result<Value>
     where
-        V: ?Sized + ser::Serialize,
+        V: ?Sized + Serialize,
     {
         value.serialize(self)
     }
 
-    fn serialize_seq(self, len: Option<usize>) -> Result<SerializeArray> {
+    fn serialize_seq(
+        self,
+        len: Option<usize>,
+    ) -> Result<SerializeArray> {
         let sequence = match len {
             None => Sequence::new(),
             Some(len) => Sequence::with_capacity(len),
@@ -209,7 +224,11 @@ impl ser::Serializer for Serializer {
         self.serialize_seq(Some(len))
     }
 
-    fn serialize_tuple_struct(self, _name: &'static str, len: usize) -> Result<SerializeArray> {
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        len: usize,
+    ) -> Result<SerializeArray> {
         self.serialize_seq(Some(len))
     }
 
@@ -240,7 +259,11 @@ impl ser::Serializer for Serializer {
         }
     }
 
-    fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<SerializeStruct> {
+    fn serialize_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<SerializeStruct> {
         Ok(SerializeStruct {
             mapping: Mapping::new(),
         })
@@ -261,8 +284,13 @@ impl ser::Serializer for Serializer {
             mapping: Mapping::new(),
         })
     }
+    fn is_human_readable(&self) -> bool {
+        false
+    }
 }
 
+/// A helper struct to serialize arrays.
+#[derive(Debug)]
 pub struct SerializeArray {
     sequence: Sequence,
 }
@@ -273,7 +301,7 @@ impl ser::SerializeSeq for SerializeArray {
 
     fn serialize_element<T>(&mut self, elem: &T) -> Result<()>
     where
-        T: ?Sized + ser::Serialize,
+        T: ?Sized + Serialize,
     {
         self.sequence.push(to_value(elem)?);
         Ok(())
@@ -290,7 +318,7 @@ impl ser::SerializeTuple for SerializeArray {
 
     fn serialize_element<T>(&mut self, elem: &T) -> Result<()>
     where
-        T: ?Sized + ser::Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, elem)
     }
@@ -306,7 +334,7 @@ impl ser::SerializeTupleStruct for SerializeArray {
 
     fn serialize_field<V>(&mut self, value: &V) -> Result<()>
     where
-        V: ?Sized + ser::Serialize,
+        V: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -316,6 +344,8 @@ impl ser::SerializeTupleStruct for SerializeArray {
     }
 }
 
+/// A helper struct to serialize tuple variants.
+#[derive(Debug)]
 pub struct SerializeTupleVariant {
     tag: &'static str,
     sequence: Sequence,
@@ -327,7 +357,7 @@ impl ser::SerializeTupleVariant for SerializeTupleVariant {
 
     fn serialize_field<V>(&mut self, v: &V) -> Result<()>
     where
-        V: ?Sized + ser::Serialize,
+        V: ?Sized + Serialize,
     {
         self.sequence.push(to_value(v)?);
         Ok(())
@@ -341,9 +371,14 @@ impl ser::SerializeTupleVariant for SerializeTupleVariant {
     }
 }
 
+/// An enum to handle the serialization of maps.
+#[derive(Debug)]
 pub enum SerializeMap {
+    /// Represents a map with a single key-value pair, used to check for a tag.
     CheckForTag,
+    /// Represents a tagged map, storing the tag and the associated value.
     Tagged(TaggedValue),
+    /// Represents an untagged map, storing the mapping and the next key.
     Untagged {
         mapping: Mapping,
         next_key: Option<Value>,
@@ -356,7 +391,7 @@ impl ser::SerializeMap for SerializeMap {
 
     fn serialize_key<T>(&mut self, key: &T) -> Result<()>
     where
-        T: ?Sized + ser::Serialize,
+        T: ?Sized + Serialize,
     {
         let key = Some(to_value(key)?);
         match self {
@@ -384,25 +419,38 @@ impl ser::SerializeMap for SerializeMap {
 
     fn serialize_value<T>(&mut self, value: &T) -> Result<()>
     where
-        T: ?Sized + ser::Serialize,
+        T: ?Sized + Serialize,
     {
         let (mapping, key) = match self {
-            SerializeMap::CheckForTag | SerializeMap::Tagged(_) => unreachable!(),
-            SerializeMap::Untagged { mapping, next_key } => (mapping, next_key),
+            SerializeMap::CheckForTag | SerializeMap::Tagged(_) => {
+                unreachable!()
+            }
+            SerializeMap::Untagged { mapping, next_key } => {
+                (mapping, next_key)
+            }
         };
         match key.take() {
             Some(key) => mapping.insert(key, to_value(value)?),
-            None => panic!("serialize_value called before serialize_key"),
+            None => {
+                panic!("serialize_value called before serialize_key")
+            }
         };
         Ok(())
     }
 
-    fn serialize_entry<K, V>(&mut self, key: &K, value: &V) -> Result<()>
+    fn serialize_entry<K, V>(
+        &mut self,
+        key: &K,
+        value: &V,
+    ) -> Result<()>
     where
-        K: ?Sized + ser::Serialize,
-        V: ?Sized + ser::Serialize,
+        K: ?Sized + Serialize,
+        V: ?Sized + Serialize,
     {
+        /// A helper struct to check for the presence of a tag in the serialized value.
         struct CheckForTag;
+
+        /// A helper struct to wrap the serialized value when it is not a tag.
         struct NotTag<T> {
             delegate: T,
         }
@@ -417,7 +465,8 @@ impl ser::SerializeMap for SerializeMap {
             type SerializeTupleVariant = NotTag<SerializeTupleVariant>;
             type SerializeMap = NotTag<SerializeMap>;
             type SerializeStruct = NotTag<SerializeStruct>;
-            type SerializeStructVariant = NotTag<SerializeStructVariant>;
+            type SerializeStructVariant =
+                NotTag<SerializeStructVariant>;
 
             fn serialize_bool(self, v: bool) -> Result<Self::Ok> {
                 Serializer.serialize_bool(v).map(MaybeTag::NotTag)
@@ -487,8 +536,13 @@ impl ser::SerializeMap for SerializeMap {
                 Serializer.serialize_unit().map(MaybeTag::NotTag)
             }
 
-            fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok> {
-                Serializer.serialize_unit_struct(name).map(MaybeTag::NotTag)
+            fn serialize_unit_struct(
+                self,
+                name: &'static str,
+            ) -> Result<Self::Ok> {
+                Serializer
+                    .serialize_unit_struct(name)
+                    .map(MaybeTag::NotTag)
             }
 
             fn serialize_unit_variant(
@@ -498,13 +552,21 @@ impl ser::SerializeMap for SerializeMap {
                 variant: &'static str,
             ) -> Result<Self::Ok> {
                 Serializer
-                    .serialize_unit_variant(name, variant_index, variant)
+                    .serialize_unit_variant(
+                        name,
+                        variant_index,
+                        variant,
+                    )
                     .map(MaybeTag::NotTag)
             }
 
-            fn serialize_newtype_struct<T>(self, name: &'static str, value: &T) -> Result<Self::Ok>
+            fn serialize_newtype_struct<T>(
+                self,
+                name: &'static str,
+                value: &T,
+            ) -> Result<Self::Ok>
             where
-                T: ?Sized + ser::Serialize,
+                T: ?Sized + Serialize,
             {
                 Serializer
                     .serialize_newtype_struct(name, value)
@@ -519,10 +581,15 @@ impl ser::SerializeMap for SerializeMap {
                 value: &T,
             ) -> Result<Self::Ok>
             where
-                T: ?Sized + ser::Serialize,
+                T: ?Sized + Serialize,
             {
                 Serializer
-                    .serialize_newtype_variant(name, variant_index, variant, value)
+                    .serialize_newtype_variant(
+                        name,
+                        variant_index,
+                        variant,
+                        value,
+                    )
                     .map(MaybeTag::NotTag)
             }
 
@@ -532,18 +599,24 @@ impl ser::SerializeMap for SerializeMap {
 
             fn serialize_some<V>(self, value: &V) -> Result<Self::Ok>
             where
-                V: ?Sized + ser::Serialize,
+                V: ?Sized + Serialize,
             {
                 Serializer.serialize_some(value).map(MaybeTag::NotTag)
             }
 
-            fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
+            fn serialize_seq(
+                self,
+                len: Option<usize>,
+            ) -> Result<Self::SerializeSeq> {
                 Ok(NotTag {
                     delegate: Serializer.serialize_seq(len)?,
                 })
             }
 
-            fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple> {
+            fn serialize_tuple(
+                self,
+                len: usize,
+            ) -> Result<Self::SerializeTuple> {
                 Ok(NotTag {
                     delegate: Serializer.serialize_tuple(len)?,
                 })
@@ -555,7 +628,8 @@ impl ser::SerializeMap for SerializeMap {
                 len: usize,
             ) -> Result<Self::SerializeTupleStruct> {
                 Ok(NotTag {
-                    delegate: Serializer.serialize_tuple_struct(name, len)?,
+                    delegate: Serializer
+                        .serialize_tuple_struct(name, len)?,
                 })
             }
 
@@ -576,7 +650,10 @@ impl ser::SerializeMap for SerializeMap {
                 })
             }
 
-            fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap> {
+            fn serialize_map(
+                self,
+                len: Option<usize>,
+            ) -> Result<Self::SerializeMap> {
                 Ok(NotTag {
                     delegate: Serializer.serialize_map(len)?,
                 })
@@ -615,7 +692,9 @@ impl ser::SerializeMap for SerializeMap {
             {
                 Ok(match tagged::check_for_tag(value) {
                     MaybeTag::Tag(tag) => MaybeTag::Tag(tag),
-                    MaybeTag::NotTag(string) => MaybeTag::NotTag(Value::String(string)),
+                    MaybeTag::NotTag(string) => {
+                        MaybeTag::NotTag(Value::String(string))
+                    }
                 })
             }
         }
@@ -626,7 +705,7 @@ impl ser::SerializeMap for SerializeMap {
 
             fn serialize_element<T>(&mut self, elem: &T) -> Result<()>
             where
-                T: ?Sized + ser::Serialize,
+                T: ?Sized + Serialize,
             {
                 self.delegate.serialize_element(elem)
             }
@@ -642,7 +721,7 @@ impl ser::SerializeMap for SerializeMap {
 
             fn serialize_element<T>(&mut self, elem: &T) -> Result<()>
             where
-                T: ?Sized + ser::Serialize,
+                T: ?Sized + Serialize,
             {
                 self.delegate.serialize_element(elem)
             }
@@ -658,7 +737,7 @@ impl ser::SerializeMap for SerializeMap {
 
             fn serialize_field<V>(&mut self, value: &V) -> Result<()>
             where
-                V: ?Sized + ser::Serialize,
+                V: ?Sized + Serialize,
             {
                 self.delegate.serialize_field(value)
             }
@@ -674,7 +753,7 @@ impl ser::SerializeMap for SerializeMap {
 
             fn serialize_field<V>(&mut self, v: &V) -> Result<()>
             where
-                V: ?Sized + ser::Serialize,
+                V: ?Sized + Serialize,
             {
                 self.delegate.serialize_field(v)
             }
@@ -690,22 +769,26 @@ impl ser::SerializeMap for SerializeMap {
 
             fn serialize_key<T>(&mut self, key: &T) -> Result<()>
             where
-                T: ?Sized + ser::Serialize,
+                T: ?Sized + Serialize,
             {
                 self.delegate.serialize_key(key)
             }
 
             fn serialize_value<T>(&mut self, value: &T) -> Result<()>
             where
-                T: ?Sized + ser::Serialize,
+                T: ?Sized + Serialize,
             {
                 self.delegate.serialize_value(value)
             }
 
-            fn serialize_entry<K, V>(&mut self, key: &K, value: &V) -> Result<()>
+            fn serialize_entry<K, V>(
+                &mut self,
+                key: &K,
+                value: &V,
+            ) -> Result<()>
             where
-                K: ?Sized + ser::Serialize,
-                V: ?Sized + ser::Serialize,
+                K: ?Sized + Serialize,
+                V: ?Sized + Serialize,
             {
                 self.delegate.serialize_entry(key, value)
             }
@@ -719,9 +802,13 @@ impl ser::SerializeMap for SerializeMap {
             type Ok = MaybeTag<Value>;
             type Error = Error;
 
-            fn serialize_field<V>(&mut self, key: &'static str, value: &V) -> Result<()>
+            fn serialize_field<V>(
+                &mut self,
+                key: &'static str,
+                value: &V,
+            ) -> Result<()>
             where
-                V: ?Sized + ser::Serialize,
+                V: ?Sized + Serialize,
             {
                 self.delegate.serialize_field(key, value)
             }
@@ -735,9 +822,13 @@ impl ser::SerializeMap for SerializeMap {
             type Ok = MaybeTag<Value>;
             type Error = Error;
 
-            fn serialize_field<V>(&mut self, field: &'static str, v: &V) -> Result<()>
+            fn serialize_field<V>(
+                &mut self,
+                field: &'static str,
+                v: &V,
+            ) -> Result<()>
             where
-                V: ?Sized + ser::Serialize,
+                V: ?Sized + Serialize,
             {
                 self.delegate.serialize_field(field, v)
             }
@@ -752,10 +843,12 @@ impl ser::SerializeMap for SerializeMap {
                 let key = key.serialize(CheckForTag)?;
                 let mut mapping = Mapping::new();
                 *self = match key {
-                    MaybeTag::Tag(string) => SerializeMap::Tagged(TaggedValue {
-                        tag: Tag::new(string),
-                        value: to_value(value)?,
-                    }),
+                    MaybeTag::Tag(string) => {
+                        SerializeMap::Tagged(TaggedValue {
+                            tag: Tag::new(string),
+                            value: to_value(value)?,
+                        })
+                    }
                     MaybeTag::NotTag(key) => {
                         mapping.insert(key, to_value(value)?);
                         SerializeMap::Untagged {
@@ -787,12 +880,18 @@ impl ser::SerializeMap for SerializeMap {
     fn end(self) -> Result<Value> {
         Ok(match self {
             SerializeMap::CheckForTag => Value::Mapping(Mapping::new()),
-            SerializeMap::Tagged(tagged) => Value::Tagged(Box::new(tagged)),
-            SerializeMap::Untagged { mapping, .. } => Value::Mapping(mapping),
+            SerializeMap::Tagged(tagged) => {
+                Value::Tagged(Box::new(tagged))
+            }
+            SerializeMap::Untagged { mapping, .. } => {
+                Value::Mapping(mapping)
+            }
         })
     }
 }
 
+/// A helper struct to serialize structs.
+#[derive(Debug)]
 pub struct SerializeStruct {
     mapping: Mapping,
 }
@@ -801,9 +900,13 @@ impl ser::SerializeStruct for SerializeStruct {
     type Ok = Value;
     type Error = Error;
 
-    fn serialize_field<V>(&mut self, key: &'static str, value: &V) -> Result<()>
+    fn serialize_field<V>(
+        &mut self,
+        key: &'static str,
+        value: &V,
+    ) -> Result<()>
     where
-        V: ?Sized + ser::Serialize,
+        V: ?Sized + Serialize,
     {
         self.mapping.insert(to_value(key)?, to_value(value)?);
         Ok(())
@@ -814,6 +917,8 @@ impl ser::SerializeStruct for SerializeStruct {
     }
 }
 
+/// A helper struct to serialize struct variants.
+#[derive(Debug)]
 pub struct SerializeStructVariant {
     tag: &'static str,
     mapping: Mapping,
@@ -823,9 +928,13 @@ impl ser::SerializeStructVariant for SerializeStructVariant {
     type Ok = Value;
     type Error = Error;
 
-    fn serialize_field<V>(&mut self, field: &'static str, v: &V) -> Result<()>
+    fn serialize_field<V>(
+        &mut self,
+        field: &'static str,
+        v: &V,
+    ) -> Result<()>
     where
-        V: ?Sized + ser::Serialize,
+        V: ?Sized + Serialize,
     {
         self.mapping.insert(to_value(field)?, to_value(v)?);
         Ok(())

@@ -3,11 +3,11 @@ use crate::{mapping, private, Mapping, Value};
 use std::fmt::{self, Debug};
 use std::ops;
 
-/// A type that can be used to index into a `serde_yaml::Value`. See the `get`
+/// A type that can be used to index into a `serde_yml::Value`. See the `get`
 /// and `get_mut` methods of `Value`.
 ///
 /// This trait is sealed and cannot be implemented for types outside of
-/// `serde_yaml`.
+/// `serde_yml`.
 pub trait Index: private::Sealed {
     /// Return None if the key is not already in the sequence or object.
     #[doc(hidden)]
@@ -15,7 +15,10 @@ pub trait Index: private::Sealed {
 
     /// Return None if the key is not already in the sequence or object.
     #[doc(hidden)]
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value>;
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value>;
 
     /// Panic if sequence index out of bounds. If key is not already in the object,
     /// insert it with a value of null. Panic if Value is a type that cannot be
@@ -29,18 +32,28 @@ impl Index for usize {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         match v.untag_ref() {
             Value::Sequence(vec) => vec.get(*self),
-            Value::Mapping(vec) => vec.get(&Value::Number((*self).into())),
+            Value::Mapping(vec) => {
+                vec.get(&Value::Number((*self).into()))
+            }
             _ => None,
         }
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         match v.untag_mut() {
             Value::Sequence(vec) => vec.get_mut(*self),
-            Value::Mapping(vec) => vec.get_mut(&Value::Number((*self).into())),
+            Value::Mapping(vec) => {
+                vec.get_mut(&Value::Number((*self).into()))
+            }
             _ => None,
         }
     }
-    fn index_or_insert<'v>(&self, mut v: &'v mut Value) -> &'v mut Value {
+    fn index_or_insert<'v>(
+        &self,
+        mut v: &'v mut Value,
+    ) -> &'v mut Value {
         loop {
             match v {
                 Value::Sequence(vec) => {
@@ -57,13 +70,20 @@ impl Index for usize {
                     return map.entry(n).or_insert(Value::Null);
                 }
                 Value::Tagged(tagged) => v = &mut tagged.value,
-                _ => panic!("cannot access index {} of YAML {}", self, Type(v)),
+                _ => panic!(
+                    "cannot access index {} of YAML {}",
+                    self,
+                    Type(v)
+                ),
             }
         }
     }
 }
 
-fn index_into_mapping<'v, I>(index: &I, v: &'v Value) -> Option<&'v Value>
+fn index_into_mapping<'v, I>(
+    index: &I,
+    v: &'v Value,
+) -> Option<&'v Value>
 where
     I: ?Sized + mapping::Index,
 {
@@ -73,7 +93,10 @@ where
     }
 }
 
-fn index_into_mut_mapping<'v, I>(index: &I, v: &'v mut Value) -> Option<&'v mut Value>
+fn index_into_mut_mapping<'v, I>(
+    index: &I,
+    v: &'v mut Value,
+) -> Option<&'v mut Value>
 where
     I: ?Sized + mapping::Index,
 {
@@ -83,7 +106,10 @@ where
     }
 }
 
-fn index_or_insert_mapping<'v, I>(index: &I, mut v: &'v mut Value) -> &'v mut Value
+fn index_or_insert_mapping<'v, I>(
+    index: &I,
+    mut v: &'v mut Value,
+) -> &'v mut Value
 where
     I: ?Sized + mapping::Index + ToOwned + Debug,
     Value: From<I::Owned>,
@@ -91,20 +117,28 @@ where
     if let Value::Null = *v {
         *v = Value::Mapping(Mapping::new());
         return match v {
-            Value::Mapping(map) => match map.entry(index.to_owned().into()) {
-                Entry::Vacant(entry) => entry.insert(Value::Null),
-                Entry::Occupied(_) => unreachable!(),
-            },
+            Value::Mapping(map) => {
+                match map.entry(index.to_owned().into()) {
+                    Entry::Vacant(entry) => entry.insert(Value::Null),
+                    Entry::Occupied(_) => unreachable!(),
+                }
+            }
             _ => unreachable!(),
         };
     }
     loop {
         match v {
             Value::Mapping(map) => {
-                return map.entry(index.to_owned().into()).or_insert(Value::Null);
+                return map
+                    .entry(index.to_owned().into())
+                    .or_insert(Value::Null);
             }
             Value::Tagged(tagged) => v = &mut tagged.value,
-            _ => panic!("cannot access key {:?} in YAML {}", index, Type(v)),
+            _ => panic!(
+                "cannot access key {:?} in YAML {}",
+                index,
+                Type(v)
+            ),
         }
     }
 }
@@ -113,7 +147,10 @@ impl Index for Value {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         index_into_mapping(self, v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         index_into_mut_mapping(self, v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
@@ -125,7 +162,10 @@ impl Index for str {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         index_into_mapping(self, v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         index_into_mut_mapping(self, v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
@@ -137,7 +177,10 @@ impl Index for String {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         self.as_str().index_into(v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         self.as_str().index_into_mut(v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
@@ -145,14 +188,17 @@ impl Index for String {
     }
 }
 
-impl<'a, T> Index for &'a T
+impl<T> Index for &T
 where
     T: ?Sized + Index,
 {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         (**self).index_into(v)
     }
-    fn index_into_mut<'v>(&self, v: &'v mut Value) -> Option<&'v mut Value> {
+    fn index_into_mut<'v>(
+        &self,
+        v: &'v mut Value,
+    ) -> Option<&'v mut Value> {
         (**self).index_into_mut(v)
     }
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
@@ -163,8 +209,8 @@ where
 /// Used in panic messages.
 struct Type<'a>(&'a Value);
 
-impl<'a> fmt::Display for Type<'a> {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+impl fmt::Display for Type<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             Value::Null => formatter.write_str("null"),
             Value::Bool(_) => formatter.write_str("boolean"),
@@ -202,7 +248,7 @@ where
 {
     type Output = Value;
 
-    /// Index into a `serde_yaml::Value` using the syntax `value[0]` or
+    /// Index into a `serde_yml::Value` using the syntax `value[0]` or
     /// `value["k"]`.
     ///
     /// Returns `Value::Null` if the type of `self` does not match the type of
@@ -216,16 +262,16 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use serde_yaml::Value;
+    /// # use serde_yml::Value;
     /// #
-    /// # fn main() -> serde_yaml::Result<()> {
-    /// let data: serde_yaml::Value = serde_yaml::from_str(r#"{ x: { y: [z, zz] } }"#)?;
+    /// # fn main() -> serde_yml::Result<()> {
+    /// let data: serde_yml::Value = serde_yml::from_str(r#"{ x: { y: [z, zz] } }"#)?;
     ///
-    /// assert_eq!(data["x"]["y"], serde_yaml::from_str::<Value>(r#"["z", "zz"]"#).unwrap());
-    /// assert_eq!(data["x"]["y"][0], serde_yaml::from_str::<Value>(r#""z""#).unwrap());
+    /// assert_eq!(data["x"]["y"], serde_yml::from_str::<Value>(r#"["z", "zz"]"#).unwrap());
+    /// assert_eq!(data["x"]["y"][0], serde_yml::from_str::<Value>(r#""z""#).unwrap());
     ///
-    /// assert_eq!(data["a"], serde_yaml::from_str::<Value>(r#"null"#).unwrap()); // returns null for undefined values
-    /// assert_eq!(data["a"]["b"], serde_yaml::from_str::<Value>(r#"null"#).unwrap()); // does not panic
+    /// assert_eq!(data["a"], serde_yml::from_str::<Value>(r#"null"#).unwrap()); // returns null for undefined values
+    /// assert_eq!(data["a"]["b"], serde_yml::from_str::<Value>(r#"null"#).unwrap()); // does not panic
     /// # Ok(())
     /// # }
     /// ```
@@ -239,7 +285,7 @@ impl<I> ops::IndexMut<I> for Value
 where
     I: Index,
 {
-    /// Write into a `serde_yaml::Value` using the syntax `value[0] = ...` or
+    /// Write into a `serde_yml::Value` using the syntax `value[0] = ...` or
     /// `value["k"] = ...`.
     ///
     /// If the index is a number, the value must be a sequence of length bigger
@@ -254,20 +300,20 @@ where
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> serde_yaml::Result<()> {
-    /// let mut data: serde_yaml::Value = serde_yaml::from_str(r#"{x: 0}"#)?;
+    /// # fn main() -> serde_yml::Result<()> {
+    /// let mut data: serde_yml::Value = serde_yml::from_str(r#"{x: 0}"#)?;
     ///
     /// // replace an existing key
-    /// data["x"] = serde_yaml::from_str(r#"1"#)?;
+    /// data["x"] = serde_yml::from_str(r#"1"#)?;
     ///
     /// // insert a new key
-    /// data["y"] = serde_yaml::from_str(r#"[false, false, false]"#)?;
+    /// data["y"] = serde_yml::from_str(r#"[false, false, false]"#)?;
     ///
     /// // replace a value in a sequence
-    /// data["y"][0] = serde_yaml::from_str(r#"true"#)?;
+    /// data["y"][0] = serde_yml::from_str(r#"true"#)?;
     ///
     /// // inserted a deeply nested key
-    /// data["a"]["b"]["c"]["d"] = serde_yaml::from_str(r#"true"#)?;
+    /// data["a"]["b"]["c"]["d"] = serde_yml::from_str(r#"true"#)?;
     ///
     /// println!("{:?}", data);
     /// # Ok(())

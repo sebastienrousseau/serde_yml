@@ -1,3 +1,4 @@
+use crate::partialeq_numeric;
 use crate::Value;
 
 impl PartialEq<str> for Value {
@@ -6,7 +7,7 @@ impl PartialEq<str> for Value {
     /// # Examples
     ///
     /// ```
-    /// # use serde_yaml::Value;
+    /// # use serde_yml::Value;
     /// assert!(Value::String("lorem".into()) == *"lorem");
     /// ```
     fn eq(&self, other: &str) -> bool {
@@ -14,13 +15,13 @@ impl PartialEq<str> for Value {
     }
 }
 
-impl<'a> PartialEq<&'a str> for Value {
+impl PartialEq<&str> for Value {
     /// Compare `&str` with YAML value
     ///
     /// # Examples
     ///
     /// ```
-    /// # use serde_yaml::Value;
+    /// # use serde_yml::Value;
     /// assert!(Value::String("lorem".into()) == "lorem");
     /// ```
     fn eq(&self, other: &&str) -> bool {
@@ -34,7 +35,7 @@ impl PartialEq<String> for Value {
     /// # Examples
     ///
     /// ```
-    /// # use serde_yaml::Value;
+    /// # use serde_yml::Value;
     /// assert!(Value::String("lorem".into()) == "lorem".to_string());
     /// ```
     fn eq(&self, other: &String) -> bool {
@@ -48,7 +49,7 @@ impl PartialEq<bool> for Value {
     /// # Examples
     ///
     /// ```
-    /// # use serde_yaml::Value;
+    /// # use serde_yml::Value;
     /// assert!(Value::Bool(true) == true);
     /// ```
     fn eq(&self, other: &bool) -> bool {
@@ -56,28 +57,12 @@ impl PartialEq<bool> for Value {
     }
 }
 
-macro_rules! partialeq_numeric {
-    ($([$($ty:ty)*], $conversion:ident, $base:ty)*) => {
-        $($(
-            impl PartialEq<$ty> for Value {
-                fn eq(&self, other: &$ty) -> bool {
-                    self.$conversion().map_or(false, |i| i == (*other as $base))
-                }
-            }
-
-            impl<'a> PartialEq<$ty> for &'a Value {
-                fn eq(&self, other: &$ty) -> bool {
-                    self.$conversion().map_or(false, |i| i == (*other as $base))
-                }
-            }
-
-            impl<'a> PartialEq<$ty> for &'a mut Value {
-                fn eq(&self, other: &$ty) -> bool {
-                    self.$conversion().map_or(false, |i| i == (*other as $base))
-                }
-            }
-        )*)*
-    }
+fn compare_numeric<T, U>(i: T, other: U) -> bool
+where
+    T: PartialEq<U>,
+    U: Into<T>,
+{
+    i == other
 }
 
 partialeq_numeric! {
