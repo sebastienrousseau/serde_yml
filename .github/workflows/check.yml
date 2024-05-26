@@ -3,7 +3,7 @@ name: 🧪 Check
 on:
   push:
     branches:
-      - main
+      - master
       - feat/serde_yml
   pull_request:
     branches:
