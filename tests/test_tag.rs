@@ -157,10 +157,10 @@ mod tests {
         let tag = Tag::new("tag:yaml.org,2002:test");
 
         // Test equality with &str slice
-        assert!(tag == &"tag:yaml.org,2002:test"[..]);
+        assert!(tag == "tag:yaml.org,2002:test"[..]);
 
         // Test inequality with &str slice
-        assert!(tag != &"tag:yaml.org,2002:other"[..]);
+        assert!(tag != "tag:yaml.org,2002:other"[..]);
     }
 
     /// Test the behaviour of Tag::new with an empty string
