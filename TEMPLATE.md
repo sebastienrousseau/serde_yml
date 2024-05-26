@@ -1,62 +1,62 @@
-<!-- markdownlint-disable MD033 MD041 -->
+# Serde YML (a fork of Serde YAML)
 
-<img src="https://kura.pro/serde_yml/images/logos/serde_yml.webp"
-alt="Serde YML logo" width="261" align="right" />
+[![GitHub][github-badge]][05] [![Crates.io][crates-badge]][06] [![Docs.rs][docs-badge]][07] [![Codecov][codecov-badge]][08] [![Build Status][build-badge]][09]
 
-<!-- markdownlint-enable MD033 MD041 -->
-# Serde YML: Seamless YAML Serialization for Rust
+A Rust library for using the [Serde][01] serialization framework with data in [YAML][04] file format. This project, has been renamed to [Serde YML][00] to avoid confusion with the original Serde YAML crate which is now archived and no longer maintained.
 
-Serde YML is a Rust library that simplifies YAML serialization and deserialization using Serde. Effortlessly convert Rust types to YAML and vice versa. Supports custom structs, enums, and error handling.
+## Credits and Acknowledgements
 
-<!-- markdownlint-disable MD033 MD041 -->
-<center>
-<!-- markdownlint-enable MD033 MD041 -->
+This library is a continuation of the excellent work done by [David Tolnay][03] and the maintainers of the [serde-yaml][02] library.
 
-![Banner of Serde YML][banner]
+While Serde YML started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind and does not intend to replace the original serde-yaml crate.
 
-[![Made With Rust][made-with-rust-badge]][08] [![Crates.io][crates-badge]][05] [![Lib.rs][libs-badge]][07] [![Docs.rs][docs-badge]][06] [![License][license-badge]][02] [![Codecov][codecov-badge]][09]
+If you are currently using serde-yaml in your projects, we recommend carefully evaluating your requirements and considering the stability and maturity of the original library as well as looking at the features and improvements offered by other YAML libraries in the Rust ecosystem.
 
-• [Website][01] • [Documentation][06] • [Report Bug][03] • [Request Feature][03] • [Contributing Guidelines][04]
+## License
 
-<!-- markdownlint-disable MD033 MD041 -->
-</center>
-<!-- markdownlint-enable MD033 MD041 -->
+Licensed under either of <a href="LICENSE-APACHE">Apache License, Version 2.0</a> or <a href="LICENSE-MIT">MIT license</a> at your option.
 
-<!-- markdownlint-enable MD033 -->
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this crate by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
-![divider][divider]
+## Changelog
 
-## Overview
+[00]: https://serdeyml.com
+[01]: https://github.com/serde-rs/serde
+[02]: https://github.com/dtolnay/serde-yaml
+[03]: https://github.com/dtolnay
+[04]: https://yaml.org/
+[05]: https://github.com/sebastienrousseau/serde_yml
+[06]: https://crates.io/crates/serde_yml
+[07]: https://docs.rs/serde_yml
+[08]: https://codecov.io/gh/sebastienrousseau/serde_yml
+[09]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amain
+[build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge "Build Status"
+[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov"
+[crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
+[docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
+[github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"
 
-`Serde YML` is a robust Rust library that simplifies the serialization and deserialization of Rust data structures to and from YAML format using the widely-used Serde framework. With Serde YML, you can effortlessly convert your Rust types into YAML strings and vice versa, streamlining the process of storing, transmitting, and manipulating structured data.providing style guides for your library.
+## What's Changed
 
-## Features
+### Enhancements
 
-- Serialize Rust data structures to YAML format
-- Deserialize YAML data into Rust types
-- Support for custom structs and enums using Serde's derive macros
-- Handling of YAML's `!tag` syntax for representing enum variants
-- Direct access to YAML values through the `Value` type and related types
-- Comprehensive error handling with `Error`, `Location`, and `Result` types
-- Well-documented with examples and explanations
+#### Forked Serde YAML
 
-## Changelog 📚
+-   **Hard reset**: Hard reset to the latest @dtolnay [latest release](https://github.com/dtolnay/serde-yaml/commit/2009506d33767dfc88e979d6bc0d53d09f941c94) to keep traceability and retain commits history to the original [Serde YAML](https://github.com/dtolnay/serde-yaml) codebase and credits to the maintainers.
+-   **Renaming**: This project, has been renamed to `Serde YML` to avoid confusion with the original Serde YAML crate which is now archived and no longer maintained. While `Serde YML` started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind and does not intend to replace the original serde-yaml crate.
 
-[01]: https://serdeyml.com "Serde YML Website"
-[02]: http://opensource.org/licenses/MIT "MIT license"
-[03]: https://github.com/sebastienrousseau/serde_yml/issues "Issues"
-[04]: https://github.com/sebastienrousseau/serde_yml/blob/main/CONTRIBUTING.md "Contributing"
-[05]: https://crates.io/crates/serde_yml "Serde YML on crates.io"
-[06]: https://docs.rs/serde_yml "Serde YML on docs.rs"
-[07]: https://lib.rs/crates/serde_yml "Serde YML on lib.rs"
-[08]: https://www.rust-lang.org "The Rust Programming Language"
-[09]: https://codecov.io/gh/sebastienrousseau/serde_yml "Serde YML on Codecov"
+#### CI Improvements
 
-[banner]: https://kura.pro/serde_yml/images/titles/title-serde_yml.svg "Serde YML Banner"
-[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov Badge"
-[crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge "Crates.io Badge"
-[divider]: https://kura.pro/common/images/elements/divider.svg "divider"
-[docs-badge]: https://img.shields.io/docsrs/serde_yml.svg?style=for-the-badge "Docs.rs Badge"
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.7-orange.svg?style=for-the-badge "Lib.rs Badge"
-[license-badge]: https://img.shields.io/crates/l/serde_yml.svg?style=for-the-badge "License Badge"
-[made-with-rust-badge]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust "Made With Rust Badge"
+-   **ci(serde-yaml)**: Added a missing release workflow and made minor tweaks to the README for better clarity and documentation. This update ensures smoother and more reliable release processes.
+    -   Commit: `ci(serde-yaml): :green_heart: add missing release workflow and minor tweaks in README`
+
+#### Testing Enhancements
+
+-   **test(serde-yaml)**: Enhanced test coverage by adding new unit tests for `mapping.rs`. These tests ensure the robustness and reliability of the `Mapping` struct and its associated methods.
+
+    -   Commit: `test(serde-yaml): :white_check_mark: add new tests for `mapping.rs``
+
+-   **test(serde-yaml)**: Expanded the test suite by adding comprehensive unit tests for the `ser.rs` module. The new tests cover various serialization scenarios, including scalar values, sequences, maps, nested structures, optional fields, and custom serializers.
+    -   Commit: `test(serde-yaml): :white_check_mark: add unit tests for the `ser.rs` module`
+
+**Full Changelog**: https://github.com/sebastienrousseau/serde_yml/commits/v0.0.8
