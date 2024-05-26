@@ -22,8 +22,8 @@ jobs:
     # release artifact that contains the binaries for all the targets.
     name: ❯ Build 🛠
 
-    # Only run this job on the main branch when a commit is pushed.
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Only run this job on the master branch when a commit is pushed.
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     # Set up the job environment variables.
     env:
@@ -105,7 +105,7 @@ jobs:
   # Release the binary to GitHub Releases
   release:
     name: ❯ Release 🚀
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -200,7 +200,7 @@ jobs:
   # Publish the release to Crates.io automatically
   crate:
     name: ❯ Crate.io 🦀
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: release
     runs-on: ubuntu-latest
 
