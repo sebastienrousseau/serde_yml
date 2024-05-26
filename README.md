@@ -37,7 +37,7 @@ serde = "1.0"
 serde_yml = "0.0.8"
 ```
 
-Release notes are available under [04].
+Release notes are available under [GitHub releases][04].
 
 ## Using Serde YAML
 
