@@ -3,8 +3,8 @@
 [![GitHub][github-badge]][06]
 [![Crates.io][crates-badge]][07]
 [![Docs.rs][docs-badge]][08]
-[![Build Status][build-badge]][06]
 [![Codecov][codecov-badge]][09]
+[![Build Status][build-badge]][10]
 
 A Rust library for using the [Serde][01] serialization framework with data in
 [YAML][05] file format. This project, has been renamed to [Serde YML][00] to
@@ -37,7 +37,7 @@ serde = "1.0"
 serde_yml = "0.0.8"
 ```
 
-Release notes are available under [04].
+Release notes are available under [GitHub releases][04].
 
 ## Using Serde YAML
 
@@ -613,10 +613,11 @@ be dual licensed as above, without any additional terms or conditions.
 [04]: https://github.com/sebastienrousseau/serde_yml/releases
 [05]: https://yaml.org/
 [06]: https://github.com/sebastienrousseau/serde_yml
-[09]: https://codecov.io/gh/sebastienrousseau/serde_yml
 [07]: https://crates.io/crates/serde_yml
 [08]: https://docs.rs/serde_yml
-[build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/ci.yml?branch=master&style=for-the-badge "Build Status"
+[09]: https://codecov.io/gh/sebastienrousseau/serde_yml
+[10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amain
+[build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge "Build Status"
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov"
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
 [docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"

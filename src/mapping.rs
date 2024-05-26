@@ -14,7 +14,8 @@ use std::{
 /// A YAML mapping in which the keys and values are both `serde_yml::Value`.
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct Mapping {
-    map: IndexMap<Value, Value>,
+    /// The underlying map.
+    pub map: IndexMap<Value, Value>,
 }
 
 impl Mapping {

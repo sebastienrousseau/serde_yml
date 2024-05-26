@@ -7,7 +7,7 @@ mod tests {
     };
     use std::{collections::BTreeMap, fmt::Write};
 
-    // Test cases for scalar serialization
+    /// Tests the serialization of a scalar value.
     #[test]
     fn test_scalar_serialization() {
         // Arrange
@@ -30,7 +30,7 @@ mod tests {
         );
     }
 
-    // Test cases for sequence start serialization
+    /// Tests the serialization of the start of a sequence.
     #[test]
     fn test_sequence_start_serialization() {
         // Arrange
@@ -48,7 +48,7 @@ mod tests {
         );
     }
 
-    // Test cases for mapping start serialization
+    /// Tests the serialization of the start of a mapping.
     #[test]
     fn test_mapping_start_serialization() {
         // Arrange
@@ -66,22 +66,112 @@ mod tests {
         );
     }
 
-    // Test cases for flushing mapping start
+    /// Tests flushing the start of a mapping.
     #[test]
     fn test_flush_mapping_start() {
         // Arrange
         let mut buffer = Vec::new();
         let mut serializer = Serializer::new(&mut buffer);
-        serializer.state = State::CheckForTag;
 
         // Act
-        serializer.flush_mapping_start().unwrap();
+        serializer.emit_mapping_start().unwrap();
+        serializer.flush().unwrap();
 
         // Assert
         assert_eq!(
-            buffer,
-            b"", // Since state was `CheckForTag`, no output should be generated
-            "Flush mapping start output doesn't match expected output"
+            String::from_utf8(buffer).unwrap(),
+            "",
+            "Flushed mapping start doesn't match expected output"
+        );
+    }
+
+    /// Tests the serialization of an empty map.
+    #[test]
+    fn test_serialize_empty_map() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let map: BTreeMap<String, i32> = BTreeMap::new();
+
+        // Act
+        map.serialize(&mut serializer).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "{}\n",
+            "Serialized empty map doesn't match expected output"
+        );
+    }
+
+    /// Tests the serialization of a simple map.
+    #[test]
+    fn test_serialize_simple_map() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let mut map = BTreeMap::new();
+        map.insert("key".to_string(), 42);
+
+        // Act
+        map.serialize(&mut serializer).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "key: 42\n",
+            "Serialized simple map doesn't match expected output"
+        );
+    }
+
+    /// Tests the serialization of a nested map.
+    #[test]
+    fn test_serialize_nested_map() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let mut inner_map = BTreeMap::new();
+        inner_map
+            .insert("inner_key".to_string(), "inner_value".to_string());
+        let mut outer_map = BTreeMap::new();
+        outer_map.insert("outer_key".to_string(), inner_map);
+
+        // Act
+        outer_map.serialize(&mut serializer).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "outer_key:\n  inner_key: inner_value\n",
+            "Serialized nested map doesn't match expected output"
+        );
+    }
+
+    /// Tests serializing a struct with custom fields.
+    #[derive(Serialize)]
+    struct CustomStruct {
+        field1: String,
+        field2: i32,
+    }
+
+    #[test]
+    fn test_serialize_custom_struct() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let custom_struct = CustomStruct {
+            field1: "value1".to_string(),
+            field2: 42,
+        };
+
+        // Act
+        custom_struct.serialize(&mut serializer).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "field1: value1\nfield2: 42\n",
+            "Serialized custom struct doesn't match expected output"
         );
     }
 
