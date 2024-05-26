@@ -616,7 +616,7 @@ be dual licensed as above, without any additional terms or conditions.
 [07]: https://crates.io/crates/serde_yml
 [08]: https://docs.rs/serde_yml
 [09]: https://codecov.io/gh/sebastienrousseau/serde_yml
-[10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amain
+[10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
 [build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge "Build Status"
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov"
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
