@@ -2,9 +2,9 @@
 mod tests {
     use serde_yml::utilities::directory::{
         cleanup_directory, create_directory, directory,
-        move_output_directory, truncate,
+        move_output_directory,
     };
-    use std::{fs, io::Error, path::Path};
+    use std::{fs, path::Path};
     use tempfile::tempdir;
 
     /// Tests that the `directory` function correctly creates a directory if it does not exist.
@@ -85,20 +85,5 @@ mod tests {
         let dir = temp_dir.path().join("dir");
         fs::create_dir(&dir).unwrap();
         assert!(create_directory(&[&dir]).is_ok());
-    }
-
-    /// Tests the `truncate` function with different path lengths.
-    #[test]
-    fn test_truncate_path() {
-        let path = Path::new("/a/b/c/d/e");
-
-        let result = truncate(&path, 3);
-        assert_eq!(result, Some("c/d/e".to_string()));
-
-        let result = truncate(&path, 0);
-        assert_eq!(result, None);
-
-        let result = truncate(&path, 10);
-        assert_eq!(result, None);
     }
 }

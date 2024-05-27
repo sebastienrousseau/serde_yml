@@ -133,12 +133,6 @@ pub use crate::value::{
     from_value, to_value, Index, Number, Sequence, Value,
 }; // Value manipulation functions
 
-/// The `macros` module contains functions for generating macros.
-pub mod macros;
-
-/// The `utilities` module contains utility functions for the library.
-pub mod utilities;
-
 #[doc(inline)]
 pub use crate::mapping::Mapping; // Re-export the Mapping type for YAML mappings
 
@@ -151,6 +145,9 @@ pub mod libyml;
 /// The `loader` module contains the `Loader` type for YAML loading.
 pub mod loader;
 
+/// The `macros` module contains functions for generating macros.
+pub mod macros;
+
 /// The `mapping` module contains the `Mapping` type for YAML mappings.
 pub mod mapping;
 
@@ -162,6 +159,9 @@ pub mod number;
 
 /// The `ser` module contains the library's YAML serializer.
 pub mod ser;
+
+/// The `utilities` module contains utility functions for the library.
+pub mod utilities;
 
 /// The `value` module contains the `Value` type for YAML values.
 pub mod value;
