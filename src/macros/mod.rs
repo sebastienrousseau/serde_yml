@@ -11,9 +11,8 @@ pub mod macro_from_number;
 /// The `partialeq_numeric_macros` module contains macros related to the `PartialEq` trait for primitive numeric types and `Value`.
 pub mod macro_partialeq_numeric;
 
-/// The `utility_macros` module contains utility macros for common tasks such as
-/// replacing placeholders in a line with values from parameters.
-pub mod macro_utility;
+/// The `macro_get_field` module contains macros related to retrieving field values from a JSON file.
+pub mod macro_get_field;
 
 /// The `nested_enum_serde` module contains macros related to serializing and deserializing nested enums.
 pub mod macro_nested_enum_serde;

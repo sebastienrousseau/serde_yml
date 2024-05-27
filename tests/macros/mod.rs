@@ -12,3 +12,6 @@ pub mod test_macro_partialeq_numeric;
 
 /// The `test_macro_replace_placeholder` module contains tests for the utility module.
 pub mod test_macro_replace_placeholder;
+
+/// The `test_macro_get_field` module contains tests for the get_field module.
+pub mod test_macro_get_field;

@@ -27,24 +27,21 @@ macro_rules! macro_get_field {
                     let current_dir = env::current_dir()?;
                     let file_path =
                         Path::new(&current_dir).join(file_path);
-                    read_file(&file_path, |file| {
-                        let value: serde_json::Value =
-                            $deserializer(file)?;
-                        let field_value = value
-                            .get(field_name)
-                            .ok_or_else(|| {
-                                format!(
-                                    "Field '{}' not found",
-                                    field_name
-                                )
-                            })?
-                            .as_str()
-                            .map(|s| s.to_string())
-                            .unwrap_or_else(|| {
-                                value[field_name].to_string()
-                            });
-                        Ok(field_value)
-                    })
+                    let file_contents =
+                        std::fs::read_to_string(&file_path)?;
+                    let value: serde_json::Value =
+                        $deserializer(file_contents.as_bytes())?;
+                    let field_value = value
+                        .get(field_name)
+                        .ok_or_else(|| {
+                            format!("Field '{}' not found", field_name)
+                        })?
+                        .as_str()
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| {
+                            value[field_name].to_string()
+                        });
+                    Ok(field_value)
                 },
             )
         }
