@@ -15,3 +15,6 @@ pub mod test_macro_replace_placeholder;
 
 /// The `test_macro_get_field` module contains tests for the get_field module.
 pub mod test_macro_get_field;
+
+/// The `test_macro_from_number` module contains tests for the from_number module.
+pub mod test_macro_from_number;
