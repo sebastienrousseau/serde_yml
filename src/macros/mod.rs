@@ -17,3 +17,6 @@ pub mod macro_utility;
 
 /// The `nested_enum_serde` module contains macros related to serializing and deserializing nested enums.
 pub mod macro_nested_enum_serde;
+
+/// The `replace_placeholder_macros` module contains macros related to replacing placeholders in a line with values from parameters.
+pub mod macro_replace_placeholder;
