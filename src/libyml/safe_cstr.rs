@@ -14,9 +14,6 @@ use std::{
 ///
 /// This struct implements the `Display` and `std::error::Error` traits, which allows it to be printed and used as an error type.
 ///
-/// # See Also
-///
-/// * [`CStr`](crate::CStr) - A struct representing a C string.
 ///
 pub struct CStrError;
 

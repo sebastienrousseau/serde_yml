@@ -1,3 +1,10 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
+<img src="https://kura.pro/serde_yml/images/logos/serde_yml.webp"
+alt="Serde YML logo" width="66" align="right" />
+
+<!-- markdownlint-enable MD033 MD041 -->
+
 # Serde YML (a fork of Serde YAML)
 
 [![GitHub][github-badge]][06]
@@ -34,7 +41,7 @@ and for inspiring this project.
 ```toml
 [dependencies]
 serde = "1.0"
-serde_yml = "0.0.8"
+serde_yml = "0.0.9"
 ```
 
 Release notes are available under [GitHub releases][04].
@@ -599,8 +606,8 @@ of helper functions.
 
 ## License
 
-Licensed under either of <a href="LICENSE-APACHE">Apache License, Version
-2.0</a> or <a href="LICENSE-MIT">MIT license</a> at your option.
+Licensed under either of the [Apache License](LICENSE-APACHE) or the
+[MIT license](LICENSE-MIT) at your option.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in this crate by you, as defined in the Apache-2.0 license, shall
@@ -617,8 +624,8 @@ be dual licensed as above, without any additional terms or conditions.
 [08]: https://docs.rs/serde_yml
 [09]: https://codecov.io/gh/sebastienrousseau/serde_yml
 [10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
-[build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge "Build Status"
-[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov"
+[build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge&logo=github "Build Status"
+[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67&logo=codecov "Codecov"
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
 [docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
 [github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"

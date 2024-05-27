@@ -1,15 +1,23 @@
-//! # Serde YML
+//!# Serde YML (a fork of Serde YAML)
 //!
-//! [![Serde YML Logo](https://kura.pro/serde_yml/images/banners/banner-serde_yml.svg)](https://serde_yml.one "Serde YML: Seamless YAML Serialization for Rust")
+//![![GitHub][github-badge]][06]
+//![![Crates.io][crates-badge]][07]
+//![![Docs.rs][docs-badge]][08]
+//![![Codecov][codecov-badge]][09]
+//![![Build Status][build-badge]][10]
 //!
-//! ## Seamless YAML Serialization for [Rust][rust-lang]
+//!A Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format. This project, has been renamed to [Serde YML][00] to avoid confusion with the original Serde YAML crate which is now archived and no longer maintained.
 //!
-//! [![Crates.io](https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=success&labelColor=27A006)][crates-io]
-//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.7-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)][lib-rs]
-//! [![License](https://img.shields.io/crates/l/serde_yml.svg?style=for-the-badge&color=007EC6&labelColor=03589B)][license]
-//! [![Rust](https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust)][rust-lang]
+//!## Credits and Acknowledgements
 //!
-//! [Serde YML][serde-yml] is a Rust library that simplifies YAML serialization and deserialization using the popular [Serde][serde] framework. It provides a convenient and efficient way to convert Rust data structures to YAML format and vice versa.
+//!This library is a continuation of the excellent work done by [David Tolnay][03] and the maintainers of the [serde-yaml][02] library.
+//!
+//!While Serde YML started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind and does not intend to replace the original serde-yaml crate.
+//!
+//!If you are currently using serde-yaml in your projects, we recommend carefully evaluating your requirements and considering the stability and maturity of the original library as well as looking at the features and improvements offered by other YAML libraries in the Rust ecosystem.
+//!
+//!I would like to express my sincere gratitude to [David Tolnay][03] and the [serde-yaml][02] team for their valuable contributions to the Rust community and for inspiring this project.
+//!
 //!
 //! ## Features
 //!
@@ -37,7 +45,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! serde_yml = "0.0.7"
+//! serde_yml = "0.0.9"
 //! ```
 //!
 //! ## Usage
@@ -80,20 +88,22 @@
 //!
 //! The examples cover various scenarios, including serializing and deserializing structs, enums, optional fields, custom structs, and more.
 //!
-//! ## Best Practices and Common Pitfalls
-//!
-//! - When serializing large datasets, consider using `serde_yml::to_writer` to write the YAML output directly to a file or a writer instead of keeping the entire serialized string in memory.
-//! - Be cautious when deserializing untrusted YAML input, as it may contain unexpected or malicious data. Always validate and handle the deserialized data appropriately.
-//! - When working with custom structs or enums, ensure that they implement the necessary Serde traits (`Serialize` and `Deserialize`) for proper serialization and deserialization.
-//! - If you encounter any issues or have questions, refer to the library's documentation and examples for guidance. If the problem persists, consider opening an issue on the library's [GitHub repository][repo].
-//!
-//! ## Credits and Acknowledgements
-//!
-//! Serde YML draws inspiration from the excellent work done by [David Tolnay][dtolnay] and the maintainers of the [serde-yaml][serde-yaml] library. While Serde YML started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind.
-//!
-//! If you are currently using serde-yaml in your projects, we recommend carefully evaluating your requirements and considering the stability and maturity of the original library before migrating to Serde YML.
-//!
-//! Finally, we would like to express our sincere gratitude to [David Tolnay][dtolnay] and the [serde-yaml][serde-yaml] team for their valuable contributions to the Rust community and for inspiring this project.
+//![00]: https://serdeyml.com
+//![01]: https://github.com/serde-rs/serde
+//![02]: https://github.com/dtolnay/serde-yaml
+//![03]: https://github.com/dtolnay
+//![04]: https://github.com/sebastienrousseau/serde_yml/releases
+//![05]: https://yaml.org/
+//![06]: https://github.com/sebastienrousseau/serde_yml
+//![07]: https://crates.io/crates/serde_yml
+//![08]: https://docs.rs/serde_yml
+//![09]: https://codecov.io/gh/sebastienrousseau/serde_yml
+//![10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
+//![build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge "Build Status"
+//![codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov"
+//![crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
+//![docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
+//![github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"
 //!
 //! [serde-yml]: https://serdeyml.com "Serde YML"
 //! [serde]: https://github.com/serde-rs/serde
@@ -123,12 +133,6 @@ pub use crate::value::{
     from_value, to_value, Index, Number, Sequence, Value,
 }; // Value manipulation functions
 
-/// The `macros` module contains functions for generating macros.
-pub mod macros;
-
-/// The `utilities` module contains utility functions for the library.
-pub mod utilities;
-
 #[doc(inline)]
 pub use crate::mapping::Mapping; // Re-export the Mapping type for YAML mappings
 
@@ -141,6 +145,9 @@ pub mod libyml;
 /// The `loader` module contains the `Loader` type for YAML loading.
 pub mod loader;
 
+/// The `macros` module contains functions for generating macros.
+pub mod macros;
+
 /// The `mapping` module contains the `Mapping` type for YAML mappings.
 pub mod mapping;
 
@@ -152,6 +159,9 @@ pub mod number;
 
 /// The `ser` module contains the library's YAML serializer.
 pub mod ser;
+
+/// The `utilities` module contains utility functions for the library.
+pub mod utilities;
 
 /// The `value` module contains the `Value` type for YAML values.
 pub mod value;

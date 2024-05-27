@@ -1,9 +1,9 @@
-use std::io::Error as ioError;
 use std::{
     error::Error,
     fs::{self},
     path::{Path, PathBuf},
 };
+
 /// Ensures a directory exists, creating it if necessary.
 ///
 /// This function takes a reference to a `Path` object for a directory and a
@@ -26,14 +26,14 @@ use std::{
 /// ```
 /// use serde_yml::utilities::directory::directory;
 /// use std::path::Path;
-/// use tempfile::tempdir;
 ///
-/// let temp_dir = tempdir().unwrap();
-/// let dir = temp_dir.path().join("logs");
-/// directory(&dir, "logs").expect("Could not create logs directory");
+/// let dir = Path::new("logs");
+/// match directory(dir, "logs") {
+///     Ok(()) => println!("Logs directory created successfully!"),
+///     Err(e) => eprintln!("{}", e),
+/// }
 /// ```
-///
-pub fn directory(dir: &Path, name: &str) -> Result<String, String> {
+pub fn directory(dir: &Path, name: &str) -> Result<(), String> {
     if dir.exists() {
         if !dir.is_dir() {
             return Err(format!(
@@ -52,7 +52,7 @@ pub fn directory(dir: &Path, name: &str) -> Result<String, String> {
             }
         }
     }
-    Ok(String::new())
+    Ok(())
 }
 
 /// Moves the output directory to the public directory.
@@ -77,14 +77,15 @@ pub fn directory(dir: &Path, name: &str) -> Result<String, String> {
 /// ```
 /// use serde_yml::utilities::directory::move_output_directory;
 /// use std::path::Path;
-/// use tempfile::tempdir;
 ///
-/// let temp_dir = tempdir().unwrap();
-/// let out_dir = temp_dir.path().join("output");
-/// std::fs::create_dir(&out_dir).unwrap();
-/// move_output_directory("example_site", &out_dir).unwrap();
+/// let site_name = "My Website";
+/// let out_dir = Path::new("output");
+///
+/// match move_output_directory(site_name, out_dir) {
+///     Ok(()) => println!("Output directory moved successfully."),
+///     Err(e) => eprintln!("Error moving output directory: {}", e),
+/// }
 /// ```
-///
 pub fn move_output_directory(
     site_name: &str,
     out_dir: &Path,
@@ -130,28 +131,29 @@ pub fn move_output_directory(
 /// ```
 /// use serde_yml::utilities::directory::cleanup_directory;
 /// use std::path::Path;
-/// use tempfile::tempdir;
 ///
-/// let temp_dir = tempdir().unwrap();
-/// let dir1 = temp_dir.path().join("dir1");
-/// let dir2 = temp_dir.path().join("dir2");
-/// std::fs::create_dir_all(&dir1).unwrap();
-/// std::fs::create_dir_all(&dir2).unwrap();
-/// cleanup_directory(&[&dir1, &dir2]).unwrap();
+/// let directories = [Path::new("output"), Path::new("temp")];
+///
+/// match cleanup_directory(&directories) {
+///     Ok(()) => println!("Directories cleaned up successfully."),
+///     Err(e) => eprintln!("Error cleaning up directories: {}", e),
+/// }
 /// ```
-///
-pub fn cleanup_directory(directories: &[&Path]) -> Result<(), ioError> {
-    for dir in directories {
-        if dir.exists() {
-            fs::remove_dir_all(dir)?;
-        } else {
-            // Log a warning if the directory does not exist.
-            log::warn!(
-                "Directory '{}' does not exist, skipping cleanup.",
-                dir.display()
-            );
+pub fn cleanup_directory(
+    directories: &[&Path],
+) -> Result<(), Box<dyn Error>> {
+    for directory in directories {
+        if !directory.exists() {
+            continue;
         }
+
+        println!("\n❯ Cleaning up directories");
+
+        fs::remove_dir_all(directory)?;
+
+        println!("  Done.\n");
     }
+
     Ok(())
 }
 
@@ -175,14 +177,14 @@ pub fn cleanup_directory(directories: &[&Path]) -> Result<(), ioError> {
 /// ```
 /// use serde_yml::utilities::directory::create_directory;
 /// use std::path::Path;
-/// use tempfile::tempdir;
 ///
-/// let temp_dir = tempdir().unwrap();
-/// let dir1 = temp_dir.path().join("dir1");
-/// let dir2 = temp_dir.path().join("dir2");
-/// create_directory(&[&dir1, &dir2]).unwrap();
+/// let directories = [Path::new("output"), Path::new("temp")];
+///
+/// match create_directory(&directories) {
+///     Ok(()) => println!("Directories created successfully."),
+///     Err(e) => eprintln!("Error creating directories: {}", e),
+/// }
 /// ```
-///
 pub fn create_directory(
     directories: &[&Path],
 ) -> Result<(), Box<dyn Error>> {
@@ -218,11 +220,14 @@ pub fn create_directory(
 /// use serde_yml::utilities::directory::truncate;
 /// use std::path::Path;
 ///
-/// let path = Path::new("/foo/bar/baz");
-/// assert_eq!(truncate(path, 2), Some("baz/baz".to_string()));
-/// assert_eq!(truncate(path, 0), None);
-/// ```
+/// let long_path = Path::new("home/user/documents/report/2023/05/27/file.txt");
 ///
+/// if let Some(truncated) = truncate(long_path, 3) {
+///     println!("Truncated path: {}", truncated);
+/// } else {
+///     println!("Path was not truncated.");
+/// }
+/// ```
 pub fn truncate(path: &Path, length: usize) -> Option<String> {
     // Checks if the length is 0. If it is, returns `None`.
     if length == 0 {

@@ -19,13 +19,16 @@ pub struct Mapping {
 }
 
 impl Mapping {
-    /// Creates an empty YAML map.
+    /// Creates an empty YAML mapping.
     #[inline]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Creates an empty YAML map with the given initial capacity.
+    /// Creates an empty YAML mapping with the given initial capacity.
+    ///
+    /// The mapping will be able to hold at least `capacity` elements without
+    /// reallocating. If `capacity` is 0, the mapping will not allocate.
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Mapping {
@@ -34,8 +37,8 @@ impl Mapping {
     }
 
     /// Reserves capacity for at least `additional` more elements to be inserted
-    /// into the map. The map may reserve more space to avoid frequent
-    /// allocations.
+    /// into the mapping. The mapping may reserve more space to avoid frequent
+    /// reallocations.
     ///
     /// # Panics
     ///
@@ -45,34 +48,48 @@ impl Mapping {
         self.map.reserve(additional);
     }
 
-    /// Shrinks the capacity of the map as much as possible. It will drop down
-    /// as much as possible while maintaining the internal rules and possibly
-    /// leaving some space in accordance with the resize policy.
+    /// Shrinks the capacity of the mapping as much as possible.
+    ///
+    /// It will drop down as much as possible while maintaining the internal rules
+    /// and possibly leaving some space in accordance with the resize policy.
     #[inline]
     pub fn shrink_to_fit(&mut self) {
         self.map.shrink_to_fit();
     }
 
-    /// Inserts a key-value pair into the map. If the key already existed, the
-    /// old value is returned.
+    /// Inserts a key-value pair into the mapping.
+    ///
+    /// If the mapping did not have this key present, `None` is returned.
+    ///
+    /// If the mapping did have this key present, the value is updated, and the old
+    /// value is returned.
     #[inline]
     pub fn insert(&mut self, k: Value, v: Value) -> Option<Value> {
         self.map.insert(k, v)
     }
 
-    /// Checks if the map contains the given key.
+    /// Returns `true` if the mapping contains a value for the specified key.
+    ///
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
     #[inline]
     pub fn contains_key<I: Index>(&self, index: I) -> bool {
         index.is_key_into(self)
     }
 
-    /// Returns the value corresponding to the key in the map.
+    /// Returns a reference to the value corresponding to the key.
+    ///
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
     #[inline]
     pub fn get<I: Index>(&self, index: I) -> Option<&Value> {
         index.index_into(self)
     }
 
-    /// Returns the mutable reference corresponding to the key in the map.
+    /// Returns a mutable reference to the value corresponding to the key.
+    ///
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
     #[inline]
     pub fn get_mut<I: Index>(
         &mut self,
@@ -81,8 +98,7 @@ impl Mapping {
         index.index_into_mut(self)
     }
 
-    /// Gets the given key's corresponding entry in the map for insertion and/or
-    /// in-place manipulation.
+    /// Gets the given key's corresponding entry in the mapping for in-place manipulation.
     #[inline]
     pub fn entry(&mut self, k: Value) -> Entry<'_> {
         match self.map.entry(k) {
@@ -95,23 +111,27 @@ impl Mapping {
         }
     }
 
-    /// Removes and returns the value corresponding to the key from the map.
+    /// Removes a key from the mapping, returning the value at the key if the key
+    /// was previously in the mapping.
     ///
-    /// This is equivalent to [`.swap_remove(index)`][Self::swap_remove],
-    /// replacing this entry's position with the last element. If you need to
-    /// preserve the relative order of the keys in the map, use
-    /// [`.shift_remove(key)`][Self::shift_remove] instead.
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
+    ///
+    /// This is equivalent to calling `swap_remove` and ignores the order of the
+    /// elements.
     #[inline]
     pub fn remove<I: Index>(&mut self, index: I) -> Option<Value> {
         self.swap_remove(index)
     }
 
-    /// Remove and return the key-value pair.
+    /// Removes a key from the mapping, returning the stored key and value if the
+    /// key was previously in the mapping.
     ///
-    /// This is equivalent to [`.swap_remove_entry(index)`][Self::swap_remove_entry],
-    /// replacing this entry's position with the last element. If you need to
-    /// preserve the relative order of the keys in the map, use
-    /// [`.shift_remove_entry(key)`][Self::shift_remove_entry] instead.
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
+    ///
+    /// This is equivalent to calling `swap_remove_entry` and ignores the order of the
+    /// elements.
     #[inline]
     pub fn remove_entry<I: Index>(
         &mut self,
@@ -120,21 +140,27 @@ impl Mapping {
         self.swap_remove_entry(index)
     }
 
-    /// Removes and returns the value corresponding to the key from the map.
+    /// Removes a key from the mapping, returning the value at the key if the key
+    /// was previously in the mapping.
     ///
-    /// Like [`Vec::swap_remove`], the entry is removed by swapping it with the
-    /// last element of the map and popping it off. This perturbs the position
-    /// of what used to be the last element!
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
+    ///
+    /// The element is removed by swapping it with the last element of the mapping
+    /// and popping it off. This perturbs the position of the last element.
     #[inline]
     pub fn swap_remove<I: Index>(&mut self, index: I) -> Option<Value> {
         index.swap_remove_from(self)
     }
 
-    /// Remove and return the key-value pair.
+    /// Removes a key from the mapping, returning the stored key and value if the
+    /// key was previously in the mapping.
     ///
-    /// Like [`Vec::swap_remove`], the entry is removed by swapping it with the
-    /// last element of the map and popping it off. This perturbs the position
-    /// of what used to be the last element!
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
+    ///
+    /// The element is removed by swapping it with the last element of the mapping
+    /// and popping it off. This perturbs the position of the last element.
     #[inline]
     pub fn swap_remove_entry<I: Index>(
         &mut self,
@@ -143,11 +169,15 @@ impl Mapping {
         index.swap_remove_entry_from(self)
     }
 
-    /// Removes and returns the value corresponding to the key from the map.
+    /// Removes a key from the mapping, returning the value at the key if the key
+    /// was previously in the mapping.
     ///
-    /// Like [`Vec::remove`], the entry is removed by shifting all of the
-    /// elements that follow it, preserving their relative order. This perturbs
-    /// the index of all of those elements!
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
+    ///
+    /// The element is removed by shifting all of the elements that follow it,
+    /// preserving their relative order. This perturbs the index of all of those
+    /// elements.
     #[inline]
     pub fn shift_remove<I: Index>(
         &mut self,
@@ -156,11 +186,15 @@ impl Mapping {
         index.shift_remove_from(self)
     }
 
-    /// Remove and return the key-value pair.
+    /// Removes a key from the mapping, returning the stored key and value if the
+    /// key was previously in the mapping.
     ///
-    /// Like [`Vec::remove`], the entry is removed by shifting all of the
-    /// elements that follow it, preserving their relative order. This perturbs
-    /// the index of all of those elements!
+    /// The key may be any borrowed form of the mapping's key type, but the ordering
+    /// on the borrowed form *must* match the key type's ordering.
+    ///
+    /// The element is removed by shifting all of the elements that follow it,
+    /// preserving their relative order. This perturbs the index of all of those
+    /// elements.
     #[inline]
     pub fn shift_remove_entry<I: Index>(
         &mut self,
@@ -169,8 +203,9 @@ impl Mapping {
         index.shift_remove_entry_from(self)
     }
 
-    /// Scan through each key-value pair in the map and keep those where the
-    /// closure `keep` returns true.
+    /// Retains only the elements specified by the predicate.
+    ///
+    /// In other words, remove all pairs `(k, v)` such that `f(&k, &mut v)` returns `false`.
     #[inline]
     pub fn retain<F>(&mut self, keep: F)
     where
@@ -179,33 +214,33 @@ impl Mapping {
         self.map.retain(keep);
     }
 
-    /// Returns the maximum number of key-value pairs the map can hold without
-    /// reallocating.
+    /// Returns the number of elements the mapping can hold without reallocating.
     #[inline]
     pub fn capacity(&self) -> usize {
         self.map.capacity()
     }
 
-    /// Returns the number of key-value pairs in the map.
+    /// Returns the number of elements in the mapping.
     #[inline]
     pub fn len(&self) -> usize {
         self.map.len()
     }
 
-    /// Returns whether the map is currently empty.
+    /// Returns `true` if the mapping contains no elements.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.map.is_empty()
     }
 
-    /// Clears the map of all key-value pairs.
+    /// Clears the mapping, removing all key-value pairs.
     #[inline]
     pub fn clear(&mut self) {
         self.map.clear();
     }
 
-    /// Returns a double-ended iterator visiting all key-value pairs in order of
-    /// insertion. Iterator element type is `(&'a Value, &'a Value)`.
+    /// Returns an iterator over the key-value pairs of the mapping, in their order.
+    ///
+    /// The iterator element type is `(&'a Value, &'a Value)`.
     #[inline]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
@@ -213,8 +248,9 @@ impl Mapping {
         }
     }
 
-    /// Returns a double-ended iterator visiting all key-value pairs in order of
-    /// insertion. Iterator element type is `(&'a Value, &'a mut ValuE)`.
+    /// Returns a mutable iterator over the key-value pairs of the mapping, in their order.
+    ///
+    /// The iterator element type is `(&'a Value, &'a mut Value)`.
     #[inline]
     pub fn iter_mut(&mut self) -> IterMut<'_> {
         IterMut {
@@ -222,35 +258,45 @@ impl Mapping {
         }
     }
 
-    /// Return an iterator over the keys of the map.
+    /// Returns an iterator over the keys of the mapping, in their order.
+    ///
+    /// The iterator element type is `&'a Value`.
     pub fn keys(&self) -> Keys<'_> {
         Keys {
             iter: self.map.keys(),
         }
     }
 
-    /// Return an owning iterator over the keys of the map.
+    /// Returns an owning iterator over the keys of the mapping, in their order.
+    ///
+    /// The iterator element type is `Value`.
     pub fn into_keys(self) -> IntoKeys {
         IntoKeys {
             iter: self.map.into_keys(),
         }
     }
 
-    /// Return an iterator over the values of the map.
+    /// Returns an iterator over the values of the mapping, in their order.
+    ///
+    /// The iterator element type is `&'a Value`.
     pub fn values(&self) -> Values<'_> {
         Values {
             iter: self.map.values(),
         }
     }
 
-    /// Return an iterator over mutable references to the values of the map.
+    /// Returns a mutable iterator over the values of the mapping, in their order.
+    ///
+    /// The iterator element type is `&'a mut Value`.
     pub fn values_mut(&mut self) -> ValuesMut<'_> {
         ValuesMut {
             iter: self.map.values_mut(),
         }
     }
 
-    /// Return an owning iterator over the values of the map.
+    /// Returns an owning iterator over the values of the mapping, in their order.
+    ///
+    /// The iterator element type is `Value`.
     pub fn into_values(self) -> IntoValues {
         IntoValues {
             iter: self.map.into_values(),
@@ -258,36 +304,59 @@ impl Mapping {
     }
 }
 
-/// A type that can be used to index into a `serde_yml::Mapping`. See the
-/// methods `get`, `get_mut`, `contains_key`, and `remove` of `Value`.
+/// A trait for types that can be used to index into a `serde_yml::Mapping`.
 ///
-/// This trait is sealed and cannot be implemented for types outside of
-/// `serde_yml`.
+/// The `get`, `get_mut`, `contains_key`, `remove`, `remove_entry`, `shift_remove`
+/// and `shift_remove_entry` methods of `Mapping` use this trait to provide a uniform
+/// interface for indexing with different key types.
+///
+/// This trait is sealed and cannot be implemented for types outside of `serde_yml`.
 pub trait Index: private::Sealed {
+    /// Returns `true` if the given key is present in the mapping.
     #[doc(hidden)]
     fn is_key_into(&self, v: &Mapping) -> bool;
 
+    /// Returns a reference to the value corresponding to the key in the mapping.
     #[doc(hidden)]
     fn index_into<'a>(&self, v: &'a Mapping) -> Option<&'a Value>;
 
+    /// Returns a mutable reference to the value corresponding to the key in the mapping.
     #[doc(hidden)]
     fn index_into_mut<'a>(
         &self,
         v: &'a mut Mapping,
     ) -> Option<&'a mut Value>;
 
+    /// Removes the key-value pair corresponding to the key from the mapping and returns the value.
+    ///
+    /// The element is removed by swapping it with the last element of the mapping
+    /// and popping it off. This perturbs the position of the last element.
     #[doc(hidden)]
     fn swap_remove_from(&self, v: &mut Mapping) -> Option<Value>;
 
+    /// Removes the key-value pair corresponding to the key from the mapping and returns the key and value.
+    ///
+    /// The element is removed by swapping it with the last element of the mapping
+    /// and popping it off. This perturbs the position of the last element.
     #[doc(hidden)]
     fn swap_remove_entry_from(
         &self,
         v: &mut Mapping,
     ) -> Option<(Value, Value)>;
 
+    /// Removes the key-value pair corresponding to the key from the mapping and returns the value.
+    ///
+    /// The element is removed by shifting all of the elements that follow it,
+    /// preserving their relative order. This perturbs the index of all of those
+    /// elements.
     #[doc(hidden)]
     fn shift_remove_from(&self, v: &mut Mapping) -> Option<Value>;
 
+    /// Removes the key-value pair corresponding to the key from the mapping and returns the key and value.
+    ///
+    /// The element is removed by shifting all of the elements that follow it,
+    /// preserving their relative order. This perturbs the index of all of those
+    /// elements.
     #[doc(hidden)]
     fn shift_remove_entry_from(
         &self,
@@ -295,6 +364,8 @@ pub trait Index: private::Sealed {
     ) -> Option<(Value, Value)>;
 }
 
+/// A newtype wrapper for `&str` that implements `indexmap::Equivalent<Value>`
+/// to allow indexing into a `Mapping` with string slices.
 struct HashLikeValue<'a>(&'a str);
 
 impl indexmap::Equivalent<Value> for HashLikeValue<'_> {
@@ -315,31 +386,39 @@ impl Hash for HashLikeValue<'_> {
     }
 }
 
+/// Implements the `Index` trait for `Value`, allowing any `Value` to be used
+/// as a key for indexing into a `Mapping`.
 impl Index for Value {
     fn is_key_into(&self, v: &Mapping) -> bool {
         v.map.contains_key(self)
     }
+
     fn index_into<'a>(&self, v: &'a Mapping) -> Option<&'a Value> {
         v.map.get(self)
     }
+
     fn index_into_mut<'a>(
         &self,
         v: &'a mut Mapping,
     ) -> Option<&'a mut Value> {
         v.map.get_mut(self)
     }
+
     fn swap_remove_from(&self, v: &mut Mapping) -> Option<Value> {
         v.map.swap_remove(self)
     }
+
     fn swap_remove_entry_from(
         &self,
         v: &mut Mapping,
     ) -> Option<(Value, Value)> {
         v.map.swap_remove_entry(self)
     }
+
     fn shift_remove_from(&self, v: &mut Mapping) -> Option<Value> {
         v.map.shift_remove(self)
     }
+
     fn shift_remove_entry_from(
         &self,
         v: &mut Mapping,
@@ -348,6 +427,8 @@ impl Index for Value {
     }
 }
 
+/// Implements the `Index` trait for `&str`, allowing string slices to be used
+/// as keys for indexing into a `Mapping`.
 impl Index for str {
     fn is_key_into(&self, v: &Mapping) -> bool {
         v.map.contains_key(&HashLikeValue(self))
@@ -381,6 +462,7 @@ impl Index for str {
     }
 }
 
+/// Implements the `Index` trait for `String`, allowing owned strings to be used as keys for indexing into a `Mapping`.
 impl Index for String {
     fn is_key_into(&self, v: &Mapping) -> bool {
         self.as_str().is_key_into(v)
@@ -414,6 +496,7 @@ impl Index for String {
     }
 }
 
+/// Implements the `Index` trait for `&String`, allowing string references to be used as keys for indexing into a `Mapping`.
 impl<T> Index for &T
 where
     T: ?Sized + Index,
@@ -451,6 +534,7 @@ where
 }
 
 #[allow(clippy::derived_hash_with_manual_eq)]
+/// `Mapping` is hashable if its keys and values are hashable.
 impl Hash for Mapping {
     fn hash<H: Hasher>(&self, state: &mut H) {
         // Hash the kv pairs in a way that is not sensitive to their order.
@@ -465,6 +549,7 @@ impl Hash for Mapping {
     }
 }
 
+/// `Mapping` is ordered if its keys and values are ordered.
 impl PartialOrd for Mapping {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         let mut self_entries = Vec::from_iter(self);
@@ -554,6 +639,7 @@ impl PartialOrd for Mapping {
     }
 }
 
+/// `Mapping` is ordered if its keys and values are ordered.
 impl<I> std::ops::Index<I> for Mapping
 where
     I: Index,
@@ -567,6 +653,7 @@ where
     }
 }
 
+/// `Mapping` is ordered if its keys and values are ordered.
 impl<I> std::ops::IndexMut<I> for Mapping
 where
     I: Index,
@@ -858,6 +945,7 @@ impl<'a> VacantEntry<'a> {
     }
 }
 
+/// `Mapping` implements `Serialize` using the `serde` crate.
 impl Serialize for Mapping {
     #[inline]
     fn serialize<S: serde::Serializer>(
@@ -874,6 +962,7 @@ impl Serialize for Mapping {
     }
 }
 
+/// `Mapping` implements `Deserialize` using the `serde` crate.
 impl<'de> Deserialize<'de> for Mapping {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -931,10 +1020,17 @@ impl<'de> Deserialize<'de> for Mapping {
     }
 }
 
-struct DuplicateKeyError<'a> {
-    entry: OccupiedEntry<'a>,
+#[derive(Debug)]
+/// Error returned when a duplicate key is encountered while deserializing a
+/// `serde_yml::Mapping`.
+///
+/// This error contains the key-value pair that caused the conflict.
+pub struct DuplicateKeyError<'a> {
+    /// The key-value pair that caused the conflict.
+    pub entry: OccupiedEntry<'a>,
 }
 
+/// `DuplicateKeyError` implements `Display` to provide a human-readable error
 impl Display for DuplicateKeyError<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("duplicate entry ")?;

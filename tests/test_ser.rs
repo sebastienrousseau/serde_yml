@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use serde::ser::{SerializeTuple, SerializeTupleStruct};
     use serde::{ser::Serializer as _, Serialize};
     use serde_yml::{
         libyml::emitter::{Scalar, ScalarStyle},
@@ -244,6 +245,63 @@ mod tests {
         );
     }
 
+    // Test cases for serializing i8 values
+    #[test]
+    fn test_serialize_i8() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+
+        // Act
+        serializer.serialize_i8(42).unwrap();
+        serializer.serialize_i8(-100).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "42\n--- -100\n",
+            "Serialized i8 values don't match expected output"
+        );
+    }
+
+    // Test cases for serializing i16 values
+    #[test]
+    fn test_serialize_i16() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+
+        // Act
+        serializer.serialize_i16(42).unwrap();
+        serializer.serialize_i16(-100).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "42\n--- -100\n",
+            "Serialized i16 values don't match expected output"
+        );
+    }
+
+    // Test cases for serializing i32 values
+    #[test]
+    fn test_serialize_i32() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+
+        // Act
+        serializer.serialize_i32(42).unwrap();
+        serializer.serialize_i32(-100).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "42\n--- -100\n",
+            "Serialized i32 values don't match expected output"
+        );
+    }
+
     // Test cases for serializing i64 values
     #[test]
     fn test_serialize_i64() {
@@ -261,6 +319,34 @@ mod tests {
             "42\n--- -100\n",
             "Serialized i64 values don't match expected output"
         );
+    }
+
+    // Test cases for serializing i128 values
+    #[test]
+    fn test_serialize_i128() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+
+        // Act
+        let u64_max = u64::MAX as i128;
+        let u64_max_plus_one = u64_max + 1;
+        let i64_min = i64::MIN as i128;
+        let i64_min_minus_one = i64_min - 1;
+
+        serializer.serialize_i128(42).unwrap();
+        serializer.serialize_i128(-100).unwrap();
+        serializer.serialize_i128(u64_max).unwrap();
+        serializer.serialize_i128(u64_max_plus_one).unwrap();
+        serializer.serialize_i128(i64_min).unwrap();
+        serializer.serialize_i128(i64_min_minus_one).unwrap();
+
+        // Assert
+        assert_eq!(
+        String::from_utf8(buffer).unwrap(),
+        "42\n--- -100\n--- 18446744073709551615\n--- 18446744073709551616\n--- -9223372036854775808\n--- -9223372036854775809\n",
+        "Serialized i128 values don't match expected output"
+    );
     }
 
     // Test cases for serializing f64 values
@@ -300,6 +386,87 @@ mod tests {
             String::from_utf8(buffer).unwrap(),
             "'a'\n--- '💻'\n",
             "Serialized char values don't match expected output"
+        );
+    }
+
+    // Test case for serializing bytes
+    #[test]
+    fn test_serialize_bytes() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+
+        // Act
+        let bytes = vec![1, 2, 3, 4, 5];
+
+        let result = serializer.serialize_bytes(&bytes);
+
+        // Assert
+        assert!(result.is_err());
+        assert_eq!(
+        result.unwrap_err().to_string(),
+        "serialization and deserialization of bytes in YAML is not implemented",
+        "Unexpected error message"
+    );
+    }
+
+    // Test cases for serializing tuples
+    #[test]
+    fn test_serialize_tuple() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+
+        // Act
+        let mut tuple_serializer =
+            serializer.serialize_tuple(3).unwrap();
+        SerializeTuple::serialize_element(&mut tuple_serializer, &42)
+            .unwrap();
+        SerializeTuple::serialize_element(
+            &mut tuple_serializer,
+            &"hello",
+        )
+        .unwrap();
+        SerializeTuple::serialize_element(&mut tuple_serializer, &true)
+            .unwrap();
+        SerializeTuple::end(tuple_serializer).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "- 42\n- hello\n- true\n",
+            "Serialized tuple doesn't match expected output"
+        );
+    }
+
+    // Test cases for serializing tuple structs
+    #[test]
+    fn test_serialize_tuple_struct() {
+        // Arrange
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+
+        // Act
+        let mut tuple_struct_serializer = serializer
+            .serialize_tuple_struct("MyTupleStruct", 2)
+            .unwrap();
+        SerializeTupleStruct::serialize_field(
+            &mut tuple_struct_serializer,
+            &42,
+        )
+        .unwrap();
+        SerializeTupleStruct::serialize_field(
+            &mut tuple_struct_serializer,
+            &"hello",
+        )
+        .unwrap();
+        SerializeTupleStruct::end(tuple_struct_serializer).unwrap();
+
+        // Assert
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "- 42\n- hello\n",
+            "Serialized tuple struct doesn't match expected output"
         );
     }
 
