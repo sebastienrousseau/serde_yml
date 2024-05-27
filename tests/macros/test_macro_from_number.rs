@@ -69,7 +69,7 @@ mod tests {
     /// Test converting an f32 to a Value.
     #[test]
     fn test_from_number_f32() {
-        let num: f32 = 3.14;
+        let num: f32 = std::f32::consts::PI;
         let value = Value::from(num);
         assert_eq!(value, Value::Number(Number::from(num as f64)));
     }
@@ -77,7 +77,7 @@ mod tests {
     /// Test converting an f64 to a Value.
     #[test]
     fn test_from_number_f64() {
-        let num: f64 = 2.71828;
+        let num: f64 = std::f64::consts::E;
         let value = Value::from(num);
         assert_eq!(value, Value::Number(Number::from(num)));
     }
