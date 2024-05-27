@@ -41,7 +41,7 @@ mod tests {
         let out_dir = temp_dir.path().join("output");
         fs::create_dir(&out_dir).unwrap();
         let file_path = out_dir.join("test.txt");
-        fs::write(&file_path, "test").unwrap();
+        fs::write(file_path, "test").unwrap();
         assert!(move_output_directory("test_site", &out_dir).is_ok());
         assert!(Path::new("public/test_site/test.txt").exists());
     }
