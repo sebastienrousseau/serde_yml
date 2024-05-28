@@ -42,21 +42,21 @@ Unless you explicitly state otherwise, any contribution intentionally submitted 
 
 #### Forked Serde YAML
 
--   **Hard reset**: Hard reset to the latest @dtolnay [latest release](https://github.com/dtolnay/serde-yaml/commit/2009506d33767dfc88e979d6bc0d53d09f941c94) to keep traceability and retain commits history to the original [Serde YAML](https://github.com/dtolnay/serde-yaml) codebase and credits to the maintainers.
--   **Renaming**: This project, has been renamed to `Serde YML` to avoid confusion with the original Serde YAML crate which is now archived and no longer maintained. While `Serde YML` started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind and does not intend to replace the original serde-yaml crate.
+- **Hard reset**: Hard reset to the latest @dtolnay [latest release](https://github.com/dtolnay/serde-yaml/commit/2009506d33767dfc88e979d6bc0d53d09f941c94) to keep traceability and retain commits history to the original [Serde YAML](https://github.com/dtolnay/serde-yaml) codebase and credits to the maintainers.
+- **Renaming**: This project, has been renamed to `Serde YML` to avoid confusion with the original Serde YAML crate which is now archived and no longer maintained. While `Serde YML` started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind and does not intend to replace the original serde-yaml crate.
 
 #### CI Improvements
 
--   **ci(serde-yaml)**: Added a missing release workflow and made minor tweaks to the README for better clarity and documentation. This update ensures smoother and more reliable release processes.
-    -   Commit: `ci(serde-yaml): :green_heart: add missing release workflow and minor tweaks in README`
+- **ci(serde-yaml)**: Added a missing release workflow and made minor tweaks to the README for better clarity and documentation. This update ensures smoother and more reliable release processes.
+  - Commit: `ci(serde-yaml): :green_heart: add missing release workflow and minor tweaks in README`
 
 #### Testing Enhancements
 
--   **test(serde-yaml)**: Enhanced test coverage by adding new unit tests for `mapping.rs`. These tests ensure the robustness and reliability of the `Mapping` struct and its associated methods.
+- **test(serde-yaml)**: Enhanced test coverage by adding new unit tests for `mapping.rs`. These tests ensure the robustness and reliability of the `Mapping` struct and its associated methods.
 
-    -   Commit: `test(serde-yaml): :white_check_mark: add new tests for `mapping.rs``
+  - Commit: `test(serde-yaml): :white_check_mark: add new tests for`mapping.rs``
 
--   **test(serde-yaml)**: Expanded the test suite by adding comprehensive unit tests for the `ser.rs` module. The new tests cover various serialization scenarios, including scalar values, sequences, maps, nested structures, optional fields, and custom serializers.
-    -   Commit: `test(serde-yaml): :white_check_mark: add unit tests for the `ser.rs` module`
+- **test(serde-yaml)**: Expanded the test suite by adding comprehensive unit tests for the `ser.rs` module. The new tests cover various serialization scenarios, including scalar values, sequences, maps, nested structures, optional fields, and custom serializers.
+  - Commit: `test(serde-yaml): :white_check_mark: add unit tests for the`ser.rs`module`
 
-**Full Changelog**: https://github.com/sebastienrousseau/serde_yml/commits/v0.0.9
+**Full Changelog**: <https://github.com/sebastienrousseau/serde_yml/commits/v0.0.10>
