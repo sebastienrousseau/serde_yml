@@ -76,7 +76,7 @@ pub enum ErrorImpl {
     /// A generic error message with an optional position.
     Message(String, Option<Pos>),
     /// An error originating from the `libyml` library.
-    Libyaml(libyml::Error),
+    Libyml(libyml::Error),
     /// An I/O error.
     IoError(io::Error),
     /// An error encountered while converting a byte slice to a string using UTF-8 encoding.
@@ -115,7 +115,7 @@ impl Display for ErrorImpl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ErrorImpl::Message(msg, _) => write!(f, "Error: {}", msg),
-            ErrorImpl::Libyaml(_) => write!(f, "Error: An error occurred in the Libyaml library"),
+            ErrorImpl::Libyml(_) => write!(f, "Error: An error occurred in the Libyml library"),
             ErrorImpl::IoError(err) => write!(f, "I/O Error: {}", err),
             ErrorImpl::FromUtf8(err) => write!(f, "UTF-8 Conversion Error: {}", err),
             ErrorImpl::EndOfStream => write!(f, "Unexpected End of YAML Stream: The YAML stream ended unexpectedly while parsing a value"),
@@ -191,14 +191,14 @@ pub fn fix_mark(
 
 impl From<libyml::Error> for Error {
     fn from(err: libyml::Error) -> Self {
-        Error(Box::new(ErrorImpl::Libyaml(err)))
+        Error(Box::new(ErrorImpl::Libyml(err)))
     }
 }
 
 impl From<emitter::Error> for Error {
     fn from(err: emitter::Error) -> Self {
         match err {
-            emitter::Error::Libyaml(err) => Self::from(err),
+            emitter::Error::Libyml(err) => Self::from(err),
             emitter::Error::Io(err) => new(ErrorImpl::IoError(err)),
         }
     }
@@ -255,7 +255,7 @@ impl ErrorImpl {
             ErrorImpl::Message(_, Some(Pos { mark, path: _ }))
             | ErrorImpl::RecursionLimitExceeded(mark)
             | ErrorImpl::UnknownAnchor(mark) => Some(*mark),
-            ErrorImpl::Libyaml(err) => Some(err.mark()),
+            ErrorImpl::Libyml(err) => Some(err.mark()),
             ErrorImpl::Shared(err) => err.mark(),
             _ => None,
         }
@@ -270,7 +270,7 @@ impl ErrorImpl {
                 }
                 f.write_str(description)
             }
-            ErrorImpl::Libyaml(_) => unreachable!(),
+            ErrorImpl::Libyml(_) => unreachable!(),
             ErrorImpl::IoError(err) => Display::fmt(err, f),
             ErrorImpl::FromUtf8(err) => Display::fmt(err, f),
             ErrorImpl::EndOfStream => f.write_str("EOF while parsing a value"),
@@ -312,7 +312,7 @@ impl ErrorImpl {
 
     fn display(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ErrorImpl::Libyaml(err) => Display::fmt(err, f),
+            ErrorImpl::Libyml(err) => Display::fmt(err, f),
             ErrorImpl::Shared(err) => err.display(f),
             _ => {
                 self.message(f)?;
@@ -328,7 +328,7 @@ impl ErrorImpl {
 
     fn debug(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ErrorImpl::Libyaml(err) => Debug::fmt(err, f),
+            ErrorImpl::Libyml(err) => Debug::fmt(err, f),
             ErrorImpl::Shared(err) => err.debug(f),
             _ => {
                 f.write_str("Error(")?;

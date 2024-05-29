@@ -1,3 +1,6 @@
+/// This module contains the tests for the `libyml` module.
+pub mod libyml;
+
 /// This module contains the tests for the `macros` module.
 pub mod macros;
 

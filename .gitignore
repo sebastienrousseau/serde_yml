@@ -6,3 +6,4 @@
 build
 Cargo.lock
 Icon?
+public/test_site/test.txt

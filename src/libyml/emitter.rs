@@ -28,9 +28,9 @@ use std::{
 
 /// Errors that can occur during YAML emission.
 #[derive(Debug)]
-pub(crate) enum Error {
+pub enum Error {
     /// Errors related to libyml.
-    Libyaml(libyml::error::Error),
+    Libyml(libyml::error::Error),
     /// I/O errors.
     Io(io::Error),
 }
@@ -143,7 +143,7 @@ pub struct Mapping {
 
 impl<'a> Emitter<'a> {
     /// Creates a new YAML emitter.
-    pub(crate) fn new(write: Box<dyn io::Write + 'a>) -> Emitter<'a> {
+    pub fn new(write: Box<dyn io::Write + 'a>) -> Emitter<'a> {
         let owned = Owned::<EmitterPinned<'a>>::new_uninit();
         let pin = unsafe {
             let emitter = addr_of_mut!((*owned.ptr).sys);
@@ -168,10 +168,7 @@ impl<'a> Emitter<'a> {
     }
 
     /// Emits a YAML event.
-    pub(crate) fn emit(
-        &mut self,
-        event: Event<'_>,
-    ) -> Result<(), Error> {
+    pub fn emit(&mut self, event: Event<'_>) -> Result<(), Error> {
         let mut sys_event = MaybeUninit::<YamlEventT>::uninit();
         let sys_event = sys_event.as_mut_ptr();
         unsafe {
@@ -285,7 +282,7 @@ impl<'a> Emitter<'a> {
                 }
             };
             if initialize_status.fail {
-                return Err(Error::Libyaml(libyml::Error::emit_error(
+                return Err(Error::Libyml(libyml::Error::emit_error(
                     emitter,
                 )));
             }
@@ -297,7 +294,7 @@ impl<'a> Emitter<'a> {
     }
 
     /// Flushes the YAML emitter.
-    pub(crate) fn flush(&mut self) -> Result<(), Error> {
+    pub fn flush(&mut self) -> Result<(), Error> {
         unsafe {
             let emitter = addr_of_mut!((*self.pin.ptr).sys);
             if yaml_emitter_flush(emitter).fail {
@@ -309,18 +306,18 @@ impl<'a> Emitter<'a> {
 
     /// Retrieves the inner writer from the YAML emitter.
     #[allow(unused_mut)]
-    pub(crate) fn into_inner(mut self) -> Box<dyn io::Write + 'a> {
+    pub fn into_inner(mut self) -> Box<dyn io::Write + 'a> {
         let sink = Box::new(io::sink());
         unsafe { mem::replace(&mut (*self.pin.ptr).write, sink) }
     }
 
     /// Retrieves the error from the YAML emitter.
-    fn error(&mut self) -> Error {
+    pub fn error(&mut self) -> Error {
         let emitter = unsafe { &mut *self.pin.ptr };
         if let Some(write_error) = emitter.write_error.take() {
             Error::Io(write_error)
         } else {
-            Error::Libyaml(unsafe {
+            Error::Libyml(unsafe {
                 libyml::Error::emit_error(&emitter.sys)
             })
         }
