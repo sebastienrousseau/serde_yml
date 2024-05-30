@@ -17,6 +17,9 @@ mod modules;
 /// Contains the example modules for the `serializer` module.
 mod serializer;
 
+/// Contains the example modules for the `value` module.
+mod value;
+
 /// Examples for the `with` module.
 mod with;
 
@@ -37,6 +40,9 @@ fn main() {
 
     // Run the example module `serializer`.
     serializer::main();
+
+    // Run the example module `value`.
+    value::main();
 
     // Run the example module `with`.
     with::main();
