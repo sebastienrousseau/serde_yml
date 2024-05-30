@@ -14,6 +14,7 @@ use std::fmt::Result as FmtResult;
 use std::slice;
 use std::vec;
 
+/// Deserializes a `Value` from a given deserializer.
 impl<'de> Deserialize<'de> for Value {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -31,46 +32,46 @@ impl<'de> Deserialize<'de> for Value {
                 formatter.write_str("any YAML value")
             }
 
-            fn visit_bool<E>(self, b: bool) -> Result<Value, E>
+            fn visit_bool<E>(self, value: bool) -> Result<Value, E>
             where
                 E: de::Error,
             {
-                Ok(Value::Bool(b))
+                Ok(Value::Bool(value))
             }
 
-            fn visit_i64<E>(self, i: i64) -> Result<Value, E>
+            fn visit_i64<E>(self, value: i64) -> Result<Value, E>
             where
                 E: de::Error,
             {
-                Ok(Value::Number(i.into()))
+                Ok(Value::Number(value.into()))
             }
 
-            fn visit_u64<E>(self, u: u64) -> Result<Value, E>
+            fn visit_u64<E>(self, value: u64) -> Result<Value, E>
             where
                 E: de::Error,
             {
-                Ok(Value::Number(u.into()))
+                Ok(Value::Number(value.into()))
             }
 
-            fn visit_f64<E>(self, f: f64) -> Result<Value, E>
+            fn visit_f64<E>(self, value: f64) -> Result<Value, E>
             where
                 E: de::Error,
             {
-                Ok(Value::Number(f.into()))
+                Ok(Value::Number(value.into()))
             }
 
-            fn visit_str<E>(self, s: &str) -> Result<Value, E>
+            fn visit_str<E>(self, value: &str) -> Result<Value, E>
             where
                 E: de::Error,
             {
-                Ok(Value::String(s.to_owned()))
+                Ok(Value::String(value.to_owned()))
             }
 
-            fn visit_string<E>(self, s: String) -> Result<Value, E>
+            fn visit_string<E>(self, value: String) -> Result<Value, E>
             where
                 E: de::Error,
             {
-                Ok(Value::String(s))
+                Ok(Value::String(value))
             }
 
             fn visit_unit<E>(self) -> Result<Value, E>
@@ -97,20 +98,20 @@ impl<'de> Deserialize<'de> for Value {
                 Deserialize::deserialize(deserializer)
             }
 
-            fn visit_seq<A>(self, data: A) -> Result<Value, A::Error>
+            fn visit_seq<A>(self, seq: A) -> Result<Value, A::Error>
             where
                 A: SeqAccess<'de>,
             {
-                let de = SeqAccessDeserializer::new(data);
+                let de = SeqAccessDeserializer::new(seq);
                 let sequence = Sequence::deserialize(de)?;
                 Ok(Value::Sequence(sequence))
             }
 
-            fn visit_map<A>(self, data: A) -> Result<Value, A::Error>
+            fn visit_map<A>(self, map: A) -> Result<Value, A::Error>
             where
                 A: MapAccess<'de>,
             {
-                let de = MapAccessDeserializer::new(data);
+                let de = MapAccessDeserializer::new(map);
                 let mapping = Mapping::deserialize(de)?;
                 Ok(Value::Mapping(mapping))
             }
@@ -134,6 +135,7 @@ impl<'de> Deserialize<'de> for Value {
 }
 
 impl Value {
+    /// Deserializes a number from the given `Value`.
     fn deserialize_number<'de, V>(
         &self,
         visitor: V,
@@ -148,6 +150,7 @@ impl Value {
     }
 }
 
+/// Visits a `Sequence` value with the given `Visitor`.
 fn visit_sequence<'de, V>(
     sequence: Sequence,
     visitor: V,
@@ -166,6 +169,7 @@ where
     }
 }
 
+/// Visits a borrowed `Sequence` value with the given `Visitor`.
 fn visit_sequence_ref<'de, V>(
     sequence: &'de Sequence,
     visitor: V,
@@ -184,6 +188,7 @@ where
     }
 }
 
+/// Visits a `Mapping` value with the given `Visitor`.
 fn visit_mapping<'de, V>(
     mapping: Mapping,
     visitor: V,
@@ -202,6 +207,7 @@ where
     }
 }
 
+/// Visits a borrowed `Mapping` value with the given `Visitor`.
 fn visit_mapping_ref<'de, V>(
     mapping: &'de Mapping,
     visitor: V,
@@ -538,6 +544,7 @@ impl<'de> Deserializer<'de> for Value {
     }
 }
 
+/// Represents an enum deserializer.
 struct EnumDeserializer<'a> {
     tag: &'a str,
     value: Option<Value>,
@@ -561,6 +568,7 @@ impl<'de> EnumAccess<'de> for EnumDeserializer<'_> {
     }
 }
 
+/// Represents a variant deserializer.
 struct VariantDeserializer {
     value: Option<Value>,
 }
@@ -623,11 +631,13 @@ impl<'de> VariantAccess<'de> for VariantDeserializer {
     }
 }
 
+/// Represents a sequence deserializer.
 pub(crate) struct SeqDeserializer {
     iter: vec::IntoIter<Value>,
 }
 
 impl SeqDeserializer {
+    /// Creates a new `SeqDeserializer` from the given vector of `Value`s.
     pub(crate) fn new(vec: Vec<Value>) -> Self {
         SeqDeserializer {
             iter: vec.into_iter(),
@@ -705,12 +715,14 @@ impl<'de> SeqAccess<'de> for SeqDeserializer {
     }
 }
 
+/// Represents a map deserializer.
 pub(crate) struct MapDeserializer {
     iter: <Mapping as IntoIterator>::IntoIter,
     value: Option<Value>,
 }
 
 impl MapDeserializer {
+    /// Creates a new `MapDeserializer` from the given `Mapping`.
     pub(crate) fn new(map: Mapping) -> Self {
         MapDeserializer {
             iter: map.into_iter(),
@@ -984,7 +996,6 @@ impl<'de> Deserializer<'de> for &'de Value {
     {
         self.deserialize_unit(visitor)
     }
-
     fn deserialize_newtype_struct<V>(
         self,
         _name: &'static str,
@@ -1104,16 +1115,14 @@ impl<'de> Deserializer<'de> for &'de Value {
         visitor.visit_unit()
     }
 }
-
+/// Represents an enum deserializer for borrowed values.
 struct EnumRefDeserializer<'de> {
     tag: &'de str,
     value: Option<&'de Value>,
 }
-
 impl<'de> EnumAccess<'de> for EnumRefDeserializer<'de> {
     type Error = Error;
     type Variant = VariantRefDeserializer<'de>;
-
     fn variant_seed<V>(
         self,
         seed: V,
@@ -1127,14 +1136,12 @@ impl<'de> EnumAccess<'de> for EnumRefDeserializer<'de> {
         Ok((variant, visitor))
     }
 }
-
+/// Represents a variant deserializer for borrowed values.
 struct VariantRefDeserializer<'de> {
     value: Option<&'de Value>,
 }
-
 impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
     type Error = Error;
-
     fn unit_variant(self) -> Result<(), Error> {
         match self.value {
             Some(value) => {
@@ -1194,20 +1201,18 @@ impl<'de> VariantAccess<'de> for VariantRefDeserializer<'de> {
         }
     }
 }
-
+/// Represents a sequence deserializer for borrowed values.
 pub(crate) struct SeqRefDeserializer<'de> {
     iter: slice::Iter<'de, Value>,
 }
-
 impl<'de> SeqRefDeserializer<'de> {
+    /// Creates a new SeqRefDeserializer from the given slice of Values.
     pub(crate) fn new(slice: &'de [Value]) -> Self {
         SeqRefDeserializer { iter: slice.iter() }
     }
 }
-
 impl<'de> Deserializer<'de> for SeqRefDeserializer<'de> {
     type Error = Error;
-
     #[inline]
     fn deserialize_any<V>(
         mut self,
@@ -1249,10 +1254,8 @@ impl<'de> Deserializer<'de> for SeqRefDeserializer<'de> {
         map struct enum identifier
     }
 }
-
 impl<'de> SeqAccess<'de> for SeqRefDeserializer<'de> {
     type Error = Error;
-
     fn next_element_seed<T>(
         &mut self,
         seed: T,
@@ -1273,13 +1276,13 @@ impl<'de> SeqAccess<'de> for SeqRefDeserializer<'de> {
         }
     }
 }
-
+/// Represents a map deserializer for borrowed values.
 pub(crate) struct MapRefDeserializer<'de> {
     iter: Option<<&'de Mapping as IntoIterator>::IntoIter>,
     value: Option<&'de Value>,
 }
-
 impl<'de> MapRefDeserializer<'de> {
+    /// Creates a new MapRefDeserializer from the given Mapping.
     pub(crate) fn new(map: &'de Mapping) -> Self {
         MapRefDeserializer {
             iter: Some(map.iter()),
@@ -1287,10 +1290,8 @@ impl<'de> MapRefDeserializer<'de> {
         }
     }
 }
-
 impl<'de> MapAccess<'de> for MapRefDeserializer<'de> {
     type Error = Error;
-
     fn next_key_seed<T>(
         &mut self,
         seed: T,
@@ -1324,10 +1325,8 @@ impl<'de> MapAccess<'de> for MapRefDeserializer<'de> {
         }
     }
 }
-
 impl<'de> Deserializer<'de> for MapRefDeserializer<'de> {
     type Error = Error;
-
     #[inline]
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
     where
@@ -1352,8 +1351,8 @@ impl<'de> Deserializer<'de> for MapRefDeserializer<'de> {
         map struct enum identifier
     }
 }
-
 impl Value {
+    /// Returns an error indicating that the value is of an invalid type for the given visitor.
     #[cold]
     fn invalid_type<E>(&self, exp: &dyn Expected) -> E
     where
@@ -1361,7 +1360,7 @@ impl Value {
     {
         de::Error::invalid_type(self.unexpected(), exp)
     }
-
+    /// Returns an `Unexpected` instance for the current `Value`.
     #[cold]
     pub(crate) fn unexpected(&self) -> Unexpected<'_> {
         match self {

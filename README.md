@@ -46,12 +46,12 @@ serde_yml = "0.0.10"
 
 Release notes are available under [GitHub releases][04].
 
-## Using Serde YAML
+## Using Serde YML
 
 [API documentation is available in rustdoc form][docs.rs] but the general idea
 is:
 
-[docs.rs]: https://docs.rs/serde_yaml
+[docs.rs]: https://docs.rs/serde_yml
 
 ```rust
 use serde::{Serialize, Deserialize};

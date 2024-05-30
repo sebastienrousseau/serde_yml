@@ -1,3 +1,6 @@
+/// The `test_de` module contains tests for the `Deserialize` trait implementations.
+pub mod test_de;
+
 /// The `test_debug` module contains tests for the `Debug` trait implementations.
 pub mod test_debug;
 
