@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD041 -->
 
-<img src="https://kura.pro/serde_yml/images/logos/serde_yml.webp"
+<img src="https://kura.pro/serde_yml/images/logos/serde_yml.svg"
 alt="Serde YML logo" width="66" align="right" />
 
 <!-- markdownlint-enable MD033 MD041 -->
@@ -41,17 +41,17 @@ and for inspiring this project.
 ```toml
 [dependencies]
 serde = "1.0"
-serde_yml = "0.0.9"
+serde_yml = "0.0.10"
 ```
 
 Release notes are available under [GitHub releases][04].
 
-## Using Serde YAML
+## Using Serde YML
 
 [API documentation is available in rustdoc form][docs.rs] but the general idea
 is:
 
-[docs.rs]: https://docs.rs/serde_yaml
+[docs.rs]: https://docs.rs/serde_yml
 
 ```rust
 use serde::{Serialize, Deserialize};

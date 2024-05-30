@@ -17,30 +17,30 @@ pub struct Error {
     ///
     /// This field uses the `yaml_error_type_t` type from the `libyml` crate,
     /// which represents different types of errors.
-    kind: sys::YamlErrorTypeT,
+    pub kind: sys::YamlErrorTypeT,
 
     /// A null-terminated string describing the problem that caused the error.
     ///
     /// The `CStr<'static>` type represents a borrowed C-style string with a static lifetime.
-    problem: CStr<'static>,
+    pub problem: CStr<'static>,
 
     /// The offset of the problem that caused the error.
-    problem_offset: u64,
+    pub problem_offset: u64,
 
     /// The mark indicating the position of the problem that caused the error.
     ///
     /// The `Mark` type represents a position in the YAML input.
-    problem_mark: Mark,
+    pub problem_mark: Mark,
 
     /// An optional null-terminated string providing additional context for the error.
     ///
     /// The `CStr<'static>` type represents a borrowed C-style string with a static lifetime.
-    context: Option<CStr<'static>>,
+    pub context: Option<CStr<'static>>,
 
     /// The mark indicating the position of the context related to the error.
     ///
     /// The `Mark` type represents a position in the YAML input.
-    context_mark: Mark,
+    pub context_mark: Mark,
 }
 
 impl Error {
@@ -191,7 +191,7 @@ pub struct Mark {
     ///
     /// This field is marked as `pub(super)`, which means it is accessible within the current module
     /// and its parent module, but not from outside the crate.
-    pub(super) sys: sys::YamlMarkT,
+    pub sys: sys::YamlMarkT,
 }
 
 impl Mark {

@@ -35,7 +35,7 @@ pub struct Parser<'input> {
     ///
     /// Pinning is used to ensure that the `Parser` remains at a fixed memory
     /// location, which is required for safe interaction with the `libyml` library.
-    pin: Owned<ParserPinned<'input>>,
+    pub pin: Owned<ParserPinned<'input>>,
 }
 
 /// Represents a pinned parser for YAML deserialization.
@@ -44,13 +44,13 @@ pub struct Parser<'input> {
 /// for parsing YAML documents. It is pinned to a specific lifetime `'input`
 /// to ensure that the borrowed input data remains valid throughout the
 /// lifetime of the parser.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParserPinned<'input> {
     /// The underlying `YamlParserT` struct from the `libyml` library.
-    sys: sys::YamlParserT,
+    pub sys: sys::YamlParserT,
 
     /// The input data being parsed.
-    input: Cow<'input, [u8]>,
+    pub input: Cow<'input, [u8]>,
 }
 
 /// Represents a YAML event encountered during parsing.
@@ -180,6 +180,30 @@ impl<'input> Parser<'input> {
             if sys::yaml_parser_parse(parser, event).fail {
                 return Err(Error::parse_error(parser));
             }
+
+            let event_type = (*event).type_;
+
+            // Handle specific cases
+            if event_type == sys::YamlNoEvent
+                || event_type == sys::YamlStreamEndEvent
+            {
+                let mark = Mark {
+                    sys: (*event).start_mark,
+                };
+                sys::yaml_event_delete(event);
+                return Ok((Event::StreamEnd, mark));
+            }
+
+            if event_type == sys::YamlScalarEvent
+                && (*event).data.scalar.value.is_null()
+            {
+                let mark = Mark {
+                    sys: (*event).start_mark,
+                };
+                sys::yaml_event_delete(event);
+                return Ok((Event::StreamEnd, mark));
+            }
+
             let ret = convert_event(&*event, &(*self.pin.ptr).input);
             let mark = Mark {
                 sys: (*event).start_mark,
@@ -188,8 +212,28 @@ impl<'input> Parser<'input> {
             Ok((ret, mark))
         }
     }
+    /// Checks if the parser is initialized and ready to parse YAML.
+    ///
+    /// This function returns `true` if the parser is initialized and ready to parse YAML, and `false` otherwise.
+    pub fn is_ok(&self) -> bool {
+        unsafe {
+            let parser = addr_of_mut!((*self.pin.ptr).sys);
+            if sys::yaml_parser_initialize(parser).fail {
+                return false;
+            }
+            sys::yaml_parser_set_encoding(
+                parser,
+                sys::YamlUtf8Encoding,
+            );
+            let input_ptr = (*self.pin.ptr).input.as_ptr();
+            let input_len = (*self.pin.ptr).input.len() as u64;
+            sys::yaml_parser_set_input_string(
+                parser, input_ptr, input_len,
+            );
+            true
+        }
+    }
 }
-
 unsafe fn convert_event<'input>(
     sys: &sys::YamlEventT,
     input: &'input Cow<'input, [u8]>,

@@ -38,6 +38,7 @@ impl Index for usize {
             _ => None,
         }
     }
+
     fn index_into_mut<'v>(
         &self,
         v: &'v mut Value,
@@ -50,6 +51,7 @@ impl Index for usize {
             _ => None,
         }
     }
+
     fn index_or_insert<'v>(
         &self,
         mut v: &'v mut Value,
@@ -147,12 +149,14 @@ impl Index for Value {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         index_into_mapping(self, v)
     }
+
     fn index_into_mut<'v>(
         &self,
         v: &'v mut Value,
     ) -> Option<&'v mut Value> {
         index_into_mut_mapping(self, v)
     }
+
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
         index_or_insert_mapping(self, v)
     }
@@ -162,12 +166,14 @@ impl Index for str {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         index_into_mapping(self, v)
     }
+
     fn index_into_mut<'v>(
         &self,
         v: &'v mut Value,
     ) -> Option<&'v mut Value> {
         index_into_mut_mapping(self, v)
     }
+
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
         index_or_insert_mapping(self, v)
     }
@@ -177,12 +183,14 @@ impl Index for String {
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         self.as_str().index_into(v)
     }
+
     fn index_into_mut<'v>(
         &self,
         v: &'v mut Value,
     ) -> Option<&'v mut Value> {
         self.as_str().index_into_mut(v)
     }
+
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
         self.as_str().index_or_insert(v)
     }
@@ -195,12 +203,14 @@ where
     fn index_into<'v>(&self, v: &'v Value) -> Option<&'v Value> {
         (**self).index_into(v)
     }
+
     fn index_into_mut<'v>(
         &self,
         v: &'v mut Value,
     ) -> Option<&'v mut Value> {
         (**self).index_into_mut(v)
     }
+
     fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {
         (**self).index_or_insert(v)
     }
@@ -242,83 +252,83 @@ impl fmt::Display for Type<'_> {
 // `as_sequence`, or match. The value of this impl is that it adds a way of
 // working with Value that is not well served by the existing approaches:
 // concise and careless and sometimes that is exactly what you want.
+
+/// Index into a `serde_yml::Value` using the syntax `value[0]` or `value["k"]`.
+///
+/// Returns `Value::Null` if the type of `self` does not match the type of
+/// the index, for example if the index is a string and `self` is a sequence
+/// or a number. Also returns `Value::Null` if the given key does not exist
+/// in the map or the given index is not within the bounds of the sequence.
+///
+/// For retrieving deeply nested values, you should have a look at the
+/// `Value::pointer` method.
+///
+/// # Examples
+///
+/// ```
+/// # use serde_yml::Value;
+/// #
+/// # fn main() -> serde_yml::Result<()> {
+/// let data: serde_yml::Value = serde_yml::from_str(r#"{ x: { y: [z, zz] } }"#)?;
+///
+/// assert_eq!(data["x"]["y"], serde_yml::from_str::<Value>(r#"["z", "zz"]"#).unwrap());
+/// assert_eq!(data["x"]["y"][0], serde_yml::from_str::<Value>(r#""z""#).unwrap());
+///
+/// assert_eq!(data["a"], serde_yml::from_str::<Value>(r#"null"#).unwrap()); // returns null for undefined values
+/// assert_eq!(data["a"]["b"], serde_yml::from_str::<Value>(r#"null"#).unwrap()); // does not panic
+/// # Ok(())
+/// # }
+/// ```
 impl<I> ops::Index<I> for Value
 where
     I: Index,
 {
     type Output = Value;
 
-    /// Index into a `serde_yml::Value` using the syntax `value[0]` or
-    /// `value["k"]`.
-    ///
-    /// Returns `Value::Null` if the type of `self` does not match the type of
-    /// the index, for example if the index is a string and `self` is a sequence
-    /// or a number. Also returns `Value::Null` if the given key does not exist
-    /// in the map or the given index is not within the bounds of the sequence.
-    ///
-    /// For retrieving deeply nested values, you should have a look at the
-    /// `Value::pointer` method.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use serde_yml::Value;
-    /// #
-    /// # fn main() -> serde_yml::Result<()> {
-    /// let data: serde_yml::Value = serde_yml::from_str(r#"{ x: { y: [z, zz] } }"#)?;
-    ///
-    /// assert_eq!(data["x"]["y"], serde_yml::from_str::<Value>(r#"["z", "zz"]"#).unwrap());
-    /// assert_eq!(data["x"]["y"][0], serde_yml::from_str::<Value>(r#""z""#).unwrap());
-    ///
-    /// assert_eq!(data["a"], serde_yml::from_str::<Value>(r#"null"#).unwrap()); // returns null for undefined values
-    /// assert_eq!(data["a"]["b"], serde_yml::from_str::<Value>(r#"null"#).unwrap()); // does not panic
-    /// # Ok(())
-    /// # }
-    /// ```
     fn index(&self, index: I) -> &Value {
         static NULL: Value = Value::Null;
         index.index_into(self).unwrap_or(&NULL)
     }
 }
 
+/// Write into a `serde_yml::Value` using the syntax `value[0] = ...` or
+/// `value["k"] = ...`.
+///
+/// If the index is a number, the value must be a sequence of length bigger
+/// than the index. Indexing into a value that is not a sequence or a
+/// sequence that is too small will panic.
+///
+/// If the index is a string, the value must be an object or null which is
+/// treated like an empty object. If the key is not already present in the
+/// object, it will be inserted with a value of null. Indexing into a value
+/// that is neither an object nor null will panic.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> serde_yml::Result<()> {
+/// let mut data: serde_yml::Value = serde_yml::from_str(r#"{x: 0}"#)?;
+///
+/// // replace an existing key
+/// data["x"] = serde_yml::from_str(r#"1"#)?;
+///
+/// // insert a new key
+/// data["y"] = serde_yml::from_str(r#"[false, false, false]"#)?;
+///
+/// // replace a value in a sequence
+/// data["y"][0] = serde_yml::from_str(r#"true"#)?;
+///
+/// // inserted a deeply nested key
+/// data["a"]["b"]["c"]["d"] = serde_yml::from_str(r#"true"#)?;
+///
+/// println!("{:?}", data);
+/// # Ok(())
+/// # }
+/// ```
 impl<I> ops::IndexMut<I> for Value
 where
     I: Index,
 {
-    /// Write into a `serde_yml::Value` using the syntax `value[0] = ...` or
-    /// `value["k"] = ...`.
-    ///
-    /// If the index is a number, the value must be a sequence of length bigger
-    /// than the index. Indexing into a value that is not a sequence or a
-    /// sequence that is too small will panic.
-    ///
-    /// If the index is a string, the value must be an object or null which is
-    /// treated like an empty object. If the key is not already present in the
-    /// object, it will be inserted with a value of null. Indexing into a value
-    /// that is neither an object nor null will panic.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # fn main() -> serde_yml::Result<()> {
-    /// let mut data: serde_yml::Value = serde_yml::from_str(r#"{x: 0}"#)?;
-    ///
-    /// // replace an existing key
-    /// data["x"] = serde_yml::from_str(r#"1"#)?;
-    ///
-    /// // insert a new key
-    /// data["y"] = serde_yml::from_str(r#"[false, false, false]"#)?;
-    ///
-    /// // replace a value in a sequence
-    /// data["y"][0] = serde_yml::from_str(r#"true"#)?;
-    ///
-    /// // inserted a deeply nested key
-    /// data["a"]["b"]["c"]["d"] = serde_yml::from_str(r#"true"#)?;
-    ///
-    /// println!("{:?}", data);
-    /// # Ok(())
-    /// # }
-    /// ```
     fn index_mut(&mut self, index: I) -> &mut Value {
         index.index_or_insert(self)
     }
