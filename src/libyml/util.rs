@@ -8,7 +8,7 @@ use std::{
 /// A struct representing ownership of a pointer to a value of type `T`.
 /// `Init` represents the initialization state of the value.
 #[derive(Debug)]
-pub(crate) struct Owned<T, Init = T> {
+pub struct Owned<T, Init = T> {
     ptr: NonNull<T>,
     marker: PhantomData<NonNull<Init>>,
 }
@@ -19,7 +19,7 @@ impl<T> Owned<T> {
     /// # Safety
     /// The created instance contains uninitialized memory, and should be properly
     /// initialized before use.
-    pub(crate) fn new_uninit() -> Owned<MaybeUninit<T>, T> {
+    pub fn new_uninit() -> Owned<MaybeUninit<T>, T> {
         // Allocate memory for `T` but leave it uninitialized.
         let boxed = Box::new(MaybeUninit::<T>::uninit());
         Owned {
@@ -35,7 +35,7 @@ impl<T> Owned<T> {
     ///
     /// # Safety
     /// The caller must ensure that `definitely_init` is properly initialized.
-    pub(crate) unsafe fn assume_init(
+    pub unsafe fn assume_init(
         definitely_init: Owned<MaybeUninit<T>, T>,
     ) -> Owned<T> {
         let ptr = definitely_init.ptr;
@@ -49,8 +49,10 @@ impl<T> Owned<T> {
 
 /// A transparent wrapper around a mutable pointer of type `T`.
 #[repr(transparent)]
-pub(crate) struct InitPtr<T> {
-    pub(crate) ptr: *mut T,
+#[derive(Debug)]
+pub struct InitPtr<T> {
+    /// The mutable pointer.
+    pub ptr: *mut T,
 }
 
 impl<T, Init> Deref for Owned<T, Init> {
