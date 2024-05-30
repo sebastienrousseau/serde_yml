@@ -6,6 +6,7 @@
 use serde_yml::libyml::parser::{Event, Parser};
 use std::borrow::Cow;
 
+#[allow(clippy::single_match)]
 pub(crate) fn main() {
     // Print a message to indicate the file being executed.
     println!("\n❯ Executing examples/libyml/parser_examples.rs");
