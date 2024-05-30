@@ -7,7 +7,7 @@ use serde_yml::libyml::tag::{Tag, TagFormatError};
 
 pub(crate) fn main() {
     // Print a message to indicate the file being executed.
-    println!("\n❯ Executing examples/libyml/tag.rs");
+    println!("\n❯ Executing examples/libyml/tag_examples.rs");
 
     // Example: Creating a new Tag instance
     let tag_null = Tag::new(Tag::NULL);

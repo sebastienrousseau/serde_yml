@@ -9,7 +9,7 @@ use std::io::Cursor;
 
 pub(crate) fn main() {
     // Print a message to indicate the file being executed
-    println!("\n❯ Executing examples/libyml/emitter.rs");
+    println!("\n❯ Executing examples/libyml/emitter_examples.rs");
 
     // Example: Emitting a stream start and end event
     let mut buffer = Cursor::new(Vec::new());

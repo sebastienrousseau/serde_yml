@@ -4,6 +4,9 @@ pub mod test_emitter;
 /// This module contains the tests for the `error` module.
 pub mod test_error;
 
+/// This module contains the tests for the `test_safe_cstr` module.
+pub mod test_safe_cstr;
+
 /// This module contains the tests for the `test_tag` module.
 pub mod test_tag;
 

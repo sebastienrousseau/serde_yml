@@ -1,20 +1,26 @@
 /// This module contains the `tag` example.
-pub(crate) mod tag;
+pub(crate) mod tag_examples;
 
 /// This module contains the `emitter` example.
-pub(crate) mod emitter;
+pub(crate) mod emitter_examples;
+
+/// This module contains the `safe_cstr` example.
+pub(crate) mod safe_cstr_examples;
 
 /// This module contains the `util` example.
-pub(crate) mod util;
+pub(crate) mod util_examples;
 
 /// The main function that runs all the example modules.
 pub(crate) fn main() {
     // Run the example module `emitter`.
-    emitter::main();
+    emitter_examples::main();
+
+    // Run the example module `safe_cstr`.
+    safe_cstr_examples::main();
 
     // Run the example module `tag`.
-    tag::main();
+    tag_examples::main();
 
     // Run the example module `util`.
-    util::main();
+    util_examples::main();
 }

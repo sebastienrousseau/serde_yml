@@ -9,7 +9,7 @@ use std::ops::Deref;
 
 pub(crate) fn main() {
     // Print a message to indicate the file being executed.
-    println!("\n❯ Executing examples/libyml/util.rs");
+    println!("\n❯ Executing examples/libyml/util_examples.rs");
 
     // Example: Creating a new uninitialized Owned instance
     let uninit_owned: Owned<MaybeUninit<i32>, i32> =
