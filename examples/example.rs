@@ -11,6 +11,9 @@
 /// Contains the example modules for the `loader` module.
 mod loader;
 
+/// Contains the example modules for the `modules` module.
+mod modules;
+
 /// Contains the example modules for the `serializer` module.
 mod serializer;
 
@@ -28,6 +31,9 @@ mod libyml;
 fn main() {
     // Run the example module `loader`.
     loader::main();
+
+    // Run the example module `modules`.
+    modules::main();
 
     // Run the example module `serializer`.
     serializer::main();

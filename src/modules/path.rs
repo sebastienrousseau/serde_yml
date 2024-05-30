@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::fmt::{self, Display};
 
 /// `Path` represents the path to the current value in the input, like `dependencies.serde.typo1`.
@@ -12,7 +13,7 @@ use std::fmt::{self, Display};
 /// - `Map`: Represents a map (object) path with a reference to the parent path and a key.
 /// - `Alias`: Represents an alias path with a reference to the parent path.
 /// - `Unknown`: Represents an unknown path with a reference to the parent path.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize)]
 pub enum Path<'a> {
     /// Represents the root path.
     Root,
