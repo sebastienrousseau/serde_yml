@@ -20,9 +20,13 @@ name: Snyk Security
 
 on:
   push:
-    branches: ["master" ]
+    branches:
+      - master
+      - feat/serde_yml
   pull_request:
-    branches: ["master"]
+    branches:
+      - master
+      - feat/serde_yml
 
 permissions:
   contents: read
