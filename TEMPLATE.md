@@ -59,4 +59,4 @@ Unless you explicitly state otherwise, any contribution intentionally submitted 
 - **test(serde-yaml)**: Expanded the test suite by adding comprehensive unit tests for the `ser.rs` module. The new tests cover various serialization scenarios, including scalar values, sequences, maps, nested structures, optional fields, and custom serializers.
   - Commit: `test(serde-yaml): :white_check_mark: add unit tests for the`ser.rs`module`
 
-**Full Changelog**: <https://github.com/sebastienrousseau/serde_yml/commits/v0.0.10>
+**Full Changelog**: <https://github.com/sebastienrousseau/serde_yml/commits/v0.0.11>

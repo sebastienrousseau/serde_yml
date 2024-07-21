@@ -41,7 +41,7 @@ and for inspiring this project.
 ```toml
 [dependencies]
 serde = "1.0"
-serde_yml = "0.0.10"
+serde_yml = "0.0.11"
 ```
 
 Release notes are available under [GitHub releases][04].

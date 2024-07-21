@@ -1,13 +1,16 @@
 use crate::libyml::{self, util::Owned};
 use ::libyml::api::ScalarEventData;
+use ::libyml::document::{
+    yaml_document_end_event_initialize,
+    yaml_document_start_event_initialize,
+};
 use ::libyml::YamlEventT;
 use ::libyml::YamlScalarStyleT::YamlLiteralScalarStyle;
 use ::libyml::{
-    yaml_document_end_event_initialize,
-    yaml_document_start_event_initialize, yaml_emitter_delete,
-    yaml_emitter_emit, yaml_emitter_flush, yaml_emitter_initialize,
-    yaml_emitter_set_output, yaml_emitter_set_unicode,
-    yaml_emitter_set_width, yaml_mapping_end_event_initialize,
+    yaml_emitter_delete, yaml_emitter_emit, yaml_emitter_flush,
+    yaml_emitter_initialize, yaml_emitter_set_output,
+    yaml_emitter_set_unicode, yaml_emitter_set_width,
+    yaml_mapping_end_event_initialize,
     yaml_mapping_start_event_initialize, yaml_scalar_event_initialize,
     yaml_sequence_end_event_initialize,
     yaml_sequence_start_event_initialize,
