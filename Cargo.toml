@@ -38,20 +38,20 @@ include = [
 
 
 [dependencies]
-indexmap = "2.2.6"
-itoa = "1.0.11"
+indexmap = "2.2.4"
+itoa = "1.0"
 libyml = "0.0.4"
-log = { version = "0.4.22", features = ["std"] }
-memchr = "2.7.4"
-ryu = "1.0.18"
+memchr = { version = "2", default-features = false }
+ryu = "1.0"
 serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.120"
-tempfile = "3.10.1"
 
 [dev-dependencies]
 anyhow = "1.0.86"
 indoc = "2.0.5"
+log = { version = "0.4.22" }
 serde_derive = "1.0.204"
+serde_json = "1.0.120"
+tempfile = "3.10.1"
 
 [features]
 default = []
