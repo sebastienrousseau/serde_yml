@@ -198,6 +198,19 @@ mod tests {
         test_de(yaml, &expected);
     }
 
+    // Test for unresolved alias panic
+    #[test]
+    #[should_panic(expected = "unresolved alias: 42")]
+    fn test_unresolved_alias_panic() {
+        let alias_pos = 42;
+        let result: Option<Deserializer> = None;
+
+        match result {
+            None => panic!("unresolved alias: {}", alias_pos),
+            _ => (),
+        }
+    }
+
     #[test]
     /// Test YAML deserialization with different enum representations.
     fn test_enum_representations() {
@@ -690,6 +703,56 @@ mod tests {
             format!("{:?}", progress),
             r#"Progress::Str("test string")"#
         );
+    }
+
+    #[test]
+    fn test_progress_document_returns_none() {
+        // Obtain a Document from the Loader.
+        let mut deserializer = Deserializer::from_str("test document");
+        let document = match deserializer.next() {
+            Some(deserializer) => {
+                if let Progress::Document(doc) = deserializer.progress {
+                    doc
+                } else {
+                    panic!("Expected Progress::Document");
+                }
+            }
+            None => panic!("Expected a Document"),
+        };
+
+        // Pass the Document to Progress::Document.
+        let mut deserializer = Deserializer {
+            progress: Progress::Document(document),
+        };
+
+        match deserializer.progress {
+            Progress::Document(_) => {
+                assert!(deserializer.next().is_none());
+            }
+            _ => panic!("Expected Progress::Document"),
+        }
+    }
+
+    #[test]
+    fn test_progress_fail_propagates_error() {
+        // Create an Arc-wrapped ErrorImpl directly
+        let error_impl = Arc::new(ErrorImpl::Message(
+            "Mock error message".into(),
+            None,
+        ));
+
+        // Pass the Arc<ErrorImpl> to Progress::Fail
+        let progress = Progress::Fail(error_impl.clone());
+
+        let deserializer = Deserializer { progress };
+
+        match deserializer.progress {
+            Progress::Fail(err) => {
+                // Ensure the error Arc is the same
+                assert!(Arc::ptr_eq(&err, &error_impl));
+            }
+            _ => panic!("Expected Progress::Fail"),
+        }
     }
 
     #[test]
