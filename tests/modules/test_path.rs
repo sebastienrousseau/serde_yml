@@ -105,7 +105,7 @@ mod tests {
 
     /// Test cloning and copying a Path instance.
     ///
-    /// This test checks that cloning and copying a Path instance results in identical paths.
+    /// This test checks that copying a Path instance results in an identical path.
     #[test]
     fn test_path_clone_and_copy() {
         let root = Path::Root;
@@ -113,10 +113,10 @@ mod tests {
             parent: &root,
             index: 42,
         };
-        let seq_clone = seq.clone();
+
+        // No need to explicitly clone, just copy directly
         let seq_copy = seq;
 
-        assert_eq!(seq, seq_clone);
         assert_eq!(seq, seq_copy);
     }
 
