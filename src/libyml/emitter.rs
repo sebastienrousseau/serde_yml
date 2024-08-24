@@ -122,6 +122,10 @@ pub struct Scalar<'a> {
 pub enum ScalarStyle {
     /// Any scalar style.
     Any,
+    /// Double quoted scalar style.
+    DoubleQuoted,
+    /// Folded scalar style.
+    Folded,
     /// Plain scalar style.
     Plain,
     /// Single quoted scalar style.
@@ -220,6 +224,12 @@ impl<'a> Emitter<'a> {
                     let style = match scalar.style {
                         ScalarStyle::Any => {
                             YamlScalarStyleT::YamlAnyScalarStyle
+                        }
+                        ScalarStyle::DoubleQuoted => {
+                            YamlScalarStyleT::YamlDoubleQuotedScalarStyle
+                        }
+                        ScalarStyle::Folded => {
+                            YamlScalarStyleT::YamlFoldedScalarStyle
                         }
                         ScalarStyle::Plain => {
                             YamlScalarStyleT::YamlPlainScalarStyle

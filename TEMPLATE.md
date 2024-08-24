@@ -7,7 +7,7 @@ alt="Serde YML logo" width="66" align="right" />
 
 # Serde YML (a fork of Serde YAML)
 
-[![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][11] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
+[![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][12] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
 
 [Serde YML][00] is a Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format.
 
@@ -20,6 +20,7 @@ alt="Serde YML logo" width="66" align="right" />
 [09]: https://codecov.io/gh/sebastienrousseau/serde_yml
 [10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
 [11]: https://www.rust-lang.org/
+[12]: https://lib.rs/crates/serde_yml
 [build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge&logo=github "Build Status"
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67&logo=codecov "Codecov"
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"

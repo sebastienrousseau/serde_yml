@@ -7,9 +7,25 @@ alt="Serde YML logo" width="66" align="right" />
 
 # Serde YML (a fork of Serde YAML)
 
-[![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][11] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
+[![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][12] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
 
 [Serde YML][00] is a Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format.
+
+## Features
+
+- Serialization and deserialization of Rust data structures to/from YAML format
+- Support for custom structs and enums using Serde's derive macros
+- Handling of YAML's `!tag` syntax for representing enum variants
+- Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`
+- Comprehensive error handling with `Error`, `Location`, and `Result` types
+- Serialization to YAML using `to_string` and `to_writer` functions
+- Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions
+- Customizable serialization and deserialization behavior using Serde's `#[serde(with = ...)]` attribute
+- Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module
+- Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module
+- Serialization and deserialization of optional enum fields using the `singleton_map_optional` module
+- Handling of nested enum structures with optional inner enums using the `singleton_map_recursive` module
+- Customization of serialization and deserialization logic for enums using the `singleton_map_with` module and custom helper functions
 
 ## Installation
 
@@ -613,6 +629,7 @@ be dual licensed as above, without any additional terms or conditions.
 [09]: https://codecov.io/gh/sebastienrousseau/serde_yml
 [10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
 [11]: https://www.rust-lang.org/
+[12]: https://lib.rs/crates/serde_yml
 [build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge&logo=github "Build Status"
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67&logo=codecov "Codecov"
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"

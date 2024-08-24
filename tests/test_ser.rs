@@ -1,15 +1,17 @@
 #[cfg(test)]
 mod tests {
+    use indoc::indoc;
     use serde::ser::{SerializeTuple, SerializeTupleStruct};
     use serde::{ser::Serializer as _, Serialize};
+    use serde_yml::ser::SerializerConfig;
     use serde_yml::{
         libyml::emitter::{Scalar, ScalarStyle},
         Serializer, State,
     };
     use std::{collections::BTreeMap, fmt::Write};
 
-    /// Tests the serialization of a scalar value.
     #[test]
+    /// Tests the test scalar serialization.
     fn test_scalar_serialization() {
         // Arrange
         let mut buffer = Vec::new();
@@ -31,8 +33,8 @@ mod tests {
         );
     }
 
-    /// Tests the serialization of the start of a sequence.
     #[test]
+    /// Tests the test sequence start serialization.
     fn test_sequence_start_serialization() {
         // Arrange
         let mut buffer = Vec::new();
@@ -49,8 +51,8 @@ mod tests {
         );
     }
 
-    /// Tests the serialization of the start of a mapping.
     #[test]
+    /// Tests the test mapping start serialization.
     fn test_mapping_start_serialization() {
         // Arrange
         let mut buffer = Vec::new();
@@ -67,8 +69,8 @@ mod tests {
         );
     }
 
-    /// Tests flushing the start of a mapping.
     #[test]
+    /// Tests the test flush mapping start.
     fn test_flush_mapping_start() {
         // Arrange
         let mut buffer = Vec::new();
@@ -86,8 +88,8 @@ mod tests {
         );
     }
 
-    /// Tests the serialization of an empty map.
     #[test]
+    /// Tests the serialization of an empty map.
     fn test_serialize_empty_map() {
         // Arrange
         let mut buffer = Vec::new();
@@ -105,8 +107,8 @@ mod tests {
         );
     }
 
-    /// Tests the serialization of a simple map.
     #[test]
+    /// Tests the test serialize simple map.
     fn test_serialize_simple_map() {
         // Arrange
         let mut buffer = Vec::new();
@@ -125,8 +127,8 @@ mod tests {
         );
     }
 
-    /// Tests the serialization of a nested map.
     #[test]
+    /// Tests the test serialize nested map.
     fn test_serialize_nested_map() {
         // Arrange
         let mut buffer = Vec::new();
@@ -156,6 +158,7 @@ mod tests {
     }
 
     #[test]
+    /// Tests the test serialize custom struct.
     fn test_serialize_custom_struct() {
         // Arrange
         let mut buffer = Vec::new();
@@ -176,8 +179,8 @@ mod tests {
         );
     }
 
-    // Test cases for taking tag with found tag state
     #[test]
+    // Test cases for taking tag with found tag state
     fn test_take_tag_with_found_tag_state() {
         // Arrange
         let mut serializer = Serializer::<Vec<u8>>::new(Vec::new());
@@ -194,8 +197,8 @@ mod tests {
         );
     }
 
-    // Test cases for taking tag with no state
     #[test]
+    // Test cases for taking tag with no state
     fn test_take_tag_with_no_state() {
         // Arrange
         let mut serializer = Serializer::<Vec<u8>>::new(Vec::new());
@@ -211,8 +214,8 @@ mod tests {
         );
     }
 
-    // Test cases for converting into inner
     #[test]
+    // Test cases for converting into inner
     fn test_into_inner() {
         // Arrange
         let mut buffer = Vec::new();
@@ -226,8 +229,8 @@ mod tests {
         assert_eq!(&*result, &buffer_clone);
     }
 
-    // Test cases for serializing boolean values
     #[test]
+    // Test cases for serializing boolean values
     fn test_serialize_bool() {
         // Arrange
         let mut buffer = Vec::new();
@@ -245,8 +248,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing i8 values
     #[test]
+    /// Tests the test serialize i8.
     fn test_serialize_i8() {
         // Arrange
         let mut buffer = Vec::new();
@@ -264,8 +267,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing i16 values
     #[test]
+    /// Tests the test serialize i16.
     fn test_serialize_i16() {
         // Arrange
         let mut buffer = Vec::new();
@@ -283,8 +286,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing i32 values
     #[test]
+    /// Tests the test serialize i32.
     fn test_serialize_i32() {
         // Arrange
         let mut buffer = Vec::new();
@@ -302,8 +305,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing i64 values
     #[test]
+    /// Tests the test serialize i64.
     fn test_serialize_i64() {
         // Arrange
         let mut buffer = Vec::new();
@@ -321,8 +324,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing i128 values
     #[test]
+    /// Tests the test serialize i128.
     fn test_serialize_i128() {
         // Arrange
         let mut buffer = Vec::new();
@@ -349,8 +352,8 @@ mod tests {
     );
     }
 
-    // Test cases for serializing f64 values
     #[test]
+    /// Tests the test serialize f64.
     fn test_serialize_f64() {
         // Arrange
         let mut buffer = Vec::new();
@@ -370,8 +373,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing char values
     #[test]
+    /// Tests the test serialize char.
     fn test_serialize_char() {
         // Arrange
         let mut buffer = Vec::new();
@@ -389,8 +392,8 @@ mod tests {
         );
     }
 
-    // Test case for serializing bytes
     #[test]
+    /// Tests the test serialize bytes.
     fn test_serialize_bytes() {
         // Arrange
         let mut buffer = Vec::new();
@@ -410,8 +413,8 @@ mod tests {
     );
     }
 
-    // Test cases for serializing tuples
     #[test]
+    /// Tests the test serialize tuple.
     fn test_serialize_tuple() {
         // Arrange
         let mut buffer = Vec::new();
@@ -439,8 +442,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing tuple structs
     #[test]
+    /// Tests the test serialize tuple struct.
     fn test_serialize_tuple_struct() {
         // Arrange
         let mut buffer = Vec::new();
@@ -470,8 +473,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing Option values
     #[test]
+    /// Tests the test serialize option.
     fn test_serialize_option() {
         // Arrange
         let mut buffer = Vec::new();
@@ -491,8 +494,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing enum values
     #[test]
+    /// Tests the test serialize enum.
     fn test_serialize_enum() {
         // Arrange
         #[derive(Serialize)]
@@ -518,8 +521,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing sequences
     #[test]
+    /// Test cases for serializing sequences
     fn test_serialize_sequence() {
         // Arrange
         let mut buffer = Vec::new();
@@ -537,8 +540,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing maps
     #[test]
+    /// Tests the test serialize map.
     fn test_serialize_map() {
         // Arrange
         let mut buffer = Vec::new();
@@ -558,8 +561,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing nested structs
     #[test]
+    /// Tests the test serialize nested struct.
     fn test_serialize_nested_struct() {
         // Arrange
         #[derive(Serialize)]
@@ -597,8 +600,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing optional fields
     #[test]
+    /// Tests the test serialize optional fields.
     fn test_serialize_optional_fields() {
         // Arrange
         #[derive(Serialize)]
@@ -627,8 +630,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing tagged value
     #[test]
+    /// Tests the test serialize tagged value.
     fn test_serialize_tagged_value() {
         // Arrange
         #[derive(Serialize)]
@@ -654,8 +657,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing large data
     #[test]
+    /// Tests the test serialize large data.
     fn test_serialize_large_data() {
         // Arrange
         let mut buffer = Vec::new();
@@ -679,8 +682,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing nested sequences
     #[test]
+    /// Tests the test serialize nested sequences.
     fn test_serialize_nested_sequences() {
         // Arrange
         let mut buffer = Vec::new();
@@ -702,8 +705,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing nested maps
     #[test]
+    /// Tests the test serialize nested maps.
     fn test_serialize_nested_maps() {
         // Arrange
         let mut buffer = Vec::new();
@@ -729,8 +732,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing mixed data types
     #[test]
+    /// Tests the test serialize mixed data types.
     fn test_serialize_mixed_data_types() {
         // Arrange
         #[derive(Serialize)]
@@ -768,8 +771,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing empty sequence and map
     #[test]
+    /// Tests the test serialize empty sequence and map.
     fn test_serialize_empty_sequence_and_map() {
         // Arrange
         let mut buffer = Vec::new();
@@ -789,8 +792,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing special characters
     #[test]
+    /// Tests the test serialize special characters.
     fn test_serialize_special_characters() {
         // Arrange
         let mut buffer = Vec::new();
@@ -808,8 +811,8 @@ mod tests {
         );
     }
 
-    // Test cases for serializing with custom serializer
     #[test]
+    /// Tests the test serialize custom serializer.
     fn test_serialize_custom_serializer() {
         // Arrange
         use serde::ser::SerializeMap;
@@ -849,6 +852,329 @@ mod tests {
             String::from_utf8(buffer).unwrap(),
             "value:\n  custom_value: <<example>>\n",
             "Serialized custom serializer doesn't match expected output"
+        );
+    }
+
+    #[test]
+    /// Tests the test default unit variants.
+    fn test_default_unit_variants() {
+        #[derive(Serialize)]
+        enum Enum {
+            Unit,
+        }
+
+        let mut buffer = vec![];
+
+        let mut ser = Serializer::new(&mut buffer);
+        Enum::Unit.serialize(&mut ser).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        let expected = indoc! {"
+        Unit
+    "};
+
+        assert_eq!(output, expected);
+    }
+
+    #[test]
+    /// Tests the test tag unit variants.
+    fn test_tag_unit_variants() {
+        #[derive(Serialize)]
+        enum Enum {
+            Unit,
+        }
+
+        let mut buffer = vec![];
+        let mut ser = Serializer::new_with_config(
+            &mut buffer,
+            SerializerConfig {
+                tag_unit_variants: true,
+            },
+        );
+        Enum::Unit.serialize(&mut ser).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        let expected = indoc! {"
+        !Unit
+    "};
+
+        assert_eq!(output, expected);
+    }
+    #[test]
+    /// Tests the creation of a new Serializer with the default configuration.
+    fn test_new() {
+        let buffer = Vec::new();
+        let serializer = Serializer::new(buffer);
+        assert!(
+            serializer.depth == 0,
+            "Expected depth to be 0 after initialization"
+        );
+    }
+    #[test]
+    /// Tests the creation of a new Serializer with a custom configuration.
+    /// /// Tests the test new with config.
+    fn test_new_with_config() {
+        let buffer = Vec::new();
+        let config = SerializerConfig::default();
+        let serializer = Serializer::new_with_config(buffer, config);
+        assert!(serializer.depth == 0, "Expected depth to be 0 after initialization with custom config");
+        // Additional assertions can be added as needed.
+    }
+
+    #[test]
+    /// Tests the flush function to ensure all buffered data is written.
+    fn test_flush() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        serializer.flush().unwrap();
+        // Check if the buffer was properly flushed.
+        assert!(
+            buffer.is_empty(),
+            "Buffer should be empty after flush"
+        );
+    }
+
+    #[test]
+    /// Tests the emit_scalar function to serialize a scalar value.
+    fn test_emit_scalar() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let scalar_value = Scalar {
+            tag: None,
+            value: "test value",
+            style: ScalarStyle::Plain,
+        };
+        serializer.emit_scalar(scalar_value).unwrap();
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "test value\n",
+            "Serialized scalar value doesn't match expected output"
+        );
+    }
+
+    #[test]
+    /// Tests the emit_sequence_start function. This test accounts for the fact that starting a sequence may not immediately produce output.
+    fn test_emit_sequence_start() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        serializer.emit_sequence_start().unwrap();
+        serializer
+            .emit_scalar(Scalar {
+                tag: None,
+                value: "item",
+                style: ScalarStyle::Plain,
+            })
+            .unwrap();
+        serializer.emit_sequence_end().unwrap();
+        assert!(!buffer.is_empty(), "Buffer should not be empty after emitting sequence start and a scalar");
+    }
+
+    #[test]
+    /// Tests the emit_sequence_end function. This test ensures proper sequence handling.
+    fn test_emit_sequence_end() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        serializer.emit_sequence_start().unwrap();
+        serializer
+            .emit_scalar(Scalar {
+                tag: None,
+                value: "item",
+                style: ScalarStyle::Plain,
+            })
+            .unwrap();
+        serializer.emit_sequence_end().unwrap();
+        assert!(buffer.ends_with(b"item\n"), "Buffer should end with the scalar value and sequence end marker");
+    }
+
+    #[test]
+    /// Tests the emit_mapping_start function. Similar to sequences, starting a mapping might not produce immediate output.
+    fn test_emit_mapping_start() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        serializer.emit_mapping_start().unwrap();
+        serializer
+            .emit_scalar(Scalar {
+                tag: None,
+                value: "key",
+                style: ScalarStyle::Plain,
+            })
+            .unwrap();
+        serializer
+            .emit_scalar(Scalar {
+                tag: None,
+                value: "value",
+                style: ScalarStyle::Plain,
+            })
+            .unwrap();
+        serializer.emit_mapping_end().unwrap();
+        assert!(!buffer.is_empty(), "Buffer should not be empty after emitting mapping start and key-value pair");
+    }
+
+    #[test]
+    /// Tests the emit_mapping_end function to ensure mappings are correctly finalized.
+    fn test_emit_mapping_end() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        serializer.emit_mapping_start().unwrap();
+        serializer
+            .emit_scalar(Scalar {
+                tag: None,
+                value: "key",
+                style: ScalarStyle::Plain,
+            })
+            .unwrap();
+        serializer
+            .emit_scalar(Scalar {
+                tag: None,
+                value: "value",
+                style: ScalarStyle::Plain,
+            })
+            .unwrap();
+        serializer.emit_mapping_end().unwrap();
+        assert!(
+            buffer.ends_with(b"value\n"),
+            "Buffer should end with the value and mapping end marker"
+        );
+    }
+
+    #[test]
+    /// Tests the value_end function with proper sequence start.
+    fn test_value_end() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        serializer.value_start().unwrap();
+        serializer
+            .emit_scalar(Scalar {
+                tag: None,
+                value: "scalar value",
+                style: ScalarStyle::Plain,
+            })
+            .unwrap();
+        serializer.value_end().unwrap();
+        assert!(
+            serializer.depth == 0,
+            "Expected depth to decrease to 0 after value end"
+        );
+    }
+
+    #[test]
+    /// Tests the take_tag function to check if a tag can be taken from the state.
+    fn test_take_tag() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let tag = serializer.take_tag();
+        assert!(
+            tag.is_none(),
+            "Expected no tag to be present initially"
+        );
+    }
+
+    #[test]
+    /// Test emitting a scalar with a tag.
+    fn test_emit_scalar_with_tag() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let scalar_value = Scalar {
+            tag: Some("tag".to_string()),
+            value: "test value",
+            style: ScalarStyle::Plain,
+        };
+        serializer.emit_scalar(scalar_value).unwrap();
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "!<tag> test value\n",
+            "Serialized scalar value with tag doesn't match expected output"
+        );
+    }
+
+    #[test]
+    /// Test emitting a scalar with a single quoted style.
+    fn test_emit_scalar_with_quoted_style() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let scalar_value = Scalar {
+            tag: None,
+            value: "test value",
+            style: ScalarStyle::SingleQuoted,
+        };
+        serializer.emit_scalar(scalar_value).unwrap();
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "'test value'\n",
+            "Serialized scalar value with quoted style doesn't match expected output"
+        );
+    }
+
+    #[test]
+    /// Test emitting a scalar with a double quoted style.
+    fn test_emit_scalar_with_double_quoted_style() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let scalar_value = Scalar {
+            tag: None,
+            value: "test value",
+            style: ScalarStyle::DoubleQuoted,
+        };
+        serializer.emit_scalar(scalar_value).unwrap();
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "\"test value\"\n",
+            "Serialized scalar value with double quoted style doesn't match expected output"
+        );
+    }
+
+    #[test]
+    /// Test emitting a scalar with a literal style.
+    /// The literal style is used for multi-line strings.
+    fn test_emit_scalar_with_literal_style() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let scalar_value = Scalar {
+            tag: None,
+            value: "test\nvalue",
+            style: ScalarStyle::Literal,
+        };
+        serializer.emit_scalar(scalar_value).unwrap();
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "|-\n  test\n  value\n",
+            "Serialized scalar value with literal style doesn't match expected output"
+        );
+    }
+
+    #[test]
+    /// Test emitting a scalar with a folded style.
+    fn test_emit_scalar_with_folded_style() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let scalar_value = Scalar {
+            tag: None,
+            value: "test\nvalue",
+            style: ScalarStyle::Folded,
+        };
+        serializer.emit_scalar(scalar_value).unwrap();
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            ">-\n  test\n\n  value\n",
+            "Serialized scalar value with folded style doesn't match expected output"
+        );
+    }
+
+    #[test]
+    /// Test emitting a scalar with a plain style.
+    fn test_emit_scalar_with_plain_style() {
+        let mut buffer = Vec::new();
+        let mut serializer = Serializer::new(&mut buffer);
+        let scalar_value = Scalar {
+            tag: None,
+            value: "test value",
+            style: ScalarStyle::Plain,
+        };
+        serializer.emit_scalar(scalar_value).unwrap();
+        assert_eq!(
+            String::from_utf8(buffer).unwrap(),
+            "test value\n",
+            "Serialized scalar value with plain style doesn't match expected output"
         );
     }
 }
