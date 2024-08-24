@@ -24,6 +24,22 @@ mod tests {
         assert_eq!(format!("{}", path), "\\[42\\]");
     }
 
+    /// Test the Path::Seq variant with a very large index.
+    ///
+    /// This test checks that a sequence path with a large index is correctly formatted.
+    #[test]
+    fn test_path_seq_large_index() {
+        let root = Path::Root;
+        let path = Path::Seq {
+            parent: &root,
+            index: usize::MAX,
+        };
+        assert_eq!(
+            format!("{}", path),
+            format!("\\[{}\\]", usize::MAX)
+        );
+    }
+
     /// Test the Path::Map variant.
     ///
     /// This test checks that a map path with a given key is correctly formatted.
@@ -35,6 +51,19 @@ mod tests {
             key: "key",
         };
         assert_eq!(format!("{}", path), "key");
+    }
+
+    /// Test the Path::Map variant with an empty key.
+    ///
+    /// This test ensures that a map path with an empty key is correctly handled and formatted.
+    #[test]
+    fn test_path_map_empty_key() {
+        let root = Path::Root;
+        let path = Path::Map {
+            parent: &root,
+            key: "",
+        };
+        assert_eq!(format!("{}", path), "");
     }
 
     /// Test the Path::Alias variant.
@@ -55,6 +84,40 @@ mod tests {
         let root = Path::Root;
         let path = Path::Unknown { parent: &root };
         assert_eq!(format!("{}", path), "?");
+    }
+
+    /// Test equality of two Path instances with the same structure.
+    ///
+    /// This test checks that two instances of Path with identical structures are considered equal.
+    #[test]
+    fn test_path_equality() {
+        let root = Path::Root;
+        let seq1 = Path::Seq {
+            parent: &root,
+            index: 42,
+        };
+        let seq2 = Path::Seq {
+            parent: &root,
+            index: 42,
+        };
+        assert_eq!(seq1, seq2);
+    }
+
+    /// Test cloning and copying a Path instance.
+    ///
+    /// This test checks that cloning and copying a Path instance results in identical paths.
+    #[test]
+    fn test_path_clone_and_copy() {
+        let root = Path::Root;
+        let seq = Path::Seq {
+            parent: &root,
+            index: 42,
+        };
+        let seq_clone = seq.clone();
+        let seq_copy = seq;
+
+        assert_eq!(seq, seq_clone);
+        assert_eq!(seq, seq_copy);
     }
 
     /// Test nested paths.
@@ -106,16 +169,24 @@ mod tests {
         );
     }
 
-    /// Test empty key in Path::Map.
+    /// Test a complex nested structure with a Seq inside a Map inside another Seq.
     ///
-    /// This test ensures that a map path with an empty key is correctly handled and formatted.
+    /// This test checks the formatting of a complex nested structure involving sequences and maps.
     #[test]
-    fn test_path_map_empty_key() {
+    fn test_path_complex_nested() {
         let root = Path::Root;
-        let path = Path::Map {
+        let seq1 = Path::Seq {
             parent: &root,
-            key: "",
+            index: 1,
         };
-        assert_eq!(format!("{}", path), "");
+        let map = Path::Map {
+            parent: &seq1,
+            key: "key",
+        };
+        let seq2 = Path::Seq {
+            parent: &map,
+            index: 99,
+        };
+        assert_eq!(format!("{}", seq2), "\\[1\\].key.\\[99\\]");
     }
 }
