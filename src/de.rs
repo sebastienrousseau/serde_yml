@@ -57,7 +57,8 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// ```
 #[derive(Debug)]
 pub struct Deserializer<'de> {
-    progress: Progress<'de>,
+    /// Represents the progress of parsing a YAML document.
+    pub progress: Progress<'de>,
 }
 
 /// Represents the progress of parsing a YAML document.

@@ -10,16 +10,25 @@ mod tests {
 
     use indoc::indoc;
     use serde_derive::Deserialize;
-    use serde_yml::de::Progress;
-    use serde_yml::loader::Loader;
-    use serde_yml::Value::String as SerdeString;
-    use serde_yml::{Deserializer, Number, Value};
-    use std::collections::BTreeMap;
-    use std::fmt::Debug;
-    use std::fmt::Formatter;
-    use std::io::Cursor;
-    use std::string::String;
+    use serde_yml::{
+        de::{Event, Progress},
+        libyml::parser::{
+            MappingStart, Scalar, ScalarStyle::Plain, SequenceStart,
+        },
+        loader::Loader,
+        modules::error::ErrorImpl,
+        Deserializer, Number,
+        Value::{self, String as SerdeString},
+    };
+    use std::{
+        collections::BTreeMap,
+        fmt::{Debug, Formatter},
+        io::Cursor,
+        string::String,
+        sync::Arc,
+    };
 
+    // Helper functions
     fn test_de<T>(yaml: &str, expected: &T)
     where
         T: serde::de::DeserializeOwned + PartialEq + Debug,
@@ -67,6 +76,8 @@ mod tests {
         serde_yml::from_str::<serde::de::IgnoredAny>(yaml).unwrap();
     }
 
+    // *** Basic Deserialization Tests ***
+
     #[test]
     /// Test YAML deserialization with cyclic aliasing.
     fn test_alias() {
@@ -106,8 +117,6 @@ mod tests {
             expected: String,
         }
 
-        // This would deserialize an astronomical number of elements if we were
-        // vulnerable.
         let yaml = indoc! {"
         a: &a ~
         b: &b [*a,*a,*a,*a,*a,*a,*a,*a,*a]
@@ -540,7 +549,6 @@ mod tests {
     #[test]
     /// Test handling of NaN (Not a Number) in YAML.
     fn test_nan() {
-        // There is no negative NaN in YAML.
         assert!(serde_yml::from_str::<f32>(".nan")
             .unwrap()
             .is_sign_positive());
@@ -585,8 +593,76 @@ mod tests {
         test_de_no_value(yaml, &expected);
     }
 
+    // *** Event Handling Tests ***
+
     #[test]
-    /// Test deserialization of different Progress enum variants.
+    /// Test creation and formatting of an Event::Alias.
+    fn test_event_alias() {
+        let event = Event::Alias(42);
+        assert_eq!(format!("{:?}", event), "Alias(42)");
+    }
+
+    #[test]
+    /// Test creation and formatting of an Event::Scalar.
+    fn test_event_scalar() {
+        let scalar = Scalar {
+            value: b"some scalar value".to_vec().into(),
+            tag: None,
+            style: Plain,
+            repr: None,
+            anchor: None,
+        };
+        let event = Event::Scalar(scalar);
+        assert!(format!("{:?}", event).starts_with("Scalar("));
+    }
+
+    #[test]
+    /// Test creation and formatting of an Event::SequenceStart.
+    fn test_event_sequence_start() {
+        let sequence_start = SequenceStart {
+            anchor: None,
+            tag: None,
+        };
+        let event = Event::SequenceStart(sequence_start);
+        assert!(format!("{:?}", event).starts_with("SequenceStart("));
+    }
+
+    #[test]
+    /// Test creation and formatting of an Event::SequenceEnd.
+    fn test_event_sequence_end() {
+        let event = Event::SequenceEnd;
+        assert_eq!(format!("{:?}", event), "SequenceEnd");
+    }
+
+    #[test]
+    /// Test creation and formatting of an Event::MappingStart.
+    fn test_event_mapping_start() {
+        let mapping_start = MappingStart {
+            anchor: None,
+            tag: None,
+        };
+        let event = Event::MappingStart(mapping_start);
+        assert!(format!("{:?}", event).starts_with("MappingStart("));
+    }
+
+    #[test]
+    /// Test creation and formatting of an Event::MappingEnd.
+    fn test_event_mapping_end() {
+        let event = Event::MappingEnd;
+        assert_eq!(format!("{:?}", event), "MappingEnd");
+    }
+
+    #[test]
+    /// Test creation and formatting of an Event::Void.
+    fn test_event_void() {
+        let event = Event::Void;
+        assert_eq!(format!("{:?}", event), "Void");
+    }
+
+    // *** Progress Handling Tests ***
+
+    #[test]
+    /// Test deserialization of Progress::Slice variant.
     fn test_progress_slice() {
         let progress = Progress::Slice(b"test slice");
         assert_eq!(
@@ -622,7 +698,6 @@ mod tests {
         let loader = match Loader::new(Progress::Str("dummy")) {
             Ok(loader) => loader,
             Err(err) => {
-                // Handle the error here
                 eprintln!("Error: {}", err);
                 return;
             }
@@ -631,6 +706,68 @@ mod tests {
         assert!(format!("{:?}", progress)
             .starts_with("Progress::Iterable("));
     }
+
+    #[test]
+    /// Test deserialization of Progress::Document variant.
+    fn test_progress_document() {
+        let mut deserializer = Deserializer::from_str("test document");
+        let document = match deserializer.next() {
+            Some(deserializer) => {
+                if let Progress::Document(doc) = deserializer.progress {
+                    doc
+                } else {
+                    panic!("Expected Progress::Document");
+                }
+            }
+            None => panic!("Expected a Document"),
+        };
+        let progress = Progress::Document(document);
+        assert!(format!("{:?}", progress)
+            .starts_with("Progress::Document("));
+    }
+
+    #[test]
+    /// Test handling of Progress::Fail variant.
+    fn test_progress_fail() {
+        let error_impl = Arc::new(ErrorImpl::Message(
+            "Mock error message".into(),
+            None,
+        ));
+        let progress = Progress::Fail(Arc::clone(&error_impl));
+        assert!(
+            format!("{:?}", progress).starts_with("Progress::Fail(")
+        );
+    }
+
+    #[test]
+    /// Test error handling during progress in deserialization.
+    fn test_error_handling_progress_fail() {
+        let mut deserializer =
+            Deserializer::from_str("invalid_yaml: [unterminated");
+
+        let result = deserializer.next();
+
+        match result {
+            Some(Deserializer {
+                progress: Progress::Document(doc),
+                ..
+            }) => {
+                if doc.error.is_some() {
+                    assert!(true, "An error was correctly found within the Document.");
+                } else {
+                    panic!("Expected an error within the Document, but none was found.");
+                }
+            }
+            Some(Deserializer { progress, .. }) => {
+                panic!("Expected Progress::Document with an error, but got: {:?}", progress);
+            }
+            None => {
+                panic!("Expected an error but none was found.");
+            }
+        }
+    }
+
+    // *** Advanced Deserialization Tests ***
 
     #[test]
     /// Test parsing of numbers and handling of errors.
@@ -744,15 +881,6 @@ mod tests {
             foo: u32,
         }
 
-        // This matches output produced by PyYAML's `yaml.safe_dump` when using the
-        // default_style parameter.
-        //
-        //    >>> import yaml
-        //    >>> d = {"foo": 7200}
-        //    >>> print(yaml.safe_dump(d, default_style="|"))
-        //    "foo": !!int |-
-        //      7200
-        //
         let yaml = indoc! {r#"
         "foo": !!int |-
             7200
@@ -765,7 +893,6 @@ mod tests {
     #[test]
     /// Test YAML tag resolution.
     fn test_tag_resolution() {
-        // https://yaml.org/spec/1.2.2/#1032-tag-resolution
         let yaml = indoc! {"
         - null
         - Null
