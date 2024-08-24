@@ -752,9 +752,7 @@ mod tests {
                 progress: Progress::Document(doc),
                 ..
             }) => {
-                if doc.error.is_some() {
-                    assert!(true, "An error was correctly found within the Document.");
-                } else {
+                if doc.error.is_none() {
                     panic!("Expected an error within the Document, but none was found.");
                 }
             }
