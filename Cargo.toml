@@ -14,7 +14,7 @@ name = "serde_yml"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/serde_yml"
 rust-version = "1.60"
-version = "0.0.11"
+version = "0.0.12"
 include = [
     "/CONTRIBUTING.md",
     "/LICENSE-APACHE",
@@ -38,20 +38,20 @@ include = [
 
 
 [dependencies]
-indexmap = "2.2.6"
+indexmap = "2.4.0"
 itoa = "1.0.11"
-libyml = "0.0.4"
+libyml = "0.0.5"
 log = { version = "0.4.22", features = ["std"] }
 memchr = "2.7.4"
 ryu = "1.0.18"
-serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.120"
-tempfile = "3.10.1"
+serde = { version = "1.0.209", features = ["derive"] }
+serde_json = "1.0.127"
+tempfile = "3.12.0"
 
 [dev-dependencies]
 anyhow = "1.0.86"
 indoc = "2.0.5"
-serde_derive = "1.0.204"
+serde_derive = "1.0.209"
 
 [features]
 default = []
@@ -104,7 +104,6 @@ macro_use_extern_crate = "deny"
 meta_variable_misuse = "deny"
 missing_fragment_specifier = "deny"
 noop_method_call = "deny"
-pointer_structural_match = "deny"
 rust_2018_idioms = { level = "deny", priority = -1 }
 rust_2021_compatibility = { level = "deny", priority = -1 }
 single_use_lifetimes = "deny"

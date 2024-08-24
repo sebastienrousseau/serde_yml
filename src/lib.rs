@@ -45,7 +45,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! serde_yml = "0.0.11"
+//! serde_yml = "0.0.12"
 //! ```
 //!
 //! ## Usage

@@ -1,4 +1,32 @@
+# Rust edition to use
 edition = "2021"
+
+# Maximum width of each line
 max_width = 72
+
+# Number of spaces per tab
 tab_spaces = 4
-use_field_init_shorthand = true
+
+# Line ending style
+newline_style = "Unix"
+
+# Use small heuristics for formatting decisions
+use_small_heuristics = "Default"
+
+# Use spaces for indentation, not tabs
+hard_tabs = false
+
+# Merge multiple `derive` attributes into a single attribute
+merge_derives = true
+
+# Reorder import statements
+reorder_imports = true
+
+# Reorder `mod` statements
+reorder_modules = true
+
+# Remove unnecessary nested parentheses
+remove_nested_parens = true
+
+# Always specify the ABI explicitly for external items
+force_explicit_abi = true
