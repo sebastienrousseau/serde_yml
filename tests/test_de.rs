@@ -205,7 +205,7 @@ mod tests {
         let alias_pos = 42;
         let result: Option<Deserializer> = None;
 
-        if let None = result {
+        if result.is_none() {
             panic!("unresolved alias: {}", alias_pos);
         }
     }
