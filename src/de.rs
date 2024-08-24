@@ -615,9 +615,13 @@ struct DeserializerFromEvents<'de, 'document> {
 }
 
 #[derive(Copy, Clone)]
-struct CurrentEnum<'document> {
-    name: Option<&'static str>,
-    tag: &'document str,
+/// Represents the current state of an enum during deserialization.
+#[derive(Debug)]
+pub struct CurrentEnum<'document> {
+    /// The name of the enum variant.
+    pub name: Option<&'static str>,
+    /// The tag of the enum variant.
+    pub tag: &'document str,
 }
 
 impl<'de, 'document> DeserializerFromEvents<'de, 'document> {

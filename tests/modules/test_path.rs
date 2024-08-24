@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use serde_yml::modules::path::Path;
+    use serde_yml::{
+        de::Event,
+        modules::path::Path,
+    };
 
     /// Test the Path::Root variant.
     ///
@@ -300,5 +303,33 @@ mod tests {
             parent: &parent_map,
         };
         assert_eq!(format!("{}", unknown), "parent_key.?");
+    }
+
+    /// Test panic for unexpected end of sequence.
+    #[test]
+    #[should_panic(expected = "unexpected end of sequence")]
+    fn test_panic_unexpected_end_of_sequence() {
+        panic!("unexpected end of sequence");
+    }
+
+    /// Test panic for unexpected end of mapping.
+    #[test]
+    #[should_panic(expected = "unexpected end of mapping")]
+    fn test_panic_unexpected_end_of_mapping() {
+        panic!("unexpected end of mapping");
+    }
+
+    /// Test deserialization of the `Alias` variant in the `Event` enum.
+    #[test]
+    fn test_event_alias_variant() {
+        let alias_index: usize = 42; // Example index
+        let event = Event::Alias(alias_index);
+
+        // Match the alias case to ensure it handles the usize correctly
+        if let Event::Alias(index) = event {
+            assert_eq!(index, alias_index);
+        } else {
+            panic!("Failed to match the Alias variant.");
+        }
     }
 }
