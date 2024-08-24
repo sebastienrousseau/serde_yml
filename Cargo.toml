@@ -65,8 +65,17 @@ path = "src/lib.rs"
 required-features = []
 
 [package.metadata.docs.rs]
+# Specify arguments for rustdoc to enhance documentation quality.
+rustdoc-args = [
+    "--generate-link-to-definition",
+    "--cfg", "docsrs",
+    "--document-private-items",
+    "--display-warnings"
+]
+# Build docs with all crate features enabled to cover the entire API.
+all-features = true
+# Target platform for the docs, ensuring compatibility with common Linux servers.
 targets = ["x86_64-unknown-linux-gnu"]
-rustdoc-args = ["--generate-link-to-definition"]
 
 # Linting config
 [lints.rust]
