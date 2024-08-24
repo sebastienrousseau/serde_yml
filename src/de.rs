@@ -1495,7 +1495,7 @@ fn invalid_type(event: &Event<'_>, exp: &dyn Expected) -> Error {
         Event::Scalar(scalar) => {
             let get_type = InvalidType { exp };
             match visit_scalar(get_type, scalar, false) {
-                Ok(void) => match void {},
+                Ok(_void) => unreachable!(),
                 Err(invalid_type) => invalid_type,
             }
         }
