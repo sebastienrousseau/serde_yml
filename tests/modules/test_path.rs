@@ -189,4 +189,116 @@ mod tests {
         };
         assert_eq!(format!("{}", seq2), "\\[1\\].key.\\[99\\]");
     }
+
+    /// Test handling of the `parent` field in the `Seq` variant.
+    ///
+    /// This test checks that the `parent` field in a `Seq` variant is correctly formatted.
+    #[test]
+    fn test_seq_with_parent() {
+        let root = Path::Root;
+        let parent_seq = Path::Seq {
+            parent: &root,
+            index: 1,
+        };
+        let child_seq = Path::Seq {
+            parent: &parent_seq,
+            index: 42,
+        };
+        assert_eq!(format!("{}", child_seq), "\\[1\\].\\[42\\]");
+    }
+
+    /// Test handling of the `index` field in the `Seq` variant.
+    ///
+    /// This test validates that various index values in the `Seq` variant are correctly formatted.
+    #[test]
+    fn test_seq_with_different_indices() {
+        let root = Path::Root;
+
+        let path_zero = Path::Seq {
+            parent: &root,
+            index: 0,
+        };
+        assert_eq!(format!("{}", path_zero), "\\[0\\]");
+
+        let path_large = Path::Seq {
+            parent: &root,
+            index: 100,
+        };
+        assert_eq!(format!("{}", path_large), "\\[100\\]");
+    }
+
+    /// Test handling of the `parent` field in the `Map` variant.
+    ///
+    /// This test checks that the `parent` field in a `Map` variant is correctly formatted.
+    #[test]
+    fn test_map_with_parent() {
+        let root = Path::Root;
+        let parent_seq = Path::Seq {
+            parent: &root,
+            index: 1,
+        };
+        let map = Path::Map {
+            parent: &parent_seq,
+            key: "key",
+        };
+        assert_eq!(format!("{}", map), "\\[1\\].key");
+    }
+
+    /// Test handling of the `key` field in the `Map` variant.
+    ///
+    /// This test validates that various key values in the `Map` variant are correctly formatted.
+    #[test]
+    fn test_map_with_different_keys() {
+        let root = Path::Root;
+
+        let path_empty_key = Path::Map {
+            parent: &root,
+            key: "",
+        };
+        assert_eq!(format!("{}", path_empty_key), "");
+
+        let path_special_key = Path::Map {
+            parent: &root,
+            key: "special_key",
+        };
+        assert_eq!(format!("{}", path_special_key), "special_key");
+
+        let path_number_key = Path::Map {
+            parent: &root,
+            key: "123",
+        };
+        assert_eq!(format!("{}", path_number_key), "123");
+    }
+
+    /// Test handling of the `parent` field in the `Alias` variant.
+    ///
+    /// This test checks that the `parent` field in an `Alias` variant is correctly formatted.
+    #[test]
+    fn test_alias_with_parent() {
+        let root = Path::Root;
+        let parent_map = Path::Map {
+            parent: &root,
+            key: "parent_key",
+        };
+        let alias = Path::Alias {
+            parent: &parent_map,
+        };
+        assert_eq!(format!("{}", alias), "parent_key.");
+    }
+
+    /// Test handling of the `parent` field in the `Unknown` variant.
+    ///
+    /// This test checks that the `parent` field in an `Unknown` variant is correctly formatted.
+    #[test]
+    fn test_unknown_with_parent() {
+        let root = Path::Root;
+        let parent_map = Path::Map {
+            parent: &root,
+            key: "parent_key",
+        };
+        let unknown = Path::Unknown {
+            parent: &parent_map,
+        };
+        assert_eq!(format!("{}", unknown), "parent_key.?");
+    }
 }
