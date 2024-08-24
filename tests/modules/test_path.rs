@@ -1,9 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use serde_yml::{
-        de::Event,
-        modules::path::Path,
-    };
+    use serde_yml::{de::Event, modules::path::Path};
 
     /// Test the Path::Root variant.
     ///
