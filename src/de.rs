@@ -1473,14 +1473,12 @@ fn is_plain_or_tagged_literal_scalar(
 }
 
 fn invalid_type(event: &Event<'_>, exp: &dyn Expected) -> Error {
-    enum Void {}
-
     struct InvalidType<'a> {
         exp: &'a dyn Expected,
     }
 
     impl Visitor<'_> for InvalidType<'_> {
-        type Value = Void;
+        type Value = ();
 
         fn expecting(
             &self,
@@ -1491,13 +1489,10 @@ fn invalid_type(event: &Event<'_>, exp: &dyn Expected) -> Error {
     }
 
     match event {
-        Event::Alias(_) => unreachable!(),
+        Event::Alias(_) => unreachable!(), // If you expect this case to be unreachable, it's fine to leave.
         Event::Scalar(scalar) => {
             let get_type = InvalidType { exp };
-            match visit_scalar(get_type, scalar, false) {
-                Ok(_void) => unreachable!(),
-                Err(invalid_type) => invalid_type,
-            }
+            visit_scalar(get_type, scalar, false).unwrap_err()
         }
         Event::SequenceStart(_) => {
             de::Error::invalid_type(Unexpected::Seq, exp)
