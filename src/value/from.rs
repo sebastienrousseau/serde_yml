@@ -1,13 +1,17 @@
-use crate::from_number;
 use crate::{Mapping, Value};
 use std::borrow::Cow;
 use std::iter::FromIterator;
 
+use super::Number;
+
 // Implement conversion from number types to `Value`.
-from_number! {
-    i8 i16 i32 i64 isize
-    u8 u16 u32 u64 usize
-    f32 f64
+impl<T> From<T> for Value
+where
+    T: Into<Number>,
+{
+    fn from(n: T) -> Self {
+        Value::Number(n.into())
+    }
 }
 
 impl From<bool> for Value {

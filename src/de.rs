@@ -26,11 +26,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// Deserializing a single document:
 ///
 /// ```
-/// use anyhow::Result;
 /// use serde::Deserialize;
 /// use serde_yml::Value;
 ///
-/// fn main() -> Result<()> {
+/// fn main() -> serde_yml::Result<()> {
 ///     let input = "k: 107\n";
 ///     let de = serde_yml::Deserializer::from_str(input);
 ///     let value = Value::deserialize(de)?;
@@ -42,11 +41,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// Deserializing multi-doc YAML:
 ///
 /// ```
-/// use anyhow::Result;
 /// use serde::Deserialize;
 /// use serde_yml::Value;
 ///
-/// fn main() -> Result<()> {
+/// fn main() -> serde_yml::Result<()> {
 ///     let input = "---\nk: 107\n...\n---\nj: 106\n";
 ///
 ///     for document in serde_yml::Deserializer::from_str(input) {

@@ -28,11 +28,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// # Example
 ///
 /// ```
-/// use anyhow::Result;
 /// use serde::Serialize;
 /// use std::collections::BTreeMap;
 ///
-/// fn main() -> Result<()> {
+/// fn main() -> serde_yml::Result<()> {
 ///     let mut buffer = Vec::new();
 ///     let mut ser = serde_yml::Serializer::new(&mut buffer);
 ///

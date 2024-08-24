@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 name = "serde_yml"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/serde_yml"
-rust-version = "1.60"
+rust-version = "1.56.0"
 version = "0.0.12"
 include = [
     "/CONTRIBUTING.md",
@@ -38,20 +38,21 @@ include = [
 
 
 [dependencies]
-indexmap = "2.4.0"
-itoa = "1.0.11"
+indexmap = "2.2.4"
+itoa = "1.0"
 libyml = "0.0.5"
-log = { version = "0.4.22", features = ["std"] }
-memchr = "2.7.4"
-ryu = "1.0.18"
-serde = { version = "1.0.209", features = ["derive"] }
-serde_json = "1.0.127"
-tempfile = "3.12.0"
+memchr = { version = "2", default-features = false }
+ryu = "1.0"
+serde = { version = "1.0.204" }
+
+[build-dependencies]
+# Dependencies for build scripts.
+version_check = "0.9.4" # Check the Rust version used to compile the package.
 
 [dev-dependencies]
-anyhow = "1.0.86"
 indoc = "2.0.5"
-serde_derive = "1.0.209"
+serde = { version = "1.0.204", features = ["derive"] }
+serde_derive = "1.0.204"
 
 [features]
 default = []
