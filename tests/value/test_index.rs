@@ -299,7 +299,7 @@ mod tests {
             .index_or_insert(&mut value)
             .clone_from(&Value::String("new_value".into()));
         assert_eq!(
-            value.get(&Value::String("new_key".into())),
+            value.get(Value::String("new_key".into())),
             Some(&Value::String("new_value".into()))
         );
     }
@@ -379,7 +379,7 @@ mod tests {
             .index_or_insert(&mut value)
             .clone_from(&Value::String("new_value".into()));
         assert_eq!(
-            value.get(&Value::String("new_key".into())),
+            value.get(Value::String("new_key".into())),
             Some(&Value::String("new_value".into()))
         );
     }
@@ -459,7 +459,7 @@ mod tests {
             .index_or_insert(&mut value)
             .clone_from(&Value::String("new_value".into()));
         assert_eq!(
-            value.get(&Value::String("new_key".into())),
+            value.get(Value::String("new_key".into())),
             Some(&Value::String("new_value".into()))
         );
     }
@@ -641,7 +641,7 @@ mod tests {
             .index_or_insert(&mut value)
             .clone_from(&Value::String("new_value".into()));
         assert_eq!(
-            value.get(&Value::String("new_key".into())),
+            value.get(Value::String("new_key".into())),
             Some(&Value::String("new_value".into()))
         );
     }
@@ -660,7 +660,7 @@ mod tests {
             .index_or_insert(&mut value)
             .clone_from(&Value::String("new_value".into()));
         assert_eq!(
-            value.get(&Value::String("new_key".into())),
+            value.get(Value::String("new_key".into())),
             Some(&Value::String("new_value".into()))
         );
     }

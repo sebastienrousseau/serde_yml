@@ -148,7 +148,7 @@ fn test_tagged() {
         Variant(usize),
     }
 
-    let value = serde_yml::to_value(&Enum::Variant(0)).unwrap();
+    let value = serde_yml::to_value(Enum::Variant(0)).unwrap();
 
     let deserialized: Value =
         serde_yml::from_value(value.clone()).unwrap();
