@@ -26,11 +26,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// Deserializing a single document:
 ///
 /// ```
-/// use anyhow::Result;
 /// use serde::Deserialize;
 /// use serde_yml::Value;
 ///
-/// fn main() -> Result<()> {
+/// fn main() -> serde_yml::Result<()> {
 ///     let input = "k: 107\n";
 ///     let de = serde_yml::Deserializer::from_str(input);
 ///     let value = Value::deserialize(de)?;
@@ -42,11 +41,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// Deserializing multi-doc YAML:
 ///
 /// ```
-/// use anyhow::Result;
 /// use serde::Deserialize;
 /// use serde_yml::Value;
 ///
-/// fn main() -> Result<()> {
+/// fn main() -> serde_yml::Result<()> {
 ///     let input = "---\nk: 107\n...\n---\nj: 106\n";
 ///
 ///     for document in serde_yml::Deserializer::from_str(input) {
@@ -59,7 +57,8 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// ```
 #[derive(Debug)]
 pub struct Deserializer<'de> {
-    progress: Progress<'de>,
+    /// Represents the progress of parsing a YAML document.
+    pub progress: Progress<'de>,
 }
 
 /// Represents the progress of parsing a YAML document.
@@ -616,9 +615,13 @@ struct DeserializerFromEvents<'de, 'document> {
 }
 
 #[derive(Copy, Clone)]
-struct CurrentEnum<'document> {
-    name: Option<&'static str>,
-    tag: &'document str,
+/// Represents the current state of an enum during deserialization.
+#[derive(Debug)]
+pub struct CurrentEnum<'document> {
+    /// The name of the enum variant.
+    pub name: Option<&'static str>,
+    /// The tag of the enum variant.
+    pub tag: &'document str,
 }
 
 impl<'de, 'document> DeserializerFromEvents<'de, 'document> {
@@ -1475,14 +1478,12 @@ fn is_plain_or_tagged_literal_scalar(
 }
 
 fn invalid_type(event: &Event<'_>, exp: &dyn Expected) -> Error {
-    enum Void {}
-
     struct InvalidType<'a> {
         exp: &'a dyn Expected,
     }
 
     impl Visitor<'_> for InvalidType<'_> {
-        type Value = Void;
+        type Value = ();
 
         fn expecting(
             &self,
@@ -1493,13 +1494,10 @@ fn invalid_type(event: &Event<'_>, exp: &dyn Expected) -> Error {
     }
 
     match event {
-        Event::Alias(_) => unreachable!(),
+        Event::Alias(_) => unreachable!(), // If you expect this case to be unreachable, it's fine to leave.
         Event::Scalar(scalar) => {
             let get_type = InvalidType { exp };
-            match visit_scalar(get_type, scalar, false) {
-                Ok(void) => match void {},
-                Err(invalid_type) => invalid_type,
-            }
+            visit_scalar(get_type, scalar, false).unwrap_err()
         }
         Event::SequenceStart(_) => {
             de::Error::invalid_type(Unexpected::Seq, exp)

@@ -3,7 +3,6 @@
 //! This file demonstrates the creation, usage, and formatting of `Path` instances,
 //! as well as handling various path scenarios.
 
-use serde_json::to_string;
 use serde_yml::modules::path::Path;
 
 pub(crate) fn main() {
@@ -204,15 +203,6 @@ pub(crate) fn main() {
         "\n✅ Created a Path instance with multiple complex paths: {}",
         path_multiple_complex
     ); // Output: ?.first.\[2\]..?
-
-    // Example: Serializing and deserializing Path instances
-    let path_to_serialize = Path::Seq {
-        parent: &path_root,
-        index: 42,
-    };
-
-    let serialized = to_string(&path_to_serialize).unwrap();
-    println!("\n✅ Serialized Path::Seq instance: {}", serialized);
 
     // Example: Comparing Path instances
     let another_path_seq = Path::Seq {

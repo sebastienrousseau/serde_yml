@@ -479,38 +479,6 @@ mod tests {
         assert_eq!(map.get(&key2), Some(&value2));
     }
 
-    /// Tests the `Serialize` trait implementation for `Mapping`.
-    #[test]
-    fn test_mapping_serialize() {
-        let mut map = Mapping::new();
-        map.insert(
-            Value::String("key1".to_string()),
-            Value::String("value1".to_string()),
-        );
-        map.insert(
-            Value::String("key2".to_string()),
-            Value::String("value2".to_string()),
-        );
-        let serialized = serde_json::to_string(&map).unwrap();
-        assert_eq!(serialized, r#"{"key1":"value1","key2":"value2"}"#);
-    }
-
-    /// Tests the `Deserialize` trait implementation for `Mapping`.
-    #[test]
-    fn test_mapping_deserialize() {
-        let json = r#"{"key1":"value1","key2":"value2"}"#;
-        let map: Mapping = serde_json::from_str(json).unwrap();
-        assert_eq!(map.len(), 2);
-        assert_eq!(
-            map.get("key1"),
-            Some(&Value::String("value1".to_string()))
-        );
-        assert_eq!(
-            map.get("key2"),
-            Some(&Value::String("value2".to_string()))
-        );
-    }
-
     /// Tests the `Debug` trait implementation for `DuplicateKeyError`.
     #[test]
     fn test_duplicate_key_error_debug() {

@@ -16,11 +16,11 @@ jobs:
     name: Audit dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: hecrj/setup-rust-action@v2
+      - uses: hecrj/setup-rust-action@v2.0.1
       - name: Install cargo-audit
         run: cargo install cargo-audit
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
       - name: Resolve dependencies
         run: cargo update
 

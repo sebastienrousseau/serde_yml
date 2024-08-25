@@ -1,23 +1,8 @@
 //!# Serde YML (a fork of Serde YAML)
 //!
-//![![GitHub][github-badge]][06]
-//![![Crates.io][crates-badge]][07]
-//![![Docs.rs][docs-badge]][08]
-//![![Codecov][codecov-badge]][09]
-//![![Build Status][build-badge]][10]
+//![![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][12] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
 //!
-//!A Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format. This project, has been renamed to [Serde YML][00] to avoid confusion with the original Serde YAML crate which is now archived and no longer maintained.
-//!
-//!## Credits and Acknowledgements
-//!
-//!This library is a continuation of the excellent work done by [David Tolnay][03] and the maintainers of the [serde-yaml][02] library.
-//!
-//!While Serde YML started as a fork of serde-yaml, it has now evolved into a separate library with its own goals and direction in mind and does not intend to replace the original serde-yaml crate.
-//!
-//!If you are currently using serde-yaml in your projects, we recommend carefully evaluating your requirements and considering the stability and maturity of the original library as well as looking at the features and improvements offered by other YAML libraries in the Rust ecosystem.
-//!
-//!I would like to express my sincere gratitude to [David Tolnay][03] and the [serde-yaml][02] team for their valuable contributions to the Rust community and for inspiring this project.
-//!
+//![Serde YML][00] is a Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format.
 //!
 //! ## Features
 //!
@@ -35,46 +20,51 @@
 //! - Handling of nested enum structures with optional inner enums using the `singleton_map_recursive` module
 //! - Customization of serialization and deserialization logic for enums using the `singleton_map_with` module and custom helper functions
 //!
-//! ## Rust Version Compatibility
+//!## Installation
 //!
-//! This library is compatible with Rust 1.60 and above.
+//!Add this to your `Cargo.toml`:
 //!
-//! ## Installation
+//!```toml
+//![dependencies]
+//!serde = "1.0"
+//!serde_yml = "0.0.12"
+//!```
 //!
-//! Add the following dependency to your `Cargo.toml` file:
+//!## Usage
 //!
-//! ```toml
-//! [dependencies]
-//! serde_yml = "0.0.11"
-//! ```
+//!Here's a quick example on how to use Serde YML to serialize and deserialize a struct to and from YAML:
 //!
-//! ## Usage
+//!```rust
+//!use serde::{Serialize, Deserialize};
 //!
-//! Serde YML offers a straightforward and intuitive API for working with YAML data in Rust. Here's a quick example of how to serialize and deserialize a Rust type:
+//!#[derive(Debug, PartialEq, Serialize, Deserialize)]
+//!struct Point {
+//!    x: f64,
+//!    y: f64,
+//!}
 //!
-//! ```rust
-//! use serde::{Serialize, Deserialize};
+//!fn main() -> Result<(), serde_yml::Error> {
+//!    let point = Point { x: 1.0, y: 2.0 };
 //!
-//! #[derive(Serialize, Deserialize,Debug,PartialEq)]
-//! struct Point {
-//!     x: f64,
-//!     y: f64,
-//! }
+//!    // Serialize to YAML
+//!    let yaml = serde_yml::to_string(&point)?;
+//!    assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
 //!
-//! fn main() -> Result<(), serde_yml::Error> {
-//!     let point = Point { x: 1.0, y: 2.0 };
+//!    // Deserialize from YAML
+//!    let deserialized_point: Point = serde_yml::from_str(&yaml)?;
+//!    assert_eq!(point, deserialized_point);
 //!
-//!     // Serialize to YAML
-//!     let yaml = serde_yml::to_string(&point)?;
-//!     assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
+//!    Ok(())
+//!}
+//!```
 //!
-//!     // Deserialize from YAML
-//!     let deserialized_point: Point = serde_yml::from_str(&yaml)?;
-//!     assert_eq!(point, deserialized_point);
+//!## Documentation
 //!
-//!     Ok(())
-//! }
-//! ```
+//!For full API documentation, please visit [https://doc.libyml.com/serde-yaml/][04] or [https://docs.rs/serde-yaml][08].
+//!
+//!## Rust Version Compatibility
+//!
+//!Compiler support: requires rustc 1.56.0+
 //!
 //! ## Examples
 //!
@@ -88,33 +78,29 @@
 //!
 //! The examples cover various scenarios, including serializing and deserializing structs, enums, optional fields, custom structs, and more.
 //!
-//![00]: https://serdeyml.com
-//![01]: https://github.com/serde-rs/serde
-//![02]: https://github.com/dtolnay/serde-yaml
-//![03]: https://github.com/dtolnay
-//![04]: https://github.com/sebastienrousseau/serde_yml/releases
-//![05]: https://yaml.org/
-//![06]: https://github.com/sebastienrousseau/serde_yml
-//![07]: https://crates.io/crates/serde_yml
-//![08]: https://docs.rs/serde_yml
-//![09]: https://codecov.io/gh/sebastienrousseau/serde_yml
-//![10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
-//![build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge "Build Status"
-//![codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67 "Codecov"
-//![crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
-//![docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
-//![github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"
+//! [00]: https://serdeyml.com
+//! [01]: https://github.com/serde-rs/serde
+//! [02]: https://github.com/dtolnay/serde-yaml
+//! [03]: https://github.com/dtolnay
+//! [04]: https://doc.libyml.com/serde-yaml/
+//! [05]: https://yaml.org/
+//! [06]: https://github.com/sebastienrousseau/serde_yml
+//! [07]: https://crates.io/crates/serde_yml
+//! [08]: https://docs.rs/serde_yml
+//! [09]: https://codecov.io/gh/sebastienrousseau/serde_yml
+//! [10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
+//! [11]: https://www.rust-lang.org/
+//! [12]: https://lib.rs/crates/serde_yml
+//! [build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge&logo=github "Build Status"
+//! [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67&logo=codecov "Codecov"
+//! [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
+//! [libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.12-orange.svg?style=for-the-badge "View on lib.rs"
+//! [docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
+//! [github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"
+//! [made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'
 //!
-//! [serde-yml]: https://serdeyml.com "Serde YML"
-//! [serde]: https://github.com/serde-rs/serde
-//! [rust-lang]: https://www.rust-lang.org/ "Rust"
-//! [dtolnay]: https://github.com/dtolnay "David Tolnay"
-//! [serde-yaml]: https://github.com/dtolnay/serde-yaml "Serde YAML"
-//! [crates-io]: https://crates.io/crates/serde_yml "Crates.io"
-//! [lib-rs]: https://lib.rs/crates/serde_yml "Lib.rs"
-//! [license]: https://opensource.org/license/apache-2-0/ "MIT or Apache License, Version 2.0"
-//! [repo]: https://github.com/your-repo/serde_yml "Serde YML Repository"
 //!
+
 #![deny(missing_docs)]
 #![doc(
     html_favicon_url = "https://kura.pro/serde_yml/images/favicon.ico",
@@ -145,9 +131,6 @@ pub mod libyml;
 /// The `loader` module contains the `Loader` type for YAML loading.
 pub mod loader;
 
-/// The `macros` module contains functions for generating macros.
-pub mod macros;
-
 /// The `mapping` module contains the `Mapping` type for YAML mappings.
 pub mod mapping;
 
@@ -159,9 +142,6 @@ pub mod number;
 
 /// The `ser` module contains the library's YAML serializer.
 pub mod ser;
-
-/// The `utilities` module contains utility functions for the library.
-pub mod utilities;
 
 /// The `value` module contains the `Value` type for YAML values.
 pub mod value;

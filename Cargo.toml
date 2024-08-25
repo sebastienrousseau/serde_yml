@@ -13,8 +13,8 @@ license = "MIT OR Apache-2.0"
 name = "serde_yml"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/serde_yml"
-rust-version = "1.60"
-version = "0.0.11"
+rust-version = "1.56.0"
+version = "0.0.12"
 include = [
     "/CONTRIBUTING.md",
     "/LICENSE-APACHE",
@@ -38,19 +38,20 @@ include = [
 
 
 [dependencies]
-indexmap = "2.2.6"
-itoa = "1.0.11"
-libyml = "0.0.4"
-log = { version = "0.4.22", features = ["std"] }
-memchr = "2.7.4"
-ryu = "1.0.18"
-serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.120"
-tempfile = "3.10.1"
+indexmap = "2.2.4"
+itoa = "1.0"
+libyml = "0.0.5"
+memchr = { version = "2", default-features = false }
+ryu = "1.0"
+serde = { version = "1.0.204" }
+
+[build-dependencies]
+# Dependencies for build scripts.
+version_check = "0.9.4" # Check the Rust version used to compile the package.
 
 [dev-dependencies]
-anyhow = "1.0.86"
 indoc = "2.0.5"
+serde = { version = "1.0.204", features = ["derive"] }
 serde_derive = "1.0.204"
 
 [features]
@@ -64,8 +65,17 @@ path = "src/lib.rs"
 required-features = []
 
 [package.metadata.docs.rs]
+# Specify arguments for rustdoc to enhance documentation quality.
+rustdoc-args = [
+    "--generate-link-to-definition",
+    "--cfg", "docsrs",
+    "--document-private-items",
+    "--display-warnings"
+]
+# Build docs with all crate features enabled to cover the entire API.
+all-features = true
+# Target platform for the docs, ensuring compatibility with common Linux servers.
 targets = ["x86_64-unknown-linux-gnu"]
-rustdoc-args = ["--generate-link-to-definition"]
 
 # Linting config
 [lints.rust]
@@ -104,7 +114,6 @@ macro_use_extern_crate = "deny"
 meta_variable_misuse = "deny"
 missing_fragment_specifier = "deny"
 noop_method_call = "deny"
-pointer_structural_match = "deny"
 rust_2018_idioms = { level = "deny", priority = -1 }
 rust_2021_compatibility = { level = "deny", priority = -1 }
 single_use_lifetimes = "deny"

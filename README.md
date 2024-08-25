@@ -7,51 +7,39 @@ alt="Serde YML logo" width="66" align="right" />
 
 # Serde YML (a fork of Serde YAML)
 
-[![GitHub][github-badge]][06]
-[![Crates.io][crates-badge]][07]
-[![Docs.rs][docs-badge]][08]
-[![Codecov][codecov-badge]][09]
-[![Build Status][build-badge]][10]
+[![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][12] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
 
-A Rust library for using the [Serde][01] serialization framework with data in
-[YAML][05] file format. This project, has been renamed to [Serde YML][00] to
-avoid confusion with the original Serde YAML crate which is now archived and
-no longer maintained.
+[Serde YML][00] is a Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format.
 
-## Credits and Acknowledgements
+## Features
 
-This library is a continuation of the excellent work done by [David Tolnay][03]
-and the maintainers of the [serde-yaml][02] library.
+- Serialization and deserialization of Rust data structures to/from YAML format
+- Support for custom structs and enums using Serde's derive macros
+- Handling of YAML's `!tag` syntax for representing enum variants
+- Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`
+- Comprehensive error handling with `Error`, `Location`, and `Result` types
+- Serialization to YAML using `to_string` and `to_writer` functions
+- Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions
+- Customizable serialization and deserialization behavior using Serde's `#[serde(with = ...)]` attribute
+- Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module
+- Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module
+- Serialization and deserialization of optional enum fields using the `singleton_map_optional` module
+- Handling of nested enum structures with optional inner enums using the `singleton_map_recursive` module
+- Customization of serialization and deserialization logic for enums using the `singleton_map_with` module and custom helper functions
 
-While Serde YML started as a fork of serde-yaml, it has now evolved into a
-separate library with its own goals and direction in mind and does not intend
-to replace the original serde-yaml crate.
+## Installation
 
-If you are currently using serde-yaml in your projects, we recommend carefully
-evaluating your requirements and considering the stability and maturity of the
-original library as well as looking at the features and improvements offered by
-other YAML libraries in the Rust ecosystem.
-
-I would like to express my sincere gratitude to [David Tolnay][03] and the
-[serde-yaml][02] team for their valuable contributions to the Rust community
-and for inspiring this project.
-
-## Dependency
+Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
 serde = "1.0"
-serde_yml = "0.0.11"
+serde_yml = "0.0.12"
 ```
 
-Release notes are available under [GitHub releases][04].
+## Usage
 
-## Using Serde YML
-
-[API documentation is available in rustdoc form][docs.rs] but the general idea
-is:
-
-[docs.rs]: https://docs.rs/serde_yml
+Here's a quick example on how to use Serde YML to serialize and deserialize a struct to and from YAML:
 
 ```rust
 use serde::{Serialize, Deserialize};
@@ -76,6 +64,14 @@ fn main() -> Result<(), serde_yml::Error> {
     Ok(())
 }
 ```
+
+## Documentation
+
+For full API documentation, please visit [https://doc.libyml.com/serde-yaml/][04] or [https://docs.rs/serde-yaml][08].
+
+## Rust Version Compatibility
+
+Compiler support: requires rustc 1.56.0+
 
 ## Examples
 
@@ -604,6 +600,14 @@ serialize and deserialize an enum field (`MyEnum`) within a struct
 customization of the serialization and deserialization process through the use
 of helper functions.
 
+## Contributing
+
+Contributions are welcome! Please submit a Pull Request on [GitHub][06].
+
+## Credits and Acknowledgements
+
+Serde YML is a continuation of the excellent work done by [David Tolnay][03] and the maintainers of the [serde-yaml][02] library. While Serde YML has evolved into a separate library, we express our sincere gratitude to them for their contributions to the Rust community.
+
 ## License
 
 Licensed under either of the [Apache License](LICENSE-APACHE) or the
@@ -617,15 +621,19 @@ be dual licensed as above, without any additional terms or conditions.
 [01]: https://github.com/serde-rs/serde
 [02]: https://github.com/dtolnay/serde-yaml
 [03]: https://github.com/dtolnay
-[04]: https://github.com/sebastienrousseau/serde_yml/releases
+[04]: https://doc.libyml.com/serde-yaml/
 [05]: https://yaml.org/
 [06]: https://github.com/sebastienrousseau/serde_yml
 [07]: https://crates.io/crates/serde_yml
 [08]: https://docs.rs/serde_yml
 [09]: https://codecov.io/gh/sebastienrousseau/serde_yml
 [10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
+[11]: https://www.rust-lang.org/
+[12]: https://lib.rs/crates/serde_yml
 [build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge&logo=github "Build Status"
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67&logo=codecov "Codecov"
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
+[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.12-orange.svg?style=for-the-badge "View on lib.rs"
 [docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
 [github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"
+[made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'

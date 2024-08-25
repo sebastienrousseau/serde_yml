@@ -28,11 +28,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// # Example
 ///
 /// ```
-/// use anyhow::Result;
 /// use serde::Serialize;
 /// use std::collections::BTreeMap;
 ///
-/// fn main() -> Result<()> {
+/// fn main() -> serde_yml::Result<()> {
 ///     let mut buffer = Vec::new();
 ///     let mut ser = serde_yml::Serializer::new(&mut buffer);
 ///
@@ -49,6 +48,8 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// ```
 #[derive(Debug)]
 pub struct Serializer<W> {
+    /// The configuration of the serializer.
+    pub config: SerializerConfig,
     /// The depth of the current serialization.
     pub depth: usize,
     /// The current state of the serializer.
@@ -57,6 +58,13 @@ pub struct Serializer<W> {
     pub emitter: Emitter<'static>,
     /// The underlying writer.
     pub writer: PhantomData<W>,
+}
+
+/// The configuration of the serializer.
+#[derive(Copy, Clone, Debug, Default)]
+pub struct SerializerConfig {
+    /// When set to `true`, all unit variants will be serialized as tags, i.e. `!Unit` instead of `Unit`.
+    pub tag_unit_variants: bool,
 }
 
 /// The state of the serializer.
@@ -80,6 +88,14 @@ where
 {
     /// Creates a new YAML serializer.
     pub fn new(writer: W) -> Self {
+        Self::new_with_config(writer, SerializerConfig::default())
+    }
+
+    /// Creates a new YAML serializer with a configuration.
+    pub fn new_with_config(
+        writer: W,
+        config: SerializerConfig,
+    ) -> Self {
         let mut emitter = Emitter::new({
             let writer = Box::new(writer);
             unsafe {
@@ -90,6 +106,7 @@ where
         });
         emitter.emit(Event::StreamStart).unwrap();
         Serializer {
+            config,
             depth: 0,
             state: State::NothingInParticular,
             emitter,
@@ -442,7 +459,19 @@ where
         _variant_index: u32,
         variant: &'static str,
     ) -> Result<()> {
-        self.serialize_str(variant)
+        if !self.config.tag_unit_variants {
+            self.serialize_str(variant)
+        } else {
+            if let State::FoundTag(_) = self.state {
+                return Err(error::new(ErrorImpl::SerializeNestedEnum));
+            }
+            self.state = State::FoundTag(variant.to_owned());
+            self.emit_scalar(Scalar {
+                tag: None,
+                value: "",
+                style: ScalarStyle::Plain,
+            })
+        }
     }
 
     fn serialize_newtype_struct<T>(

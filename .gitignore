@@ -1,9 +1,12 @@
 *.DS_Store
-*.profraw
 *.log
+*.profraw
+/.idea/
+/.idea/
 /.vscode/
+/build.rs
+/rust-toolchain
 /target/
 build
 Cargo.lock
 Icon?
-public/test_site/test.txt
