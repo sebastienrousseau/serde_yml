@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Event","Progress"],"fn":["from_reader","from_slice","from_str"],"struct":["CurrentEnum","Deserializer"]};

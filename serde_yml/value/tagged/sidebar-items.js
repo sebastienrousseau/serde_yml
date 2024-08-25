@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["MaybeTag"],"fn":["check_for_tag","nobang"],"struct":["Tag","TaggedValue"]};

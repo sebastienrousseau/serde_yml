@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["nested_singleton_map","singleton_map","singleton_map_optional","singleton_map_recursive","singleton_map_with"]};
