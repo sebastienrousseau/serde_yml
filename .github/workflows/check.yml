@@ -16,9 +16,9 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: hecrj/setup-rust-action@v2
+      - uses: hecrj/setup-rust-action@v2.0.1
         with:
           components: clippy
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
       - name: Check lints
         run: cargo check --all-targets --workspace --all-features

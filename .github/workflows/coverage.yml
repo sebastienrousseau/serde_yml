@@ -21,11 +21,11 @@ jobs:
     steps:
       # Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.7
 
       # Setup Rust nightly
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1.0.6
         id: toolchain
         with:
           toolchain: nightly
@@ -33,7 +33,7 @@ jobs:
 
       # Configure cache for Cargo
       - name: Cache Cargo registry, index
-        uses: actions/cache@v4
+        uses: actions/cache@v4.0.2
         id: cache-cargo
         with:
           path: |
@@ -44,7 +44,7 @@ jobs:
 
       # Run tests with all features
       - name: Test (cargo test)
-        uses: actions-rs/cargo@v1
+        uses: actions-rs/cargo@v1.0.1
         with:
           command: test
           args: "--workspace"
@@ -55,7 +55,7 @@ jobs:
 
       # Upload to Codecov.io
       - name: Upload to Codecov.io
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v4.5.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ${{ steps.coverage.outputs.report }}
