@@ -81,7 +81,7 @@ jobs:
       # Build the targets
       - name: Build targets
         id: build-targets
-        uses: actions-rs/cargo@v1.0.1
+        uses: actions-rs/cargo@v1.0.3
         with:
           command: build
           args: --verbose --workspace --release --target ${{ env.TARGET }}
@@ -242,7 +242,7 @@ jobs:
       # Publish the Rust library to Crate.io
       - name: Publish Library to Crate.io
         id: publish-library
-        uses: actions-rs/cargo@v1.0.1
+        uses: actions-rs/cargo@v1.0.3
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
         with:
