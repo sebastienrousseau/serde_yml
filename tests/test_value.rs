@@ -122,6 +122,34 @@ fn test_simple_nested_merge() {
 }
 
 #[test]
+fn test_complex_nested_merge() {
+    let yaml = indoc! {"
+        set_a: &set_a
+          a: 1
+
+        set_b: &set_b
+          b: 2
+
+        nest_a: &nest_a
+          << : *set_a
+
+        nest_b: &nest_b
+          << : *set_b
+
+        outer:
+          << : [*nest_a, *nest_b]
+
+        reference:
+          a: 1
+          b: 2
+    "};
+
+    let mut value: Value = serde_yml::from_str(yaml).unwrap();
+    value.apply_merge().unwrap();
+    assert_eq!(value["reference"], value["outer"]);
+}
+
+#[test]
 fn test_debug() {
     let yaml = indoc! {"
         'Null': ~
