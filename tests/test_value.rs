@@ -104,6 +104,24 @@ fn test_merge() {
 }
 
 #[test]
+fn test_simple_nested_merge() {
+    let yaml = indoc! {"
+        inner: &inner
+          a: 1
+
+        middle: &middle
+          << : *inner
+
+        outer:
+          << : *middle
+    "};
+
+    let mut value: Value = serde_yml::from_str(yaml).unwrap();
+    value.apply_merge().unwrap();
+    assert_eq!(value["inner"], value["outer"]);
+}
+
+#[test]
 fn test_debug() {
     let yaml = indoc! {"
         'Null': ~
