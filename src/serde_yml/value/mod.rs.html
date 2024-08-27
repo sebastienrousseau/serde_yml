@@ -725,12 +725,6 @@
 <a href="#725" id="725">725</a>
 <a href="#726" id="726">726</a>
 <a href="#727" id="727">727</a>
-<a href="#728" id="728">728</a>
-<a href="#729" id="729">729</a>
-<a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The Value enum, a loosely typed way of representing any valid YAML value.
 
 </span><span class="kw">mod </span>de;
@@ -1380,60 +1374,54 @@
     /// assert_eq!(value["tasks"]["start"]["args"], "start");
     /// ```
     </span><span class="kw">pub fn </span>apply_merge(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>stack = Vec::new();
-        stack.push(<span class="self">self</span>);
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = stack.pop() {
-            <span class="kw">match </span>node {
-                Value::Mapping(mapping) =&gt; {
-                    <span class="kw">match </span>mapping.remove(<span class="string">"&lt;&lt;"</span>) {
-                        <span class="prelude-val">Some</span>(Value::Mapping(merge)) =&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Value::Mapping(mapping) =&gt; {
+                <span class="kw">for </span>value <span class="kw">in </span>mapping.values_mut() {
+                    value.apply_merge()<span class="question-mark">?</span>;
+                }
+
+                <span class="kw">let </span>merge_sequence = <span class="kw">match </span>mapping.remove(<span class="string">"&lt;&lt;"</span>) {
+                    <span class="prelude-val">Some</span>(Value::Sequence(sequence)) =&gt; sequence,
+                    <span class="prelude-val">Some</span>(value) =&gt; <span class="macro">vec!</span>[value],
+                    <span class="prelude-val">None </span>=&gt; <span class="macro">vec!</span>[],
+                };
+
+                <span class="kw">for </span>value <span class="kw">in </span>merge_sequence {
+                    <span class="kw">match </span>value {
+                        Value::Mapping(merge) =&gt; {
                             <span class="kw">for </span>(k, v) <span class="kw">in </span>merge {
                                 mapping.entry(k).or_insert(v);
                             }
                         }
-                        <span class="prelude-val">Some</span>(Value::Sequence(sequence)) =&gt; {
-                            <span class="kw">for </span>value <span class="kw">in </span>sequence {
-                                <span class="kw">match </span>value {
-                                    Value::Mapping(merge) =&gt; {
-                                        <span class="kw">for </span>(k, v) <span class="kw">in </span>merge {
-                                            mapping
-                                                .entry(k)
-                                                .or_insert(v);
-                                        }
-                                    }
-                                    Value::Sequence(<span class="kw">_</span>) =&gt; {
-                                        <span class="kw">return </span><span class="prelude-val">Err</span>(error::new(ErrorImpl::SequenceInMergeElement));
-                                    }
-                                    Value::Tagged(<span class="kw">_</span>) =&gt; {
-                                        <span class="kw">return </span><span class="prelude-val">Err</span>(error::new(
-                                            ErrorImpl::TaggedInMerge,
-                                        ));
-                                    }
-                                    _unexpected =&gt; {
-                                        <span class="kw">return </span><span class="prelude-val">Err</span>(error::new(ErrorImpl::ScalarInMergeElement));
-                                    }
-                                }
-                            }
+                        Value::Sequence(<span class="kw">_</span>) =&gt; {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(error::new(
+                                ErrorImpl::SequenceInMergeElement,
+                            ));
                         }
-                        <span class="prelude-val">None </span>=&gt; {}
-                        <span class="prelude-val">Some</span>(Value::Tagged(<span class="kw">_</span>)) =&gt; {
+                        Value::Tagged(<span class="kw">_</span>) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(error::new(
                                 ErrorImpl::TaggedInMerge,
-                            ))
+                            ));
                         }
-                        <span class="prelude-val">Some</span>(_unexpected) =&gt; {
+                        _unexpected =&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(error::new(
-                                ErrorImpl::ScalarInMerge,
-                            ))
+                                ErrorImpl::ScalarInMergeElement,
+                            ));
                         }
                     }
-                    stack.extend(mapping.values_mut());
                 }
-                Value::Sequence(sequence) =&gt; stack.extend(sequence),
-                Value::Tagged(tagged) =&gt; stack.push(<span class="kw-2">&amp;mut </span>tagged.value),
-                <span class="kw">_ </span>=&gt; {}
             }
+            Value::Sequence(sequence) =&gt; {
+                <span class="kw">for </span>value <span class="kw">in </span>sequence {
+                    value.apply_merge()<span class="question-mark">?</span>;
+                }
+            }
+            Value::Tagged(tagged) =&gt; {
+                tagged.value.apply_merge()<span class="question-mark">?</span>;
+            }
+            <span class="kw">_ </span>=&gt; {}
         }
+
         <span class="prelude-val">Ok</span>(())
     }
 }
