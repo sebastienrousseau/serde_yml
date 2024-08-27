@@ -25,7 +25,7 @@ jobs:
 
       # Setup Rust nightly
       - name: Install Rust
-        uses: actions-rs/toolchain@v1.0.6
+        uses: actions-rs/toolchain@v1.0.7
         id: toolchain
         with:
           toolchain: nightly

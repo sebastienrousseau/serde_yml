@@ -59,7 +59,7 @@ jobs:
       # Install the stable Rust toolchain.
       - name: Install stable toolchain
         id: install-toolchain
-        uses: actions-rs/toolchain@v1.0.6
+        uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
@@ -115,7 +115,7 @@ jobs:
 
       # Install the stable Rust toolchain
       - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1.0.6
+        uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
@@ -212,7 +212,7 @@ jobs:
       # Install the stable Rust toolchain
       - name: Install stable toolchain
         id: install-toolchain
-        uses: actions-rs/toolchain@v1.0.6
+        uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
