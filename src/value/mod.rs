@@ -652,48 +652,37 @@ impl Value {
         while let Some(node) = stack.pop() {
             match node {
                 Value::Mapping(mapping) => {
-                    match mapping.remove("<<") {
-                        Some(Value::Mapping(merge)) => {
-                            for (k, v) in merge {
-                                mapping.entry(k).or_insert(v);
-                            }
-                        }
-                        Some(Value::Sequence(sequence)) => {
-                            for value in sequence {
-                                match value {
-                                    Value::Mapping(merge) => {
-                                        for (k, v) in merge {
-                                            mapping
-                                                .entry(k)
-                                                .or_insert(v);
-                                        }
-                                    }
-                                    Value::Sequence(_) => {
-                                        return Err(error::new(ErrorImpl::SequenceInMergeElement));
-                                    }
-                                    Value::Tagged(_) => {
-                                        return Err(error::new(
-                                            ErrorImpl::TaggedInMerge,
-                                        ));
-                                    }
-                                    _unexpected => {
-                                        return Err(error::new(ErrorImpl::ScalarInMergeElement));
-                                    }
+                    let merge_sequence = match mapping.remove("<<") {
+                        Some(Value::Sequence(sequence)) => sequence,
+                        Some(value) => vec![value],
+                        None => vec![],
+                    };
+
+                    for value in merge_sequence {
+                        match value {
+                            Value::Mapping(merge) => {
+                                for (k, v) in merge {
+                                    mapping.entry(k).or_insert(v);
                                 }
                             }
-                        }
-                        None => {}
-                        Some(Value::Tagged(_)) => {
-                            return Err(error::new(
-                                ErrorImpl::TaggedInMerge,
-                            ))
-                        }
-                        Some(_unexpected) => {
-                            return Err(error::new(
-                                ErrorImpl::ScalarInMerge,
-                            ))
+                            Value::Sequence(_) => {
+                                return Err(error::new(
+                                    ErrorImpl::SequenceInMergeElement,
+                                ));
+                            }
+                            Value::Tagged(_) => {
+                                return Err(error::new(
+                                    ErrorImpl::TaggedInMerge,
+                                ));
+                            }
+                            _unexpected => {
+                                return Err(error::new(
+                                    ErrorImpl::ScalarInMergeElement,
+                                ));
+                            }
                         }
                     }
+
                     stack.extend(mapping.values_mut());
                 }
                 Value::Sequence(sequence) => stack.extend(sequence),
