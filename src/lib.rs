@@ -60,7 +60,7 @@
 //!
 //!## Documentation
 //!
-//!For full API documentation, please visit [https://doc.libyml.com/serde-yaml/][04] or [https://docs.rs/serde-yaml][08].
+//!For full API documentation, please visit [https://docs.rs/serde-yml][08].
 //!
 //!## Rust Version Compatibility
 //!
@@ -80,9 +80,6 @@
 //!
 //! [00]: https://serdeyml.com
 //! [01]: https://github.com/serde-rs/serde
-//! [02]: https://github.com/dtolnay/serde-yaml
-//! [03]: https://github.com/dtolnay
-//! [04]: https://doc.libyml.com/serde-yaml/
 //! [05]: https://yaml.org/
 //! [06]: https://github.com/sebastienrousseau/serde_yml
 //! [07]: https://crates.io/crates/serde_yml
