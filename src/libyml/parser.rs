@@ -288,18 +288,12 @@ unsafe fn convert_event<'input>(
 }
 
 unsafe fn optional_anchor(anchor: *const u8) -> Option<Anchor> {
-    if anchor.is_null() {
-        return None;
-    }
     let ptr = NonNull::new(anchor as *mut i8)?;
     let cstr = CStr::from_ptr(ptr);
     Some(Anchor(Box::from(cstr.to_bytes())))
 }
 
 unsafe fn optional_tag(tag: *const u8) -> Option<Tag> {
-    if tag.is_null() {
-        return None;
-    }
     let ptr = NonNull::new(tag as *mut i8)?;
     let cstr = CStr::from_ptr(ptr);
     Some(Tag(Box::from(cstr.to_bytes())))
