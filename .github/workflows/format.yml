@@ -19,6 +19,6 @@ jobs:
       - uses: hecrj/setup-rust-action@v2.0.1
         with:
           components: clippy
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.0
       - name: Check format
         run: cargo fmt --all -- --check --verbose
