@@ -20,7 +20,7 @@ jobs:
       - name: Install cargo-audit
         run: cargo install cargo-audit
 
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4.2.1
       - name: Resolve dependencies
         run: cargo update
 
