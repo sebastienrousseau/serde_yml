@@ -41,16 +41,6 @@ pub struct TaggedValue {
     pub value: Value,
 }
 
-impl TaggedValue {
-    /// Creates a new `TaggedValue`.
-    pub fn copy(&self) -> TaggedValue {
-        TaggedValue {
-            tag: self.tag.clone(),
-            value: self.value.clone(),
-        }
-    }
-}
-
 impl Tag {
     /// Creates a new `Tag`.
     pub fn new(string: impl Into<String>) -> Self {
