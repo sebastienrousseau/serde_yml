@@ -23,7 +23,7 @@ jobs:
         with:
           rust-version: nightly
 
-      - uses: actions/checkout@v4.2.1
+      - uses: actions/checkout@v4.2.2
 
       - name: Update libssl
         run: |
