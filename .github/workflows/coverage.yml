@@ -21,7 +21,7 @@ jobs:
     steps:
       # Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       # Setup Rust nightly
       - name: Install Rust
