@@ -12,6 +12,7 @@ use serde::de::{
     self, value::StrDeserializer, Deserialize, DeserializeOwned,
     DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
 };
+use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::fmt::Formatter;
 use std::fmt::Result as FmtResult;
@@ -120,6 +121,51 @@ impl Debug for Progress<'_> {
             }
         }
     }
+}
+
+/// A structure that describes anchors and aliases in a YAML document.
+/// The anchor name, prefixed in the YAML document with "&", is represented
+/// without the prefix in `anchor_name`.
+/// The `anchor_path` is a string that denotes the path to the anchor in the YAML
+/// document. Each key that form the path is separated from one another by "/".
+/// The `aliases` vector contains the path to each reference to the anchor in
+/// the YAML document.
+///
+/// # Examples
+///
+/// The following YAML document:
+/// ```yaml
+/// a:
+///   enum: &io
+///     INPUT: 0
+///     OUTPUT: 1
+/// b:
+///   enum: *io
+/// c:
+///   enum: *io
+/// ```
+///
+/// Is represented by the following `DocumentAnchor`:
+/// ```json
+/// DocumentAnchor {
+///   anchor_name: "io",
+///   anchor_path: "/a/enum",
+///   aliases: ["/b/enum", "/c/enum"],
+/// }
+/// ```
+#[derive(Debug, PartialEq)]
+pub struct DocumentAnchor {
+    /// The name of the anchor, without the "&" prefix.
+    pub anchor_name: String,
+
+    /// The path to the anchor in the YAML document, with keys separated by "/".
+    /// A "/" at the beginning of the path denotes the root of the YAML document.
+    pub anchor_path: String,
+
+    /// The path to each alias that references the anchor in the YAML document.
+    /// Each key that form the alias path is separated by "/".
+    /// A "/" at the beginning of the path denotes the root of the YAML document.
+    pub aliases: Vec<String>,
 }
 
 impl<'de> Deserializer<'de> {
@@ -231,6 +277,69 @@ impl<'de> Deserializer<'de> {
     {
         let progress = Progress::Read(Box::new(rdr));
         Deserializer { progress }
+    }
+
+    /// Gets a vector of anchors, aliases, and where they occur in the YAML document.
+    pub fn anchors(&self) -> Option<Vec<DocumentAnchor>> {
+        let document = match &self.progress {
+            Progress::Document(doc) => doc,
+            _ => return None,
+        };
+
+        let mut aliases = BTreeMap::<usize, Vec<usize>>::new();
+        for (i, event) in document.events.iter().enumerate() {
+            if let (Event::Alias(id), _) = event {
+                aliases.entry(*id).or_default().push(i);
+            }
+        }
+
+        let mut anchors = Vec::new();
+        for (alias_id, document_index) in &document.anchor_event_map {
+            let anchor_name = document.anchor_names.get(alias_id).unwrap();
+            let anchor_path = self.event_path(*document_index);
+            let mut anchors_aliases = Vec::new();
+            for alias_index in aliases.get(alias_id).unwrap_or(&Vec::new()) {
+                anchors_aliases.push(self.event_path(*alias_index));
+            }
+
+            anchors.push(DocumentAnchor {
+                anchor_name: anchor_name.clone(),
+                anchor_path: anchor_path.clone(),
+                aliases: anchors_aliases,
+            });
+        }
+
+        Some(anchors)
+    }
+
+    fn event_path(&self, event_index: usize) -> String {
+        let mut mapping_end = 0u32;
+        let mut process_scalar = true;
+        let mut path = Vec::new();
+
+        if let Progress::Document(document) = &self.progress {
+            for i in (0..=event_index).rev() {
+                let event = &document.events[i];
+                match &event.0 {
+                    Event::MappingEnd => mapping_end += 1,
+                    Event::MappingStart(_) => {
+                        if mapping_end > 0 {
+                            mapping_end -= 1;
+                        } else {
+                            process_scalar = true;
+                        }
+                    }
+                    Event::Scalar(scalar) => {
+                        if process_scalar {
+                            path.insert(0, String::from_utf8_lossy(&scalar.value).to_string());
+                            process_scalar = false;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        format!("/{}", path.join("/"))
     }
 
     fn de<T>(
