@@ -73,7 +73,7 @@ impl<'a> CStr<'a> {
     /// # Returns
     ///
     /// A new `CStr` instance representing the input pointer.
-    pub fn from_ptr(ptr: NonNull<i8>) -> Self {
+    pub fn from_ptr(ptr: NonNull<std::ffi::c_char>) -> Self {
         CStr {
             // Cast the input pointer to a `NonNull<u8>` pointer
             ptr: ptr.cast(),
