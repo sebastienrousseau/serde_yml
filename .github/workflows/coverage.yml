@@ -55,7 +55,7 @@ jobs:
 
       # Upload to Codecov.io
       - name: Upload to Codecov.io
-        uses: codecov/codecov-action@v4.6.0
+        uses: codecov/codecov-action@v5.1.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ${{ steps.coverage.outputs.report }}
