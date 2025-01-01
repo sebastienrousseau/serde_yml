@@ -640,13 +640,13 @@
 }
 
 <span class="kw">unsafe fn </span>optional_anchor(anchor: <span class="kw-2">*const </span>u8) -&gt; <span class="prelude-ty">Option</span>&lt;Anchor&gt; {
-    <span class="kw">let </span>ptr = NonNull::new(anchor <span class="kw">as </span><span class="kw-2">*mut </span>i8)<span class="question-mark">?</span>;
+    <span class="kw">let </span>ptr = NonNull::new(anchor <span class="kw">as </span><span class="kw-2">*mut </span>std::ffi::c_char)<span class="question-mark">?</span>;
     <span class="kw">let </span>cstr = CStr::from_ptr(ptr);
     <span class="prelude-val">Some</span>(Anchor(Box::from(cstr.to_bytes())))
 }
 
 <span class="kw">unsafe fn </span>optional_tag(tag: <span class="kw-2">*const </span>u8) -&gt; <span class="prelude-ty">Option</span>&lt;Tag&gt; {
-    <span class="kw">let </span>ptr = NonNull::new(tag <span class="kw">as </span><span class="kw-2">*mut </span>i8)<span class="question-mark">?</span>;
+    <span class="kw">let </span>ptr = NonNull::new(tag <span class="kw">as </span><span class="kw-2">*mut </span>std::ffi::c_char)<span class="question-mark">?</span>;
     <span class="kw">let </span>cstr = CStr::from_ptr(ptr);
     <span class="prelude-val">Some</span>(Tag(Box::from(cstr.to_bytes())))
 }

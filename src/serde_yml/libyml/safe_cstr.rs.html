@@ -305,7 +305,7 @@
     /// # Returns
     ///
     /// A new `CStr` instance representing the input pointer.
-    </span><span class="kw">pub fn </span>from_ptr(ptr: NonNull&lt;i8&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_ptr(ptr: NonNull&lt;std::ffi::c_char&gt;) -&gt; <span class="self">Self </span>{
         CStr {
             <span class="comment">// Cast the input pointer to a `NonNull&lt;u8&gt;` pointer
             </span>ptr: ptr.cast(),
