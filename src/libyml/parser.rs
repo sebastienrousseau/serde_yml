@@ -288,13 +288,13 @@ unsafe fn convert_event<'input>(
 }
 
 unsafe fn optional_anchor(anchor: *const u8) -> Option<Anchor> {
-    let ptr = NonNull::new(anchor as *mut i8)?;
+    let ptr = NonNull::new(anchor as *mut std::ffi::c_char)?;
     let cstr = CStr::from_ptr(ptr);
     Some(Anchor(Box::from(cstr.to_bytes())))
 }
 
 unsafe fn optional_tag(tag: *const u8) -> Option<Tag> {
-    let ptr = NonNull::new(tag as *mut i8)?;
+    let ptr = NonNull::new(tag as *mut std::ffi::c_char)?;
     let cstr = CStr::from_ptr(ptr);
     Some(Tag(Box::from(cstr.to_bytes())))
 }
