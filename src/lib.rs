@@ -10,15 +10,16 @@
 // Re-exports organized by functionality
 pub use crate::{
     // Core serialization/deserialization
-    de::{from_reader, from_slice, from_str, Deserializer, DocumentAnchor},
-    ser::{to_string, to_writer, Serializer, State},
-
+    de::{
+        from_reader, from_slice, from_str, Deserializer, DocumentAnchor,
+    },
     // Data structures and types
     mapping::Mapping,
-    value::{from_value, to_value, Index, Number, Sequence, Value},
-
     // Error handling
     modules::error::{Error, Location, Result},
+    ser::{to_string, to_writer, Serializer, State},
+
+    value::{from_value, to_value, Index, Number, Sequence, Value},
 };
 
 // ------------------------------------------------------------
