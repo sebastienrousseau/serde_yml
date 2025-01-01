@@ -205,6 +205,7 @@ mod tests {
 
     /// Test handling of float precision
     #[test]
+    #[allow(clippy::approx_constant)]
     fn test_float_precision() -> Result<()> {
         let yaml = "float: 3.141592653589793\n";
         let value: Mapping = from_str(yaml)?;
