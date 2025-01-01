@@ -2,7 +2,7 @@ use crate::{
     de::{Event, Progress},
     libyml::{
         error::Mark,
-        parser::{Event as YamlEvent, Parser},
+        parser::{Anchor, Event as YamlEvent, Parser},
     },
     modules::error::{self, Error, ErrorImpl, Result},
 };
@@ -57,6 +57,11 @@ pub struct Document<'input> {
     /// encountered during parsing, its id is used to look up the index of the corresponding
     /// event in the `events` vector.
     pub anchor_event_map: BTreeMap<usize, usize>,
+
+    /// Map from alias id to name.
+    ///
+    /// This field is a `BTreeMap` that maps alias ids to their corresponding names.
+    pub anchor_names: BTreeMap<usize, String>,
 }
 
 impl<'input> Loader<'input> {
@@ -140,6 +145,14 @@ impl<'input> Loader<'input> {
             events: Vec::new(),
             error: None,
             anchor_event_map: BTreeMap::new(),
+            anchor_names: BTreeMap::new(),
+        };
+
+        let anchor_name = |anchor: &Anchor| {
+            format!("{:?}", anchor)
+                .trim_start_matches("\"")
+                .trim_end_matches("\"")
+                .to_owned()
         };
 
         loop {
@@ -165,6 +178,7 @@ impl<'input> Loader<'input> {
                 }
                 YamlEvent::DocumentStart => continue,
                 YamlEvent::DocumentEnd => return Some(document),
+
                 YamlEvent::Alias(alias) => match anchors.get(&alias) {
                     Some(id) => Event::Alias(*id),
                     None => {
@@ -178,20 +192,22 @@ impl<'input> Loader<'input> {
                 YamlEvent::Scalar(mut scalar) => {
                     if let Some(anchor) = scalar.anchor.take() {
                         let id = anchors.len();
-                        anchors.insert(anchor, id);
+                        document.anchor_names.insert(id, anchor_name(&anchor));
                         document
                             .anchor_event_map
                             .insert(id, document.events.len());
+                        anchors.insert(anchor, id);
                     }
                     Event::Scalar(scalar)
                 }
                 YamlEvent::SequenceStart(mut sequence_start) => {
                     if let Some(anchor) = sequence_start.anchor.take() {
                         let id = anchors.len();
-                        anchors.insert(anchor, id);
+                        document.anchor_names.insert(id, anchor_name(&anchor));
                         document
                             .anchor_event_map
                             .insert(id, document.events.len());
+                        anchors.insert(anchor, id);
                     }
                     Event::SequenceStart(sequence_start)
                 }
@@ -199,10 +215,11 @@ impl<'input> Loader<'input> {
                 YamlEvent::MappingStart(mut mapping_start) => {
                     if let Some(anchor) = mapping_start.anchor.take() {
                         let id = anchors.len();
-                        anchors.insert(anchor, id);
+                        document.anchor_names.insert(id, anchor_name(&anchor));
                         document
                             .anchor_event_map
                             .insert(id, document.events.len());
+                        anchors.insert(anchor, id);
                     }
                     Event::MappingStart(mapping_start)
                 }

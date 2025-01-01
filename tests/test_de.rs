@@ -18,6 +18,7 @@ mod tests {
         loader::Loader,
         modules::error::ErrorImpl,
         Deserializer, Number,
+        DocumentAnchor,
         Value::{self, String as SerdeString},
     };
     use std::{
@@ -94,6 +95,31 @@ mod tests {
         expected.insert("second".to_owned(), 1);
         expected.insert("third".to_owned(), 3);
         test_de(yaml, &expected);
+    }
+
+    #[test]
+    fn test_anchor_api() {
+        let yaml = indoc! {"
+        ---
+        a:
+          enum: &io
+            INPUT: 0
+            OUTPUT: 1
+        b:
+          enum: *io
+        c:
+          enum: *io
+        "};
+        let mut deserializer = Deserializer::from_str(yaml);
+        let document = deserializer.next().unwrap();
+        let anchors = document.anchors().unwrap_or_default();
+        let expected = DocumentAnchor {
+            anchor_name: "io".into(),
+            anchor_path: "/a/enum".into(),
+            aliases: ["/b/enum".into(), "/c/enum".into()].to_vec(),
+        };
+        assert_eq!(anchors.len(), 1);
+        assert_eq!(anchors[0], expected);
     }
 
     #[test]

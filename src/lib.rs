@@ -108,7 +108,9 @@
 #![crate_type = "lib"]
 
 // Re-export commonly used items from other modules
-pub use crate::de::{from_reader, from_slice, from_str, Deserializer}; // Deserialization functions
+pub use crate::de::{
+    from_reader, from_slice, from_str, Deserializer, DocumentAnchor
+}; // Deserialization functions
 pub use crate::modules::error::{Error, Location, Result}; // Error handling types
 pub use crate::ser::{to_string, to_writer, Serializer, State}; // Serialization functions
 #[doc(inline)]
