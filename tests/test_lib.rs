@@ -21,6 +21,30 @@ mod tests {
         assert!(!VERSION.is_empty(), "VERSION should not be empty");
     }
 
+    /// Basic test for serialisation and deserialisation
+    #[test]
+    fn test_basic_serialisation() {
+        #[derive(Debug, Serialize, Deserialize, PartialEq)]
+        struct Test {
+            field: String,
+        }
+
+        let test = Test {
+            field: "value".to_string(),
+        };
+
+        let yaml = to_string(&test).unwrap();
+        let parsed: Test = from_str(&yaml).unwrap();
+        assert_eq!(test, parsed);
+    }
+
+    /// Test error handling
+    #[test]
+    fn test_error_handling() {
+        let invalid_yaml = "- [invalid yaml";
+        assert!(from_str::<Value>(invalid_yaml).is_err());
+    }
+
     /// Ensures that the `VERSION` string appears to follow a semver-like format with a dot.
     #[test]
     fn test_version_format() {

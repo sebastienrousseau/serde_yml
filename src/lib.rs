@@ -7,39 +7,57 @@
 #![crate_name = "serde_yml"]
 #![crate_type = "lib"]
 
-// Re-export commonly used items from modules
-pub use crate::de::{
-    from_reader, from_slice, from_str, Deserializer, DocumentAnchor,
-};
-#[doc(inline)]
-pub use crate::mapping::Mapping;
-pub use crate::modules::error::{Error, Location, Result};
-pub use crate::ser::{to_string, to_writer, Serializer, State};
-#[doc(inline)]
-pub use crate::value::{
-    from_value, to_value, Index, Number, Sequence, Value,
+// Re-exports organized by functionality
+pub use crate::{
+    // Core serialization/deserialization
+    de::{from_reader, from_slice, from_str, Deserializer, DocumentAnchor},
+    ser::{to_string, to_writer, Serializer, State},
+
+    // Data structures and types
+    mapping::Mapping,
+    value::{from_value, to_value, Index, Number, Sequence, Value},
+
+    // Error handling
+    modules::error::{Error, Location, Result},
 };
 
-/// YAML deserialization module
+// ------------------------------------------------------------
+// Core serialization/deserialization functionality
+// ------------------------------------------------------------
+
+/// YAML deserialisation module
 pub mod de;
+/// YAML serialisation module
+pub mod ser;
+
+// ------------------------------------------------------------
+// Data representation
+// ------------------------------------------------------------
+
+/// YAML mappings
+pub mod mapping;
+/// YAML numeric types
+pub mod number;
+/// YAML value representation
+pub mod value;
+
+// ------------------------------------------------------------
+// Implementation internals
+// ------------------------------------------------------------
 /// YAML parsing and emitting
 pub mod libyml;
 /// YAML loader utilities
 pub mod loader;
-/// YAML mappings
-pub mod mapping;
 /// Library modules
 pub mod modules;
-/// YAML numeric types
-pub mod number;
-/// YAML serialization module
-pub mod ser;
-/// YAML value representation
-pub mod value;
+
+// ------------------------------------------------------------
+// Helper utilities
+// ------------------------------------------------------------
 /// YAML helper utilities
 pub mod with;
 
-// Prevent downstream code from implementing the Index trait
+// Private implementation details
 mod private {
     pub trait Sealed {}
     impl Sealed for usize {}
@@ -49,17 +67,19 @@ mod private {
     impl<T> Sealed for &T where T: ?Sized + Sealed {}
 }
 
-/// Specifies the version of the **serde_yml** library.
+// ------------------------------------------------------------
+// Version information
+// ------------------------------------------------------------
+
+/// Current version of the Serde YML library.
 ///
-/// This constant is automatically aligned with the crate’s version defined in
+/// This constant is automatically aligned with the crate's version defined in
 /// `Cargo.toml`. It is commonly referenced in diagnostic logs, user-facing messages,
-/// and documentation outputs, ensuring consistent visibility of the library's
-/// release status.
+/// and documentation outputs.
 ///
 /// # Examples
 ///
 /// ```
-/// // Retrieve and print the library version:
-/// println!("Current serde_yml version: {}", serde_yml::VERSION);
+/// println!("Serde YML version: {}", serde_yml::VERSION);
 /// ```
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
