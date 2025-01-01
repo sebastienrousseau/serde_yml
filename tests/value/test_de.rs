@@ -649,7 +649,6 @@ mod tests {
                     }
                     Err(_err) => {
                         // If it fails, that’s acceptable too.
-                        return;
                     }
                 }
             }
