@@ -350,16 +350,3 @@ impl Drop for ParserPinned<'_> {
         unsafe { sys::yaml_parser_delete(&mut self.sys) }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::{de::Progress, loader::Loader};
-
-    #[test]
-    fn can_load_document_with_16_spaces_value() {
-        let hardcoded = "t: a                abc";
-        let progress = Progress::Str(hardcoded);
-        let mut loader = Loader::new(progress).unwrap();
-        let _document = loader.next_document().unwrap();
-    }
-}

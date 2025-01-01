@@ -34,7 +34,7 @@ Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
 serde = "1.0"
-serde_yml = "0.0.12"
+serde_yml = "0.0.13"
 ```
 
 ## Usage
@@ -44,7 +44,7 @@ Here's a quick example on how to use Serde YML to serialize and deserialize a st
 ```rust
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Point {
     x: f64,
     y: f64,
@@ -55,7 +55,7 @@ fn main() -> Result<(), serde_yml::Error> {
 
     // Serialize to YAML
     let yaml = serde_yml::to_string(&point)?;
-    assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
+    assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
 
     // Deserialize from YAML
     let deserialized_point: Point = serde_yml::from_str(&yaml)?;
@@ -71,7 +71,7 @@ For full API documentation, please visit [https://docs.rs/serde-yml][08].
 
 ## Rust Version Compatibility
 
-Compiler support: requires rustc 1.56.0+
+Compiler support: requires rustc 1.58.0+
 
 ## Examples
 
@@ -92,7 +92,6 @@ Here are a few notable examples:
 
 ```rust
 use serde::{Serialize, Deserialize};
-use serde_yml;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Point {
@@ -105,7 +104,7 @@ fn main() -> Result<(), serde_yml::Error> {
 
     // Serialize to YAML
     let yaml = serde_yml::to_string(&point)?;
-    assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
+    assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
 
     // Deserialize from YAML
     let deserialized_point: Point = serde_yml::from_str(&yaml)?;
@@ -122,7 +121,6 @@ This example demonstrates how to serialize and deserialize a simple struct
 
 ```rust
 use serde::{Serialize, Deserialize};
-use serde_yml;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum Shape {
@@ -157,7 +155,6 @@ This example demonstrates how to serialize and deserialize an enum `Shape`
 
 ```rust
 use serde::{Serialize, Deserialize};
-use serde_yml;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct User {
@@ -193,7 +190,6 @@ an optional field `age` to and from YAML using the `serde_yml` crate.
 
 ```rust
 use std::collections::HashMap;
-use serde_yml;
 
 fn main() -> Result<(), serde_yml::Error> {
     let mut map = HashMap::new();
@@ -217,9 +213,8 @@ from YAML using the `serde_yml` crate.
 
 ```rust
 use serde::{Serialize, Deserialize};
-use serde_yml;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Person {
     name: String,
     age: u32,
@@ -255,7 +250,6 @@ Structs serialize in the obvious way:
 
 ```rust
 use serde_derive::{Serialize, Deserialize};
-use serde_yml;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Point {
@@ -279,7 +273,6 @@ Enums serialize using YAML's `!tag` syntax to identify the variant name.
 
 ```rust
 use serde_derive::{Serialize, Deserialize};
-use serde_yml;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum Enum {
@@ -290,38 +283,36 @@ enum Enum {
 }
 
 fn main() -> Result<(), serde_yml::Error> {
-    let yaml = "
+    let yaml1 = "
         - !Newtype 1
         - !Tuple [0, 0, 0]
         - !Struct {x: 1.0, y: 2.0}
     ";
-    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
-    assert_eq!(values[0], Enum::Newtype(1));
-    assert_eq!(values[1], Enum::Tuple(0, 0, 0));
-    assert_eq!(values[2], Enum::Struct { x: 1.0, y: 2.0 });
+    let values1: Vec<Enum> = serde_yml::from_str(yaml1)?;
+    assert_eq!(values1[0], Enum::Newtype(1));
+    assert_eq!(values1[1], Enum::Tuple(0, 0, 0));
+    assert_eq!(values1[2], Enum::Struct { x: 1.0, y: 2.0 });
 
-    // The last two in YAML's block style instead:
-    let yaml = "
+    let yaml2 = "
         - !Tuple
-        - 0
-        - 0
-        - 0
+          - 0
+          - 0
+          - 0
         - !Struct
-        x: 1.0
-        'y': 2.0
+          x: 1.0
+          y: 2.0
     ";
-    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
-    assert_eq!(values[0], Enum::Tuple(0, 0, 0));
-    assert_eq!(values[1], Enum::Struct { x: 1.0, y: 2.0 });
+    let values2: Vec<Enum> = serde_yml::from_str(yaml2)?;
+    assert_eq!(values2[0], Enum::Tuple(0, 0, 0));
+    assert_eq!(values2[1], Enum::Struct { x: 1.0, y: 2.0 });
 
-    // Variants with no data can be written using !Tag or just the string name.
-    let yaml = "
-        - Unit  # serialization produces this one
+    let yaml3 = "
+        - Unit
         - !Unit
     ";
-    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
-    assert_eq!(values[0], Enum::Unit);
-    assert_eq!(values[1], Enum::Unit);
+    let values3: Vec<Enum> = serde_yml::from_str(yaml3)?;
+    assert_eq!(values3[0], Enum::Unit);
+    assert_eq!(values3[1], Enum::Unit);
 
     Ok(())
 }
@@ -335,10 +326,6 @@ then serialize and deserialize it to and from YAML using the `serde_yml` crate.
 
 ```rust
 use serde::{Deserialize, Serialize};
-use serde::de::{self, Deserializer, MapAccess, Visitor};
-use serde::ser::{SerializeMap, Serializer};
-use std::fmt;
-use serde_yml;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum MyEnum {
@@ -346,23 +333,20 @@ enum MyEnum {
     Variant2 { field: i32 },
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct MyStruct {
     field: MyEnum,
 }
-
-// Include custom Serialize and Deserialize implementations for MyStruct here
-// ...
 
 fn main() -> Result<(), serde_yml::Error> {
     let input = MyStruct {
         field: MyEnum::Variant2 { field: 42 },
     };
 
-    let yaml = serde_yml::to_string(&input).unwrap();
+    let yaml = serde_yml::to_string(&input)?;
     println!("\n✅ Serialized YAML:\n{}", yaml);
 
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
+    let output: MyStruct = serde_yml::from_str(&yaml)?;
     println!("\n✅ Deserialized YAML:\n{:#?}", output);
 
     assert_eq!(input, output);
@@ -379,35 +363,34 @@ implementations for a struct containing an enum field, and how to leverage
 
 ```rust
 use serde::{Deserialize, Serialize};
-use serde_yml;
 use serde_yml::with::singleton_map_optional;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum OptionalEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
+   Variant1(String),
+   Variant2 { field: i32 },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct OptionalStruct {
-    #[serde(with = "singleton_map_optional")]
-    field: Option<OptionalEnum>,
+   #[serde(with = "singleton_map_optional")]
+   field: Option<OptionalEnum>,
 }
 
 fn main() -> Result<(), serde_yml::Error> {
-    let input = OptionalStruct {
-        field: Some(OptionalEnum::Variant2 { field: 42 }),
-    };
+   let input = OptionalStruct {
+       field: Some(OptionalEnum::Variant2 { field: 42 }),
+   };
 
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
+   let yaml = serde_yml::to_string(&input)?;
+   println!("\n✅ Serialized YAML:\n{}", yaml);
 
-    let output: OptionalStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+   let output: OptionalStruct = serde_yml::from_str(&yaml)?;
+   println!("\n✅ Deserialized YAML:\n{:#?}", output);
 
-    assert_eq!(input, output);
+   assert_eq!(input, output);
 
-    Ok(())
+   Ok(())
 }
 ```
 
@@ -419,41 +402,40 @@ YAML mapping entry with the key being the enum variant name.
 
 ```rust
 use serde::{Deserialize, Serialize};
-use serde_yml;
 use serde_yml::with::singleton_map_recursive;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum NestedEnum {
-    Variant1(String),
-    Variant2(Option<InnerEnum>),
+   Variant1(String),
+   Variant2(Option<InnerEnum>),
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum InnerEnum {
-    Inner1(i32),
-    Inner2(i32),
+   Inner1(i32),
+   Inner2(i32),
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct NestedStruct {
-    #[serde(with = "singleton_map_recursive")]
-    field: NestedEnum,
+   #[serde(with = "singleton_map_recursive")]
+   field: NestedEnum,
 }
 
 fn main() -> Result<(), serde_yml::Error> {
-    let input = NestedStruct {
-        field: NestedEnum::Variant2(Some(InnerEnum::Inner2(42))),
-    };
+   let input = NestedStruct {
+       field: NestedEnum::Variant2(Some(InnerEnum::Inner2(42))),
+   };
 
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
+   let yaml = serde_yml::to_string(&input)?;
+   println!("\n✅ Serialized YAML:\n{}", yaml);
 
-    let output: NestedStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+   let output: NestedStruct = serde_yml::from_str(&yaml)?;
+   println!("\n✅ Deserialized YAML:\n{:#?}", output);
 
-    assert_eq!(input, output);
+   assert_eq!(input, output);
 
-    Ok(())
+   Ok(())
 }
 ```
 
@@ -465,35 +447,34 @@ variants contains an optional inner enum.
 
 ```rust
 use serde::{Deserialize, Serialize};
-use serde_yml;
 use serde_yml::with::singleton_map_recursive;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum MyEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
+   Variant1(String),
+   Variant2 { field: i32 },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct MyStruct {
-    #[serde(with = "singleton_map_recursive")]
-    field: MyEnum,
+   #[serde(with = "singleton_map_recursive")]
+   field: MyEnum,
 }
 
 fn main() -> Result<(), serde_yml::Error> {
-    let input = MyStruct {
-        field: MyEnum::Variant2 { field: 42 },
-    };
+   let input = MyStruct {
+       field: MyEnum::Variant2 { field: 42 },
+   };
 
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
+   let yaml = serde_yml::to_string(&input)?;
+   println!("\n✅ Serialized YAML:\n{}", yaml);
 
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
+   let output: MyStruct = serde_yml::from_str(&yaml)?;
+   println!("\n✅ Deserialized YAML:\n{:#?}", output);
 
-    assert_eq!(input, output);
+   assert_eq!(input, output);
 
-    Ok(())
+   Ok(())
 }
 ```
 
@@ -505,48 +486,49 @@ key being the enum variant name.
 
 ```rust
 use serde::{Deserialize, Serialize};
-use serde_yml;
 use serde_yml::with::singleton_map_with;
 
 fn custom_serialize<T, S>(
-    value: &T,
-    serializer: S,
+   value: &T,
+   serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
-    T: Serialize,
-    S: serde::Serializer,
+   T: Serialize,
+   S: serde::Serializer,
 {
-    // Custom serialization logic
-    singleton_map_with::serialize(value, serializer)
+   // Custom serialization logic
+   singleton_map_with::serialize(value, serializer)
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum MyEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
+   Variant1(String),
+   Variant2 { field: i32 },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct MyStruct {
-    #[serde(
-        serialize_with = "custom_serialize",
-        deserialize_with = "singleton_map_with::deserialize"
-    )]
-    field: MyEnum,
+   #[serde(
+       serialize_with = "custom_serialize",
+       deserialize_with = "singleton_map_with::deserialize"
+   )]
+   field: MyEnum,
 }
 
 fn main() -> Result<(), serde_yml::Error> {
-    let input = MyStruct {
-        field: MyEnum::Variant2 { field: 42 },
-    };
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
+   let input = MyStruct {
+       field: MyEnum::Variant2 { field: 42 },
+   };
 
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-    assert_eq!(input, output);
+   let yaml = serde_yml::to_string(&input)?;
+   println!("\n✅ Serialized YAML:\n{}", yaml);
 
-    Ok(())
+   let output: MyStruct = serde_yml::from_str(&yaml)?;
+   println!("\n✅ Deserialized YAML:\n{:#?}", output);
+
+   assert_eq!(input, output);
+
+   Ok(())
 }
 ```
 
@@ -564,33 +546,34 @@ leveraging the singleton_map_with attribute for deserialization.
 
 ```rust
 use serde::{Deserialize, Serialize};
-use serde_yml;
 use serde_yml::with::singleton_map_with;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum MyEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
+   Variant1(String),
+   Variant2 { field: i32 },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct MyStruct {
-    #[serde(with = "singleton_map_with")]
-    field: MyEnum,
+   #[serde(with = "singleton_map_with")]
+   field: MyEnum,
 }
 
 fn main() -> Result<(), serde_yml::Error> {
-    let input = MyStruct {
-        field: MyEnum::Variant2 { field: 42 },
-    };
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
+   let input = MyStruct {
+       field: MyEnum::Variant2 { field: 42 },
+   };
 
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-    assert_eq!(input, output);
+   let yaml = serde_yml::to_string(&input)?;
+   println!("\n✅ Serialized YAML:\n{}", yaml);
 
-    Ok(())
+   let output: MyStruct = serde_yml::from_str(&yaml)?;
+   println!("\n✅ Deserialized YAML:\n{:#?}", output);
+
+   assert_eq!(input, output);
+
+   Ok(())
 }
 ```
 
@@ -632,7 +615,7 @@ be dual licensed as above, without any additional terms or conditions.
 [build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge&logo=github "Build Status"
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67&logo=codecov "Codecov"
 [crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.12-orange.svg?style=for-the-badge "View on lib.rs"
+[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.13-orange.svg?style=for-the-badge "View on lib.rs"
 [docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
 [github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"
 [made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'

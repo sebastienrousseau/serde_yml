@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #![allow(clippy::zero_sized_map_values)]
 
 use indoc::indoc;

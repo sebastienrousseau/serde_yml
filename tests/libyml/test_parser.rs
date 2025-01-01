@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use serde_yml::libyml::parser::Event;
-    use serde_yml::libyml::parser::Parser;
+    use serde_yml::libyml::parser::{Event, Parser};
     use std::borrow::Cow;
 
     /// Tests the creation of a new `Parser` instance with valid input.

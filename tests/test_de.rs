@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #[cfg(test)]
 mod tests {
     #![allow(
@@ -17,8 +18,7 @@ mod tests {
         },
         loader::Loader,
         modules::error::ErrorImpl,
-        Deserializer, Number,
-        DocumentAnchor,
+        Deserializer, DocumentAnchor, Number,
         Value::{self, String as SerdeString},
     };
     use std::{
