@@ -212,11 +212,28 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     de::{Event, Progress},
     libyml::{
         error::Mark,
-        parser::{Event <span class="kw">as </span>YamlEvent, Parser},
+        parser::{Anchor, Event <span class="kw">as </span>YamlEvent, Parser},
     },
     modules::error::{<span class="self">self</span>, Error, ErrorImpl, <span class="prelude-ty">Result</span>},
 };
@@ -271,6 +288,11 @@
     /// encountered during parsing, its id is used to look up the index of the corresponding
     /// event in the `events` vector.
     </span><span class="kw">pub </span>anchor_event_map: BTreeMap&lt;usize, usize&gt;,
+
+    <span class="doccomment">/// Map from alias id to name.
+    ///
+    /// This field is a `BTreeMap` that maps alias ids to their corresponding names.
+    </span><span class="kw">pub </span>anchor_names: BTreeMap&lt;usize, String&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'input</span>&gt; Loader&lt;<span class="lifetime">'input</span>&gt; {
@@ -354,6 +376,14 @@
             events: Vec::new(),
             error: <span class="prelude-val">None</span>,
             anchor_event_map: BTreeMap::new(),
+            anchor_names: BTreeMap::new(),
+        };
+
+        <span class="kw">let </span>anchor_name = |anchor: <span class="kw-2">&amp;</span>Anchor| {
+            <span class="macro">format!</span>(<span class="string">"{:?}"</span>, anchor)
+                .trim_start_matches(<span class="string">"\""</span>)
+                .trim_end_matches(<span class="string">"\""</span>)
+                .to_owned()
         };
 
         <span class="kw">loop </span>{
@@ -379,6 +409,7 @@
                 }
                 YamlEvent::DocumentStart =&gt; <span class="kw">continue</span>,
                 YamlEvent::DocumentEnd =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(document),
+
                 YamlEvent::Alias(alias) =&gt; <span class="kw">match </span>anchors.get(<span class="kw-2">&amp;</span>alias) {
                     <span class="prelude-val">Some</span>(id) =&gt; Event::Alias(<span class="kw-2">*</span>id),
                     <span class="prelude-val">None </span>=&gt; {
@@ -392,20 +423,22 @@
                 YamlEvent::Scalar(<span class="kw-2">mut </span>scalar) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(anchor) = scalar.anchor.take() {
                         <span class="kw">let </span>id = anchors.len();
-                        anchors.insert(anchor, id);
+                        document.anchor_names.insert(id, anchor_name(<span class="kw-2">&amp;</span>anchor));
                         document
                             .anchor_event_map
                             .insert(id, document.events.len());
+                        anchors.insert(anchor, id);
                     }
                     Event::Scalar(scalar)
                 }
                 YamlEvent::SequenceStart(<span class="kw-2">mut </span>sequence_start) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(anchor) = sequence_start.anchor.take() {
                         <span class="kw">let </span>id = anchors.len();
-                        anchors.insert(anchor, id);
+                        document.anchor_names.insert(id, anchor_name(<span class="kw-2">&amp;</span>anchor));
                         document
                             .anchor_event_map
                             .insert(id, document.events.len());
+                        anchors.insert(anchor, id);
                     }
                     Event::SequenceStart(sequence_start)
                 }
@@ -413,10 +446,11 @@
                 YamlEvent::MappingStart(<span class="kw-2">mut </span>mapping_start) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(anchor) = mapping_start.anchor.take() {
                         <span class="kw">let </span>id = anchors.len();
-                        anchors.insert(anchor, id);
+                        document.anchor_names.insert(id, anchor_name(<span class="kw-2">&amp;</span>anchor));
                         document
                             .anchor_event_map
                             .insert(id, document.events.len());
+                        anchors.insert(anchor, id);
                     }
                     Event::MappingStart(mapping_start)
                 }

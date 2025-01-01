@@ -2369,7 +2369,116 @@
 <a href="#2368" id="2368">2368</a>
 <a href="#2369" id="2369">2369</a>
 <a href="#2370" id="2370">2370</a>
-<a href="#2371" id="2371">2371</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#2371" id="2371">2371</a>
+<a href="#2372" id="2372">2372</a>
+<a href="#2373" id="2373">2373</a>
+<a href="#2374" id="2374">2374</a>
+<a href="#2375" id="2375">2375</a>
+<a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
+<a href="#2398" id="2398">2398</a>
+<a href="#2399" id="2399">2399</a>
+<a href="#2400" id="2400">2400</a>
+<a href="#2401" id="2401">2401</a>
+<a href="#2402" id="2402">2402</a>
+<a href="#2403" id="2403">2403</a>
+<a href="#2404" id="2404">2404</a>
+<a href="#2405" id="2405">2405</a>
+<a href="#2406" id="2406">2406</a>
+<a href="#2407" id="2407">2407</a>
+<a href="#2408" id="2408">2408</a>
+<a href="#2409" id="2409">2409</a>
+<a href="#2410" id="2410">2410</a>
+<a href="#2411" id="2411">2411</a>
+<a href="#2412" id="2412">2412</a>
+<a href="#2413" id="2413">2413</a>
+<a href="#2414" id="2414">2414</a>
+<a href="#2415" id="2415">2415</a>
+<a href="#2416" id="2416">2416</a>
+<a href="#2417" id="2417">2417</a>
+<a href="#2418" id="2418">2418</a>
+<a href="#2419" id="2419">2419</a>
+<a href="#2420" id="2420">2420</a>
+<a href="#2421" id="2421">2421</a>
+<a href="#2422" id="2422">2422</a>
+<a href="#2423" id="2423">2423</a>
+<a href="#2424" id="2424">2424</a>
+<a href="#2425" id="2425">2425</a>
+<a href="#2426" id="2426">2426</a>
+<a href="#2427" id="2427">2427</a>
+<a href="#2428" id="2428">2428</a>
+<a href="#2429" id="2429">2429</a>
+<a href="#2430" id="2430">2430</a>
+<a href="#2431" id="2431">2431</a>
+<a href="#2432" id="2432">2432</a>
+<a href="#2433" id="2433">2433</a>
+<a href="#2434" id="2434">2434</a>
+<a href="#2435" id="2435">2435</a>
+<a href="#2436" id="2436">2436</a>
+<a href="#2437" id="2437">2437</a>
+<a href="#2438" id="2438">2438</a>
+<a href="#2439" id="2439">2439</a>
+<a href="#2440" id="2440">2440</a>
+<a href="#2441" id="2441">2441</a>
+<a href="#2442" id="2442">2442</a>
+<a href="#2443" id="2443">2443</a>
+<a href="#2444" id="2444">2444</a>
+<a href="#2445" id="2445">2445</a>
+<a href="#2446" id="2446">2446</a>
+<a href="#2447" id="2447">2447</a>
+<a href="#2448" id="2448">2448</a>
+<a href="#2449" id="2449">2449</a>
+<a href="#2450" id="2450">2450</a>
+<a href="#2451" id="2451">2451</a>
+<a href="#2452" id="2452">2452</a>
+<a href="#2453" id="2453">2453</a>
+<a href="#2454" id="2454">2454</a>
+<a href="#2455" id="2455">2455</a>
+<a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
+<a href="#2460" id="2460">2460</a>
+<a href="#2461" id="2461">2461</a>
+<a href="#2462" id="2462">2462</a>
+<a href="#2463" id="2463">2463</a>
+<a href="#2464" id="2464">2464</a>
+<a href="#2465" id="2465">2465</a>
+<a href="#2466" id="2466">2466</a>
+<a href="#2467" id="2467">2467</a>
+<a href="#2468" id="2468">2468</a>
+<a href="#2469" id="2469">2469</a>
+<a href="#2470" id="2470">2470</a>
+<a href="#2471" id="2471">2471</a>
+<a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
+<a href="#2474" id="2474">2474</a>
+<a href="#2475" id="2475">2475</a>
+<a href="#2476" id="2476">2476</a>
+<a href="#2477" id="2477">2477</a>
+<a href="#2478" id="2478">2478</a>
+<a href="#2479" id="2479">2479</a>
+<a href="#2480" id="2480">2480</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     libyml::{
         error::Mark,
         parser::{MappingStart, Scalar, ScalarStyle, SequenceStart},
@@ -2383,6 +2492,7 @@
     <span class="self">self</span>, value::StrDeserializer, Deserialize, DeserializeOwned,
     DeserializeSeed, Expected, IgnoredAny, Unexpected, Visitor,
 };
+<span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::fmt::Formatter;
 <span class="kw">use </span>std::fmt::Result <span class="kw">as </span>FmtResult;
@@ -2491,6 +2601,51 @@
             }
         }
     }
+}
+
+<span class="doccomment">/// A structure that describes anchors and aliases in a YAML document.
+/// The anchor name, prefixed in the YAML document with "&amp;", is represented
+/// without the prefix in `anchor_name`.
+/// The `anchor_path` is a string that denotes the path to the anchor in the YAML
+/// document. Each key that form the path is separated from one another by "/".
+/// The `aliases` vector contains the path to each reference to the anchor in
+/// the YAML document.
+///
+/// # Examples
+///
+/// The following YAML document:
+/// ```yaml
+/// a:
+///   enum: &amp;io
+///     INPUT: 0
+///     OUTPUT: 1
+/// b:
+///   enum: *io
+/// c:
+///   enum: *io
+/// ```
+///
+/// Is represented by the following `DocumentAnchor`:
+/// ```json
+/// DocumentAnchor {
+///   anchor_name: "io",
+///   anchor_path: "/a/enum",
+///   aliases: ["/b/enum", "/c/enum"],
+/// }
+/// ```
+</span><span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub struct </span>DocumentAnchor {
+    <span class="doccomment">/// The name of the anchor, without the "&amp;" prefix.
+    </span><span class="kw">pub </span>anchor_name: String,
+
+    <span class="doccomment">/// The path to the anchor in the YAML document, with keys separated by "/".
+    /// A "/" at the beginning of the path denotes the root of the YAML document.
+    </span><span class="kw">pub </span>anchor_path: String,
+
+    <span class="doccomment">/// The path to each alias that references the anchor in the YAML document.
+    /// Each key that form the alias path is separated by "/".
+    /// A "/" at the beginning of the path denotes the root of the YAML document.
+    </span><span class="kw">pub </span>aliases: Vec&lt;String&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; {
@@ -2602,6 +2757,69 @@
     {
         <span class="kw">let </span>progress = Progress::Read(Box::new(rdr));
         Deserializer { progress }
+    }
+
+    <span class="doccomment">/// Gets a vector of anchors, aliases, and where they occur in the YAML document.
+    </span><span class="kw">pub fn </span>anchors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;DocumentAnchor&gt;&gt; {
+        <span class="kw">let </span>document = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.progress {
+            Progress::Document(doc) =&gt; doc,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>aliases = BTreeMap::&lt;usize, Vec&lt;usize&gt;&gt;::new();
+        <span class="kw">for </span>(i, event) <span class="kw">in </span>document.events.iter().enumerate() {
+            <span class="kw">if let </span>(Event::Alias(id), <span class="kw">_</span>) = event {
+                aliases.entry(<span class="kw-2">*</span>id).or_default().push(i);
+            }
+        }
+
+        <span class="kw">let </span><span class="kw-2">mut </span>anchors = Vec::new();
+        <span class="kw">for </span>(alias_id, document_index) <span class="kw">in </span><span class="kw-2">&amp;</span>document.anchor_event_map {
+            <span class="kw">let </span>anchor_name = document.anchor_names.get(alias_id).unwrap();
+            <span class="kw">let </span>anchor_path = <span class="self">self</span>.event_path(<span class="kw-2">*</span>document_index);
+            <span class="kw">let </span><span class="kw-2">mut </span>anchors_aliases = Vec::new();
+            <span class="kw">for </span>alias_index <span class="kw">in </span>aliases.get(alias_id).unwrap_or(<span class="kw-2">&amp;</span>Vec::new()) {
+                anchors_aliases.push(<span class="self">self</span>.event_path(<span class="kw-2">*</span>alias_index));
+            }
+
+            anchors.push(DocumentAnchor {
+                anchor_name: anchor_name.clone(),
+                anchor_path: anchor_path.clone(),
+                aliases: anchors_aliases,
+            });
+        }
+
+        <span class="prelude-val">Some</span>(anchors)
+    }
+
+    <span class="kw">fn </span>event_path(<span class="kw-2">&amp;</span><span class="self">self</span>, event_index: usize) -&gt; String {
+        <span class="kw">let </span><span class="kw-2">mut </span>mapping_end = <span class="number">0u32</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>process_scalar = <span class="bool-val">true</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>path = Vec::new();
+
+        <span class="kw">if let </span>Progress::Document(document) = <span class="kw-2">&amp;</span><span class="self">self</span>.progress {
+            <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..=event_index).rev() {
+                <span class="kw">let </span>event = <span class="kw-2">&amp;</span>document.events[i];
+                <span class="kw">match </span><span class="kw-2">&amp;</span>event.<span class="number">0 </span>{
+                    Event::MappingEnd =&gt; mapping_end += <span class="number">1</span>,
+                    Event::MappingStart(<span class="kw">_</span>) =&gt; {
+                        <span class="kw">if </span>mapping_end &gt; <span class="number">0 </span>{
+                            mapping_end -= <span class="number">1</span>;
+                        } <span class="kw">else </span>{
+                            process_scalar = <span class="bool-val">true</span>;
+                        }
+                    }
+                    Event::Scalar(scalar) =&gt; {
+                        <span class="kw">if </span>process_scalar {
+                            path.insert(<span class="number">0</span>, String::from_utf8_lossy(<span class="kw-2">&amp;</span>scalar.value).to_string());
+                            process_scalar = <span class="bool-val">false</span>;
+                        }
+                    }
+                    <span class="kw">_ </span>=&gt; {}
+                }
+            }
+        }
+        <span class="macro">format!</span>(<span class="string">"/{}"</span>, path.join(<span class="string">"/"</span>))
     }
 
     <span class="kw">fn </span>de&lt;T&gt;(

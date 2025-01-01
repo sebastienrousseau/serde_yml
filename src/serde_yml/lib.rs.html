@@ -155,7 +155,9 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a></pre></div><pre class="rust"><code><span class="doccomment">//!# Serde YML (a fork of Serde YAML)
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a></pre></div><pre class="rust"><code><span class="doccomment">//!# Serde YML (a fork of Serde YAML)
 //!
 //![![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][12] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
 //!
@@ -265,7 +267,9 @@
 #![crate_type = <span class="string">"lib"</span>]
 
 </span><span class="comment">// Re-export commonly used items from other modules
-</span><span class="kw">pub use </span><span class="kw">crate</span>::de::{from_reader, from_slice, from_str, Deserializer}; <span class="comment">// Deserialization functions
+</span><span class="kw">pub use </span><span class="kw">crate</span>::de::{
+    from_reader, from_slice, from_str, Deserializer, DocumentAnchor
+}; <span class="comment">// Deserialization functions
 </span><span class="kw">pub use </span><span class="kw">crate</span>::modules::error::{Error, Location, <span class="prelude-ty">Result</span>}; <span class="comment">// Error handling types
 </span><span class="kw">pub use </span><span class="kw">crate</span>::ser::{to_string, to_writer, Serializer, State}; <span class="comment">// Serialization functions
 </span><span class="attr">#[doc(inline)]
