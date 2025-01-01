@@ -87,6 +87,7 @@ impl<'a> CStr<'a> {
     /// # Returns
     ///
     /// The length of the C-style string, not including the null terminator.
+    #[must_use]
     pub fn len(self) -> usize {
         let start = self.ptr.as_ptr();
         let mut end = start;
@@ -109,6 +110,7 @@ impl<'a> CStr<'a> {
     /// # Returns
     ///
     /// `true` if the C-style string is empty, `false` otherwise.
+    #[must_use]
     pub fn is_empty(self) -> bool {
         self.len() == 0
     }
@@ -118,6 +120,7 @@ impl<'a> CStr<'a> {
     /// # Returns
     ///
     /// A borrowed reference to the byte slice represented by the `CStr` instance.
+    #[must_use]
     pub fn to_bytes(self) -> &'a [u8] {
         let len = self.len();
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), len) }
@@ -180,6 +183,11 @@ fn display_lossy(
 /// # Panics
 ///
 /// This method will panic if the input `bytes` slice does not have a null terminator.
+///
+/// # Errors
+///
+/// This method will return a `CStrError` if the input `bytes` slice does not have a null terminator.
+///
 pub fn debug_lossy(
     mut bytes: &[u8],
     formatter: &mut fmt::Formatter<'_>,
@@ -214,14 +222,13 @@ pub fn debug_lossy(
         match from_utf8_result {
             Ok(_valid) => break,
             Err(utf8_error) => {
-                let end_of_broken =
-                    if let Some(error_len) = utf8_error.error_len() {
+                let end_of_broken = utf8_error
+                    .error_len()
+                    .map_or(bytes.len(), |error_len| {
                         valid.len() + error_len
-                    } else {
-                        bytes.len()
-                    };
+                    });
                 for b in &bytes[valid.len()..end_of_broken] {
-                    write!(formatter, "\\x{:02x}", b)?;
+                    write!(formatter, "\\x{b:02x}")?;
                 }
                 bytes = &bytes[end_of_broken..];
             }

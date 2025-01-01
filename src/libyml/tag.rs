@@ -7,6 +7,7 @@ use std::{
 
 /// Custom error type for Tag operations.
 #[derive(Clone, Copy, Debug, Hash, Ord, PartialOrd, Eq, PartialEq)]
+#[must_use]
 pub struct TagFormatError;
 
 impl Display for TagFormatError {
@@ -80,8 +81,9 @@ impl Tag {
     /// # Returns
     ///
     /// Returns a `Tag` instance representing the specified tag string.
-    pub fn new(tag_str: &str) -> Tag {
-        Tag(Box::from(tag_str.as_bytes()))
+    #[must_use]
+    pub fn new(tag_str: &str) -> Self {
+        Self(Box::from(tag_str.as_bytes()))
     }
 }
 

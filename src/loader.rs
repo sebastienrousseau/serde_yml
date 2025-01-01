@@ -101,7 +101,7 @@ impl<'input> Loader<'input> {
                 Cow::Owned(buffer)
             }
             Progress::Iterable(_) | Progress::Document(_) => {
-                unreachable!()
+                return Err(error::new(ErrorImpl::InvalidProgress));
             }
             Progress::Fail(err) => return Err(error::shared(err)),
         };
@@ -149,9 +149,9 @@ impl<'input> Loader<'input> {
         };
 
         let anchor_name = |anchor: &Anchor| {
-            format!("{:?}", anchor)
-                .trim_start_matches("\"")
-                .trim_end_matches("\"")
+            format!("{anchor:?}")
+                .trim_start_matches('"')
+                .trim_end_matches('"')
                 .to_owned()
         };
 
@@ -163,8 +163,8 @@ impl<'input> Loader<'input> {
                     return Some(document);
                 }
             };
+
             let event = match event {
-                YamlEvent::StreamStart => continue,
                 YamlEvent::StreamEnd => {
                     self.parser = None;
                     return if first {
@@ -176,21 +176,37 @@ impl<'input> Loader<'input> {
                         None
                     };
                 }
-                YamlEvent::DocumentStart => continue,
+                YamlEvent::DocumentStart | YamlEvent::StreamStart => {
+                    continue
+                }
                 YamlEvent::DocumentEnd => return Some(document),
 
-                YamlEvent::Alias(alias) => match anchors.get(&alias) {
-                    Some(id) => Event::Alias(*id),
-                    None => {
+                YamlEvent::Alias(alias) => {
+                    if let Some(id) = anchors.get(&alias) {
+                        Event::Alias(*id)
+                    } else {
                         document.error = Some(
                             error::new(ErrorImpl::UnknownAnchor(mark))
                                 .shared(),
                         );
                         return Some(document);
                     }
-                },
+                }
+
                 YamlEvent::Scalar(mut scalar) => {
+                    // NEW: Duplicate anchor check
                     if let Some(anchor) = scalar.anchor.take() {
+                        if anchors.contains_key(&anchor) {
+                            document.error = Some(
+                                error::new(ErrorImpl::DuplicateAnchor(
+                                    mark.to_string(),
+                                ))
+                                .shared(),
+                            );
+                            // If you want to end parsing entirely, uncomment:
+                            self.parser = None;
+                            return Some(document);
+                        }
                         let id = anchors.len();
                         document
                             .anchor_names
@@ -202,8 +218,20 @@ impl<'input> Loader<'input> {
                     }
                     Event::Scalar(scalar)
                 }
+
                 YamlEvent::SequenceStart(mut sequence_start) => {
+                    // NEW: Duplicate anchor check
                     if let Some(anchor) = sequence_start.anchor.take() {
+                        if anchors.contains_key(&anchor) {
+                            document.error = Some(
+                                error::new(ErrorImpl::DuplicateAnchor(
+                                    mark.to_string(),
+                                ))
+                                .shared(),
+                            );
+                            self.parser = None;
+                            return Some(document);
+                        }
                         let id = anchors.len();
                         document
                             .anchor_names
@@ -215,9 +243,22 @@ impl<'input> Loader<'input> {
                     }
                     Event::SequenceStart(sequence_start)
                 }
+
                 YamlEvent::SequenceEnd => Event::SequenceEnd,
+
                 YamlEvent::MappingStart(mut mapping_start) => {
+                    // NEW: Duplicate anchor check
                     if let Some(anchor) = mapping_start.anchor.take() {
+                        if anchors.contains_key(&anchor) {
+                            document.error = Some(
+                                error::new(ErrorImpl::DuplicateAnchor(
+                                    mark.to_string(),
+                                ))
+                                .shared(),
+                            );
+                            self.parser = None;
+                            return Some(document);
+                        }
                         let id = anchors.len();
                         document
                             .anchor_names
@@ -229,8 +270,10 @@ impl<'input> Loader<'input> {
                     }
                     Event::MappingStart(mapping_start)
                 }
+
                 YamlEvent::MappingEnd => Event::MappingEnd,
             };
+
             document.events.push((event, mark));
         }
     }

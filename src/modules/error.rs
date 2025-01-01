@@ -32,17 +32,17 @@ pub struct Location {
 
 impl Location {
     /// Returns the byte index where the error occurred.
-    pub fn index(&self) -> usize {
+    pub const fn index(&self) -> usize {
         self.index
     }
 
     /// Returns the line number where the error occurred.
-    pub fn line(&self) -> usize {
+    pub const fn line(&self) -> usize {
         self.line
     }
 
     /// Returns the column number where the error occurred.
-    pub fn column(&self) -> usize {
+    pub const fn column(&self) -> usize {
         self.column
     }
 
@@ -73,10 +73,14 @@ pub type Result<T> = result::Result<T, Error>;
 /// including I/O errors, UTF-8 conversion errors, and errors originating from the `libyml` library.
 #[derive(Debug)]
 pub enum ErrorImpl {
+    /// An error indicating that an alias with the given name already exists.
+    DuplicateAnchor(String),
     /// A generic error message with an optional position.
     Message(String, Option<Pos>),
     /// An error originating from the `libyml` library.
     Libyml(libyml::Error),
+    /// An error indicating that the progress is invalid.
+    InvalidProgress,
     /// An I/O error.
     IoError(io::Error),
     /// An error encountered while converting a byte slice to a string using UTF-8 encoding.
@@ -114,8 +118,10 @@ pub enum ErrorImpl {
 impl Display for ErrorImpl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ErrorImpl::DuplicateAnchor(name) => write!(f, "Duplicate Anchor Error: An alias with the name '{}' already exists", name),
             ErrorImpl::Message(msg, _) => write!(f, "Error: {}", msg),
             ErrorImpl::Libyml(_) => write!(f, "Error: An error occurred in the Libyml library"),
+            ErrorImpl::InvalidProgress => write!(f, "Invalid Progress Error: The progress is invalid"),
             ErrorImpl::IoError(err) => write!(f, "I/O Error: {}", err),
             ErrorImpl::FromUtf8(err) => write!(f, "UTF-8 Conversion Error: {}", err),
             ErrorImpl::EndOfStream => write!(f, "Unexpected End of YAML Stream: The YAML stream ended unexpectedly while parsing a value"),
@@ -161,6 +167,19 @@ impl Error {
         } else {
             Arc::from(self.0)
         }
+    }
+}
+
+impl std::ops::Deref for Error {
+    type Target = ErrorImpl;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl AsRef<ErrorImpl> for Error {
+    fn as_ref(&self) -> &ErrorImpl {
+        &self.0
     }
 }
 
@@ -263,6 +282,9 @@ impl ErrorImpl {
 
     fn message(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ErrorImpl::DuplicateAnchor(name) => {
+                write!(f, "duplicate anchor '{}'", name)
+            }
             ErrorImpl::Message(description, None) => f.write_str(description),
             ErrorImpl::Message(description, Some(Pos { mark: _, path })) => {
                 if path != "." {
@@ -271,6 +293,7 @@ impl ErrorImpl {
                 f.write_str(description)
             }
             ErrorImpl::Libyml(_) => unreachable!(),
+            ErrorImpl::InvalidProgress => f.write_str("invalid progress"),
             ErrorImpl::IoError(err) => Display::fmt(err, f),
             ErrorImpl::FromUtf8(err) => Display::fmt(err, f),
             ErrorImpl::EndOfStream => f.write_str("EOF while parsing a value"),
