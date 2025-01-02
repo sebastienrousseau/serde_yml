@@ -6,9 +6,9 @@ use std::{
 };
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-/// A custom error type for CStr operations.
+/// A custom error type for `CStr` operations.
 ///
-/// This struct represents an error that occurs during CStr operations.
+/// This struct represents an error that occurs during `CStr` operations.
 ///
 /// # Implementations
 ///
@@ -73,7 +73,8 @@ impl<'a> CStr<'a> {
     /// # Returns
     ///
     /// A new `CStr` instance representing the input pointer.
-    pub fn from_ptr(ptr: NonNull<std::ffi::c_char>) -> Self {
+    #[must_use]
+    pub const fn from_ptr(ptr: NonNull<std::ffi::c_char>) -> Self {
         CStr {
             // Cast the input pointer to a `NonNull<u8>` pointer
             ptr: ptr.cast(),
@@ -97,11 +98,18 @@ impl<'a> CStr<'a> {
             end = unsafe { end.add(1) };
         }
 
-        // Calculate the length of the C-style string, but only if the input is not empty
-        if end != start {
-            unsafe { end.offset_from(start) as usize }
-        } else {
+        // If the string is empty, return 0. Otherwise, compute the offset safely.
+        if end == start {
             0
+        } else {
+            let offset = unsafe { end.offset_from(start) };
+            usize::try_from(offset).unwrap_or_else(|_| {
+                debug_assert!(
+                    false,
+                    "offset_from returned a negative value, which shouldn't happen in a forward scan"
+                );
+                0
+            })
         }
     }
 

@@ -32,16 +32,19 @@ pub struct Location {
 
 impl Location {
     /// Returns the byte index where the error occurred.
+    #[must_use]
     pub const fn index(&self) -> usize {
         self.index
     }
 
     /// Returns the line number where the error occurred.
+    #[must_use]
     pub const fn line(&self) -> usize {
         self.line
     }
 
     /// Returns the column number where the error occurred.
+    #[must_use]
     pub const fn column(&self) -> usize {
         self.column
     }

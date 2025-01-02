@@ -111,7 +111,7 @@ pub struct MappingStart {
 }
 
 /// Represents an anchor in a YAML document.
-#[derive(Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Anchor(Box<[u8]>);
 
 /// Represents the style of a scalar value in a YAML document.
@@ -282,8 +282,7 @@ unsafe fn convert_event<'input>(
             })
         }
         sys::YamlMappingEndEvent => Event::MappingEnd,
-        sys::YamlNoEvent => unreachable!(),
-        _ => unreachable!(),
+        sys::YamlNoEvent | _ => unreachable!(),
     }
 }
 
@@ -303,8 +302,8 @@ unsafe fn optional_repr<'input>(
     sys: &sys::YamlEventT,
     input: &'input Cow<'input, [u8]>,
 ) -> Option<&'input [u8]> {
-    let start = sys.start_mark.index as usize;
-    let end = sys.end_mark.index as usize;
+    let start = usize::try_from(sys.start_mark.index).ok()?;
+    let end = usize::try_from(sys.end_mark.index).ok()?;
     Some(&input[start..end])
 }
 
