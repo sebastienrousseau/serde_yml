@@ -940,10 +940,15 @@ pub mod singleton_map {
         where
             V: DeserializeSeed<'de>,
         {
-        (self.delegate.next_key_seed(seed)?).map_or_else(|| Err(de::Error::invalid_value(
-            Unexpected::Map,
-            &"map with a single key",
-        )), |value| Ok((value, self)))
+            (self.delegate.next_key_seed(seed)?).map_or_else(
+                || {
+                    Err(de::Error::invalid_value(
+                        Unexpected::Map,
+                        &"map with a single key",
+                    ))
+                },
+                |value| Ok((value, self)),
+            )
         }
     }
 
@@ -2733,12 +2738,17 @@ pub mod singleton_map_recursive {
         where
             V: DeserializeSeed<'de>,
         {
-           (self.delegate.next_key_seed(seed)?).map_or_else(|| Err(de::Error::invalid_value(
-                   Unexpected::Map,
-                   &"map with a single key",
-               )), |value| Ok((value, self)))
+            (self.delegate.next_key_seed(seed)?).map_or_else(
+                || {
+                    Err(de::Error::invalid_value(
+                        Unexpected::Map,
+                        &"map with a single key",
+                    ))
+                },
+                |value| Ok((value, self)),
+            )
+        }
     }
-}
 
     impl<'de, D> VariantAccess<'de> for SingletonMapRecursiveAsEnum<D>
     where
@@ -2920,78 +2930,77 @@ pub mod nested_singleton_map {
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     /// Serializes a value using the nested singleton map representation.
-///
-/// This function applies the singleton map representation recursively to all nested enums
-/// within the value being serialized.
-///
-/// # Arguments
-///
-/// * `value` - A reference to the value to be serialized.
-/// * `serializer` - The serializer to use for serializing the value.
-///
-/// # Returns
-///
-/// A result containing the serialization output or an error if serialization fails.
-///
-/// # Errors
-///
-/// This function will return an error if:
-/// - The provided value cannot be converted to the expected format.
-/// - There is an underlying I/O error or a serialization constraint is violated.
-///
-/// # Examples
-///
-/// ```
-/// use serde::{Serialize, Deserialize};
-/// use serde_yml::with::nested_singleton_map;
-/// use serde_yml::Serializer;
-/// use std::io::Write;
-///
-/// // Define enum InnerEnum and OuterEnum for serialization
-/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
-/// enum InnerEnum {
-///     Variant1,
-///     Variant2(String),
-/// }
-///
-/// #[derive(Serialize, Deserialize, PartialEq, Debug)]
-/// enum OuterEnum {
-///     Variant1(InnerEnum),
-///     Variant2 { inner: InnerEnum },
-/// }
-///
-/// // Test serialization for OuterEnum::Variant1(InnerEnum::Variant1)
-/// let value = OuterEnum::Variant1(InnerEnum::Variant1);
-/// let mut serializer = serde_yml::Serializer::new(Vec::new());
-/// nested_singleton_map::serialize(&value, &mut serializer)
-///     .unwrap();
-/// let yaml = String::from_utf8(serializer.into_inner().unwrap())
-///     .unwrap();
-/// assert_eq!(yaml, "Variant1: Variant1\n");
-///
-/// // Test serialization for OuterEnum::Variant2 { inner: InnerEnum::Variant2("value".to_string()) }
-/// let value = OuterEnum::Variant2 {
-///     inner: InnerEnum::Variant2("value".to_string()),
-/// };
-/// let mut serializer = serde_yml::Serializer::new(Vec::new());
-/// nested_singleton_map::serialize(&value, &mut serializer)
-///     .unwrap();
-/// let yaml = String::from_utf8(serializer.into_inner().unwrap())
-///     .unwrap();
-/// assert_eq!(yaml, "Variant2:\n  inner:\n    Variant2: value\n");
-/// ```
-///
-pub fn serialize<T, S>(
-    value: &T,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    T: Serialize,
-    S: Serializer,
-{
-    singleton_map_recursive::serialize(value, serializer)
-}
-
+    ///
+    /// This function applies the singleton map representation recursively to all nested enums
+    /// within the value being serialized.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - A reference to the value to be serialized.
+    /// * `serializer` - The serializer to use for serializing the value.
+    ///
+    /// # Returns
+    ///
+    /// A result containing the serialization output or an error if serialization fails.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    /// - The provided value cannot be converted to the expected format.
+    /// - There is an underlying I/O error or a serialization constraint is violated.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use serde::{Serialize, Deserialize};
+    /// use serde_yml::with::nested_singleton_map;
+    /// use serde_yml::Serializer;
+    /// use std::io::Write;
+    ///
+    /// // Define enum InnerEnum and OuterEnum for serialization
+    /// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+    /// enum InnerEnum {
+    ///     Variant1,
+    ///     Variant2(String),
+    /// }
+    ///
+    /// #[derive(Serialize, Deserialize, PartialEq, Debug)]
+    /// enum OuterEnum {
+    ///     Variant1(InnerEnum),
+    ///     Variant2 { inner: InnerEnum },
+    /// }
+    ///
+    /// // Test serialization for OuterEnum::Variant1(InnerEnum::Variant1)
+    /// let value = OuterEnum::Variant1(InnerEnum::Variant1);
+    /// let mut serializer = serde_yml::Serializer::new(Vec::new());
+    /// nested_singleton_map::serialize(&value, &mut serializer)
+    ///     .unwrap();
+    /// let yaml = String::from_utf8(serializer.into_inner().unwrap())
+    ///     .unwrap();
+    /// assert_eq!(yaml, "Variant1: Variant1\n");
+    ///
+    /// // Test serialization for OuterEnum::Variant2 { inner: InnerEnum::Variant2("value".to_string()) }
+    /// let value = OuterEnum::Variant2 {
+    ///     inner: InnerEnum::Variant2("value".to_string()),
+    /// };
+    /// let mut serializer = serde_yml::Serializer::new(Vec::new());
+    /// nested_singleton_map::serialize(&value, &mut serializer)
+    ///     .unwrap();
+    /// let yaml = String::from_utf8(serializer.into_inner().unwrap())
+    ///     .unwrap();
+    /// assert_eq!(yaml, "Variant2:\n  inner:\n    Variant2: value\n");
+    /// ```
+    ///
+    pub fn serialize<T, S>(
+        value: &T,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        T: Serialize,
+        S: Serializer,
+    {
+        singleton_map_recursive::serialize(value, serializer)
+    }
 
     /// Deserializes a value using the nested singleton map representation.
     ///
@@ -3024,7 +3033,7 @@ where
     ///         Variant1,
     ///         Variant2(String),
     ///     }
-///
+    ///
     ///     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     ///     enum OuterEnum {
     ///         Variant1(InnerEnum),

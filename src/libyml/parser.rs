@@ -144,10 +144,10 @@ impl<'input> Parser<'input> {
         let pin = unsafe {
             let parser = addr_of_mut!((*owned.ptr).sys);
             assert!(
-    !sys::yaml_parser_initialize(parser).fail,
-    "Failed to initialize YAML parser: {}",
-    Error::parse_error(parser)
-);
+                !sys::yaml_parser_initialize(parser).fail,
+                "Failed to initialize YAML parser: {}",
+                Error::parse_error(parser)
+            );
             sys::yaml_parser_set_encoding(
                 parser,
                 sys::YamlUtf8Encoding,

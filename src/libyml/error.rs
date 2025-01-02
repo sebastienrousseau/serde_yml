@@ -51,7 +51,7 @@ impl Error {
     /// This function is unsafe because it dereferences raw pointers and assumes
     /// the validity of the `YamlParserT` pointer.
     pub unsafe fn parse_error(parser: *const sys::YamlParserT) -> Self {
-    Error {
+        Error {
         kind: unsafe { (*parser).error },
 
         problem: NonNull::new((*parser).problem as *mut _).map_or_else(
@@ -76,8 +76,7 @@ impl Error {
             sys: unsafe { (*parser).context_mark },
         },
     }
-}
-
+    }
 
     /// Constructs an `Error` from a `YamlEmitterT` pointer.
     ///
@@ -85,7 +84,9 @@ impl Error {
     ///
     /// This function is unsafe because it dereferences raw pointers and assumes
     /// the validity of the `YamlEmitterT` pointer.
-    pub unsafe fn emit_error(emitter: *const sys::YamlEmitterT) -> Self {
+    pub unsafe fn emit_error(
+        emitter: *const sys::YamlEmitterT,
+    ) -> Self {
         Error {
             kind: (*emitter).error,
             problem: match NonNull::new((*emitter).problem as *mut _) {
@@ -97,11 +98,13 @@ impl Error {
             },
             problem_offset: 0,
             problem_mark: Mark {
-                sys: MaybeUninit::<sys::YamlMarkT>::zeroed().assume_init(),
+                sys: MaybeUninit::<sys::YamlMarkT>::zeroed()
+                    .assume_init(),
             },
             context: None,
             context_mark: Mark {
-                sys: MaybeUninit::<sys::YamlMarkT>::zeroed().assume_init(),
+                sys: MaybeUninit::<sys::YamlMarkT>::zeroed()
+                    .assume_init(),
             },
         }
     }
