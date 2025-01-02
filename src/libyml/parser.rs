@@ -138,16 +138,16 @@ impl<'input> Parser<'input> {
     /// # Panics
     ///
     /// This function panics if there is an error initializing the underlying `libyml` parser.
+    #[must_use]
     pub fn new(input: Cow<'input, [u8]>) -> Parser<'input> {
         let owned = Owned::<ParserPinned<'input>>::new_uninit();
         let pin = unsafe {
             let parser = addr_of_mut!((*owned.ptr).sys);
-            if sys::yaml_parser_initialize(parser).fail {
-                panic!(
-                    "Failed to initialize YAML parser: {}",
-                    Error::parse_error(parser)
-                );
-            }
+            assert!(
+    !sys::yaml_parser_initialize(parser).fail,
+    "Failed to initialize YAML parser: {}",
+    Error::parse_error(parser)
+);
             sys::yaml_parser_set_encoding(
                 parser,
                 sys::YamlUtf8Encoding,
@@ -165,8 +165,15 @@ impl<'input> Parser<'input> {
 
     /// Parses the next YAML event from the input.
     ///
-    /// Returns a `Result` containing the parsed `Event` and its corresponding `Mark` on success,
-    /// or an `Error` if parsing fails.
+    /// # Returns
+    /// Returns a `Result` containing the parsed `Event` and its corresponding `Mark` on success, or an `Error` if parsing fails.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the parser encounters an error while parsing the input.
+    /// The error contains information about the location of the error in the input.
+    ///
+    #[must_use = "You must consume or handle the parsed event, otherwise the parser state may get out of sync."]
     pub fn parse_next_event(
         &mut self,
     ) -> Result<(Event<'input>, Mark)> {
@@ -215,6 +222,17 @@ impl<'input> Parser<'input> {
     /// Checks if the parser is initialized and ready to parse YAML.
     ///
     /// This function returns `true` if the parser is initialized and ready to parse YAML, and `false` otherwise.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if the parser is initialized and ready to parse YAML, and `false` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the parser encounters an error while initializing the parser.
+    /// The error contains information about the location of the error in the input.
+    ///
+    #[must_use = "You must consume or handle the parsed event, otherwise the parser state may get out of sync."]
     pub fn is_ok(&self) -> bool {
         unsafe {
             let parser = addr_of_mut!((*self.pin.ptr).sys);

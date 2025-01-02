@@ -51,7 +51,7 @@ impl Location {
 
     // This function is intended for internal use only to maintain decoupling with the yaml crate.
     #[doc(hidden)]
-    fn from_mark(mark: libyml::Mark) -> Self {
+    const fn from_mark(mark: libyml::Mark) -> Self {
         Location {
             index: mark.index() as usize,
             // `line` and `column` returned from libyml are 0-indexed but all error messages add +1 to this value.
