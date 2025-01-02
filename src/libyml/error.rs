@@ -70,7 +70,7 @@ impl Error {
         },
 
         context: NonNull::new((*parser).context as *mut _)
-            .map(|context| CStr::from_ptr(context)),
+            .map(CStr::from_ptr),
 
         context_mark: Mark {
             sys: unsafe { (*parser).context_mark },
