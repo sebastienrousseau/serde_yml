@@ -9,7 +9,7 @@ alt="Serde YML logo" width="66" align="right" />
 
 [![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][12] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
 
-[Serde YML][00] is a Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format.
+Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format.
 
 ## Features
 

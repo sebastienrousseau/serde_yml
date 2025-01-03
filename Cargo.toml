@@ -99,7 +99,7 @@ itoa = "1.0.14"
 libyml = "0.0.5"
 memchr = { version = "2", default-features = false }
 ryu = "1.0"
-serde = { version = "1.0.217" }
+serde = "1.0.217"
 
 # -----------------------------------------------------------------------------
 # Documentation Configuration
