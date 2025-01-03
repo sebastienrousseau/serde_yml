@@ -86,6 +86,12 @@ pub enum ErrorImpl {
     InvalidProgress,
     /// An I/O error.
     IoError(io::Error),
+    /// An error indicating that parsing a number failed.
+    FailedToParseNumber,
+    /// An error indicating that a byte slice failed to parse as an integer.
+    FailedToParseInt,
+    /// An error indicating that a byte slice failed to parse as a float.
+    FailedToParseFloat,
     /// An error encountered while converting a byte slice to a string using UTF-8 encoding.
     FromUtf8(string::FromUtf8Error),
     /// An error indicating that the end of the YAML stream was reached unexpectedly.
@@ -112,8 +118,6 @@ pub enum ErrorImpl {
     SequenceInMergeElement,
     /// An error indicating that an empty tag was encountered.
     EmptyTag,
-    /// An error indicating that parsing a number failed.
-    FailedToParseNumber,
     /// A shared error implementation.
     Shared(Arc<ErrorImpl>),
 }
@@ -140,6 +144,8 @@ impl Display for ErrorImpl {
             ErrorImpl::SequenceInMergeElement => write!(f, "Invalid Merge Element Error: Expected a mapping for merging, but found a sequence"),
             ErrorImpl::EmptyTag => write!(f, "Empty Tag Error: Empty YAML tags are not allowed"),
             ErrorImpl::FailedToParseNumber => write!(f, "Number Parsing Error: Failed to parse the YAML number"),
+            ErrorImpl::FailedToParseInt => write!(f, "Integer Parsing Error: Failed to parse the YAML integer"),
+            ErrorImpl::FailedToParseFloat => write!(f, "Float Parsing Error: Failed to parse the YAML float"),
             ErrorImpl::Shared(_) => write!(f, "Shared Error: An error occurred in the shared error implementation"),
         }
     }
@@ -329,6 +335,12 @@ impl ErrorImpl {
                 f.write_str("expected a mapping for merging, but found sequence")
             }
             ErrorImpl::EmptyTag => f.write_str("empty YAML tag is not allowed"),
+            ErrorImpl::FailedToParseInt => {
+                f.write_str("failed to parse YAML integer")
+            }
+            ErrorImpl::FailedToParseFloat => {
+                f.write_str("failed to parse YAML float")
+            }
             ErrorImpl::FailedToParseNumber => {
                 f.write_str("failed to parse YAML number")
             }
