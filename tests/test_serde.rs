@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #![allow(
     clippy::decimal_literal_representation,
     clippy::derive_partial_eq_without_eq,

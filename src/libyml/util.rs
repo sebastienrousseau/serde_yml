@@ -19,6 +19,7 @@ impl<T> Owned<T> {
     /// # Safety
     /// The created instance contains uninitialized memory, and should be properly
     /// initialized before use.
+    #[must_use]
     pub fn new_uninit() -> Owned<MaybeUninit<T>, T> {
         // Allocate memory for `T` but leave it uninitialized.
         let boxed = Box::new(MaybeUninit::<T>::uninit());
@@ -35,12 +36,13 @@ impl<T> Owned<T> {
     ///
     /// # Safety
     /// The caller must ensure that `definitely_init` is properly initialized.
-    pub unsafe fn assume_init(
+    #[must_use]
+    pub const unsafe fn assume_init(
         definitely_init: Owned<MaybeUninit<T>, T>,
     ) -> Owned<T> {
         let ptr = definitely_init.ptr;
         mem::forget(definitely_init);
-        Owned {
+        Self {
             ptr: ptr.cast(),
             marker: PhantomData,
         }

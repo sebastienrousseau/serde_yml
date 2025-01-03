@@ -1,20 +1,48 @@
+# -----------------------------------------------------------------------------
+# SerdeYML - A robust Rust library for YAML serialization and deserialization.
+# -----------------------------------------------------------------------------
+
 [package]
-authors = ["Serde YML Contributors"]
-categories = ["encoding", "parser-implementations"]
+# General project metadata
+name = "serde_yml"                              # The name of the library
+version = "0.0.13"                              # Version of the crate
+authors = ["Serde YML Contributors"]            # Library contributors
+edition = "2021"                                # Rust edition being used
+rust-version = "1.58.0"                         # Minimum supported Rust version
+license = "MIT OR Apache-2.0"                   # Dual licensing strategy
 description = """
 A robust Rust library that simplifies the serialization and deserialization of Rust data structures to and from YAML format using the widely-used Serde framework.
-"""
-documentation = "https://docs.rs/serde_yml/"
-edition = "2021"
-exclude = ["/.git/*", "/.github/*", "/.gitignore", "/.vscode/*"]
-homepage = "https://serdeyml.com"
-keywords = ["yaml", "serde", "serialization"]
-license = "MIT OR Apache-2.0"
-name = "serde_yml"
-readme = "README.md"
-repository = "https://github.com/sebastienrousseau/serde_yml"
-rust-version = "1.56.0"
-version = "0.0.12"
+"""                                             # Library description
+homepage = "https://serdeyml.com"               # Project homepage
+documentation = "https://docs.rs/serde_yml/"    # Documentation URL
+repository = "https://github.com/sebastienrousseau/serde_yml" # Repository URL
+readme = "README.md"                            # Path to the README file
+
+# -----------------------------------------------------------------------------
+# Crate Configuration
+# -----------------------------------------------------------------------------
+
+# Crates.io categories
+categories = [
+    "encoding",
+    "parser-implementations",
+]
+
+# Keywords for easier discoverability on Crates.io
+keywords = [
+    "yaml",
+    "serde",
+    "serialization",
+]
+
+# Exclude unnecessary files from the package
+exclude = [
+    "/.git/*",                                  # Exclude version control files
+    "/.github/*",                               # Exclude GitHub workflows
+    "/.gitignore",                              # Ignore Git ignore file
+    "/.vscode/*"                                # Ignore VSCode settings
+]
+
 include = [
     "/CONTRIBUTING.md",
     "/LICENSE-APACHE",
@@ -28,66 +56,75 @@ include = [
     "/tests/**",
 ]
 
-# [[bench]]
-# name = "benchmark"
-# harness = false
-# path = "benches/criterion.rs"
+# -----------------------------------------------------------------------------
+# Library Information
+# -----------------------------------------------------------------------------
 
-# [profile.bench]
-# debug = true
+[lib]
+name = "serde_yml"                              # Internal name of the library
+path = "src/lib.rs"                             # Path to the library source
+crate-type = ["lib"]                            # Crate type
+required-features = []
 
+# -----------------------------------------------------------------------------
+# Features
+# -----------------------------------------------------------------------------
 
-[dependencies]
-indexmap = "2.2.4"
-itoa = "1.0"
-libyml = "0.0.5"
-memchr = { version = "2", default-features = false }
-ryu = "1.0"
-serde = { version = "1.0.204" }
+[features]
+default = []                                    # No default features enabled
+
+# -----------------------------------------------------------------------------
+# Build Dependencies
+# -----------------------------------------------------------------------------
 
 [build-dependencies]
-# Dependencies for build scripts.
-version_check = "0.9.4" # Check the Rust version used to compile the package.
+version_check = "0.9.5"                         # Ensures compatible version
+
+# -----------------------------------------------------------------------------
+# Development Dependencies
+# -----------------------------------------------------------------------------
 
 [dev-dependencies]
 indoc = "2.0.5"
-serde = { version = "1.0.204", features = ["derive"] }
-serde_derive = "1.0.204"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_derive = "1.0.217"
 
-[features]
-default = []
+# -----------------------------------------------------------------------------
+# Dependencies
+# -----------------------------------------------------------------------------
 
-[lib]
-crate-type = ["lib"]
-doc-scrape-examples = false
-name = "serde_yml"
-path = "src/lib.rs"
-required-features = []
+[dependencies]
+indexmap = "2.7.0"
+itoa = "1.0.14"
+libyml = "0.0.5"
+memchr = { version = "2", default-features = false }
+ryu = "1.0"
+serde = "1.0.217"
+
+# -----------------------------------------------------------------------------
+# Documentation Configuration
+# -----------------------------------------------------------------------------
 
 [package.metadata.docs.rs]
-# Specify arguments for rustdoc to enhance documentation quality.
+all-features = true     # Build documentation with all features enabled
 rustdoc-args = [
     "--generate-link-to-definition",
     "--cfg", "docsrs",
     "--document-private-items",
-    "--display-warnings"
+    "--display-warnings",
 ]
-# Build docs with all crate features enabled to cover the entire API.
-all-features = true
-# Target platform for the docs, ensuring compatibility with common Linux servers.
-targets = ["x86_64-unknown-linux-gnu"]
+targets = ["x86_64-unknown-linux-gnu"]    # Default target platform for the docs
 
-# Linting config
+# -----------------------------------------------------------------------------
+# Linting Configuration
+# -----------------------------------------------------------------------------
+
 [lints.rust]
-
 ## Warn
-# box_pointers = "warn"
 missing_copy_implementations = "warn"
 missing_docs = "warn"
 unstable_features = "warn"
-# unused_crate_dependencies = "warn"
 unused_extern_crates = "warn"
-# unused_results = "warn"
 
 ## Allow
 bare_trait_objects = "allow"
@@ -98,7 +135,6 @@ trivial_bounds = "allow"
 unsafe_code = "allow"
 
 ## Forbid
-# missing_docs = "warn"
 missing_debug_implementations = "forbid"
 non_ascii_idents = "forbid"
 unreachable_pub = "forbid"
@@ -128,6 +164,9 @@ unused_macro_rules = "deny"
 unused_qualifications = "deny"
 variant_size_differences = "deny"
 
+# -----------------------------------------------------------------------------
+# Clippy Configuration
+# -----------------------------------------------------------------------------
 
 [package.metadata.clippy]
 warn-lints = [
@@ -137,37 +176,23 @@ warn-lints = [
     "clippy::nursery",
 ]
 
+# -----------------------------------------------------------------------------
+# Profiles
+# -----------------------------------------------------------------------------
+
 [profile.dev]
-codegen-units = 256
-debug = true
-debug-assertions = true
-incremental = true
-lto = false
-opt-level = 0
-overflow-checks = true
-panic = 'unwind'
-rpath = false
-strip = false
+codegen-units = 256                         # Fast compilation for development
+debug = true                                # Enable debugging symbols
+incremental = true                          # Incremental compilation
+opt-level = 0                               # No optimizations in development
 
 [profile.release]
-codegen-units = 1
-debug = false
-debug-assertions = false
-incremental = false
-lto = true
-opt-level = "s"
-overflow-checks = false
-panic = "abort"
-rpath = false
-strip = "symbols"
+codegen-units = 1                           # Optimized for performance
+debug = false                               # Disable debug symbols
+incremental = false                         # Disable incremental compilation
+lto = true                                  # Link-time optimization
+opt-level = "s"                             # Optimize for size
 
 [profile.test]
-codegen-units = 256
-debug = true
-debug-assertions = true
-incremental = true
-lto = false
-opt-level = 0
-overflow-checks = true
-rpath = false
-strip = false
+codegen-units = 256                         # Fast compilation for testing
+debug = true                                # Enable debugging symbols

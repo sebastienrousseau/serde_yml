@@ -46,11 +46,9 @@ use std::process;
 fn main() {
     let min_version = "1.56";
 
-    match version_check::is_min_version(min_version) {
-        Some(true) => {}
-        _ => {
-            eprintln!("'fd' requires Rustc version >= {}", min_version);
-            process::exit(1);
-        }
+    if version_check::is_min_version(min_version) == Some(true) {
+    } else {
+        eprintln!("'fd' requires Rustc version >= {min_version}");
+        process::exit(1);
     }
 }

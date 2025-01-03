@@ -100,6 +100,60 @@ pub enum Progress<'de> {
     Fail(Arc<ErrorImpl>),
 }
 
+impl<'de> Progress<'de> {
+    /// Creates a new `Progress::Str` from a normalized string.
+    ///
+    /// This function takes a string slice, normalizes it by removing
+    /// extra whitespace, and returns a `Progress::Str` containing the
+    /// normalized string. This ensures that multiple consecutive
+    /// whitespace characters are replaced by a single space.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - A string slice to be normalized.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if the input exceeds the maximum safe length.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing `Progress::Str` with the normalized string or
+    /// an error if the input exceeds the length limit.
+    pub fn new_normalized_str(
+        input: &'de str,
+    ) -> Result<Progress<'de>, &'static str> {
+        const MAX_SAFE_LENGTH: usize = 1_000_000; // Example safe threshold
+
+        // Safeguard against overly large input
+        if input.len() > MAX_SAFE_LENGTH {
+            return Err("Input exceeds maximum safe length");
+        }
+
+        // Normalize spaces efficiently
+        let mut normalized = String::with_capacity(input.len());
+        let mut is_space = false;
+
+        for c in input.chars() {
+            if c.is_whitespace() {
+                if !is_space {
+                    normalized.push(' ');
+                    is_space = true;
+                }
+            } else {
+                normalized.push(c);
+                is_space = false;
+            }
+        }
+
+        // Box the normalized string and convert it into `Progress::Str`
+        let normalized_boxed: Box<str> = normalized.into_boxed_str();
+        let normalized_static: &'de str = Box::leak(normalized_boxed);
+
+        Ok(Progress::Str(normalized_static))
+    }
+}
+
 impl Debug for Progress<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
@@ -295,10 +349,13 @@ impl<'de> Deserializer<'de> {
 
         let mut anchors = Vec::new();
         for (alias_id, document_index) in &document.anchor_event_map {
-            let anchor_name = document.anchor_names.get(alias_id).unwrap();
+            let anchor_name =
+                document.anchor_names.get(alias_id).unwrap();
             let anchor_path = self.event_path(*document_index);
             let mut anchors_aliases = Vec::new();
-            for alias_index in aliases.get(alias_id).unwrap_or(&Vec::new()) {
+            for alias_index in
+                aliases.get(alias_id).unwrap_or(&Vec::new())
+            {
                 anchors_aliases.push(self.event_path(*alias_index));
             }
 
@@ -331,7 +388,11 @@ impl<'de> Deserializer<'de> {
                     }
                     Event::Scalar(scalar) => {
                         if process_scalar {
-                            path.insert(0, String::from_utf8_lossy(&scalar.value).to_string());
+                            path.insert(
+                                0,
+                                String::from_utf8_lossy(&scalar.value)
+                                    .to_string(),
+                            );
                             process_scalar = false;
                         }
                     }

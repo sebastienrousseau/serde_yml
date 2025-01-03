@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 /// This module contains the tests for the `libyml` module.
 pub mod libyml;
 

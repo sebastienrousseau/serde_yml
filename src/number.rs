@@ -14,21 +14,54 @@ use std::{
     str::FromStr,
 };
 
-/// Represents a YAML number, whether integer or floating point.
+/// Represents a YAML number, which can be integer (`u64`/`i64`) or floating point (`f64`).
+///
+/// # Overview
+/// In YAML, numeric scalars can be integers (positive or negative) or floats.
+/// The [`Number`] type wraps these possibilities in one enum variant,
+/// accessible by methods like [`Number::as_i64`], [`Number::as_u64`], and
+/// [`Number::as_f64`].
+///
+/// # Returns
+/// Each accessor method either returns the requested numeric value (if valid)
+/// or `None`.
+///
+/// # Errors
+/// When deserializing from YAML strings, parsing errors may occur if the input
+/// cannot be interpreted as a valid integer or float.
+///
+/// # Examples
+/// ```
+/// use serde_yml::number::Number;
+///
+/// // Construct from an i64
+/// let neg = Number::from(-123i64);
+/// assert!(neg.is_i64());
+/// assert_eq!(neg.as_i64(), Some(-123));
+///
+/// // Construct from a float
+/// let float = Number::from(3.14_f64);
+/// assert!(float.is_f64());
+/// assert_eq!(float.as_f64(), Some(3.14));
+/// ```
 #[derive(Copy, Clone, PartialEq, PartialOrd)]
 pub struct Number {
     n: N,
 }
 
 /// Enum representing different variants of numbers.
+///
+/// # Overview
+/// This enum is not directly exposed to users. Instead, [`Number`]
+/// provides a public API to query whether it's a `u64`, `i64`, or `f64`.
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
 enum N {
-    /// Represents a positive integer.
+    /// Represents a positive integer (`u64`).
     PositiveInteger(u64),
-    /// Represents a negative integer.
+    /// Represents a negative integer (`i64`).
     NegativeInteger(i64),
-    /// Represents a floating point number.
+    /// Represents a floating-point value (`f64`).
     Float(f64),
 }
 
@@ -135,6 +168,150 @@ impl Number {
             N::Float(f) => f.is_finite(),
         }
     }
+    /// Returns true if this number is neither infinite nor NaN.
+    pub const fn from_i64(n: i64) -> Self {
+        if n < 0 {
+            Number {
+                n: N::NegativeInteger(n),
+            }
+        } else {
+            Number {
+                n: N::PositiveInteger(n as u64),
+            }
+        }
+    }
+    /// Returns a new `Number` with the given value.
+    pub const fn from_u64(n: u64) -> Self {
+        Number {
+            n: N::PositiveInteger(n),
+        }
+    }
+    /// Converts to `i32`, saturating if out of range.
+    ///
+    /// - Positive overflow becomes `i32::MAX`.
+    /// - Negative overflow becomes `i32::MIN`.
+    /// - **Float values are truncated** toward zero, then clamped within `[i32::MIN, i32::MAX]`.
+    pub fn to_i32_saturating(&self) -> i32 {
+        match self.n {
+            N::PositiveInteger(u) => {
+                // Saturate on u64 > i32::MAX
+                u.min(i32::MAX as u64) as i32
+            }
+            N::NegativeInteger(i) => {
+                // Saturate on i64 < i32::MIN
+                if i < i32::MIN as i64 {
+                    i32::MIN
+                } else {
+                    i as i32
+                }
+            }
+            N::Float(f) => {
+                // Truncate and clamp within [i32::MIN, i32::MAX]
+                if f.is_nan() {
+                    0
+                } else {
+                    // You could do different rounding modes, but typically
+                    // "truncate toward zero" means to cast directly to i32.
+                    // Then saturate if it goes out of range.
+                    let truncated = f.trunc();
+                    if truncated > i32::MAX as f64 {
+                        i32::MAX
+                    } else if truncated < i32::MIN as f64 {
+                        i32::MIN
+                    } else {
+                        truncated as i32
+                    }
+                }
+            }
+        }
+    }
+
+    /// Converts to `u32`, saturating if out of range.
+    ///
+    /// - Negative values become 0.
+    /// - Positive overflow becomes `u32::MAX`.
+    /// - **Float values are truncated** toward zero, then clamped within `[0, u32::MAX]`.
+    pub fn to_u32_saturating(&self) -> u32 {
+        match self.n {
+            N::PositiveInteger(u) => {
+                // Saturate on u64 > u32::MAX
+                u.min(u32::MAX as u64) as u32
+            }
+            N::NegativeInteger(_) => {
+                // Negative becomes zero
+                0
+            }
+            N::Float(f) => {
+                if f.is_nan() || f.is_sign_negative() {
+                    0
+                } else {
+                    let truncated = f.trunc();
+                    if truncated > u32::MAX as f64 {
+                        u32::MAX
+                    } else {
+                        truncated as u32
+                    }
+                }
+            }
+        }
+    }
+
+    /// Converts to `f32` *lossily*.
+    /// - Simply casts `i64` or `u64` to `f32`.
+    /// - For `f64`, truncates extra precision (the usual `as f32` conversion).
+    /// - This will produce `f32::INFINITY` or `f32::NEG_INFINITY` if the value
+    ///   exceeds `f32` range, and normalizes `NaN` as per IEEE 754 rules.
+    pub fn to_f32_lossy(&self) -> f32 {
+        match self.n {
+            N::PositiveInteger(u) => u as f32,
+            N::NegativeInteger(i) => i as f32,
+            N::Float(f) => f as f32,
+        }
+    }
+
+    /// Converts to `f64` *lossily*, but returns a guaranteed finite value
+    /// for non-float variants.
+    /// - For `i64`/`u64`, uses direct casting.
+    /// - For `f64`, just returns the original floating value (including NaN/∞).
+    pub fn to_f64_lossy(&self) -> f64 {
+        match self.n {
+            N::PositiveInteger(u) => u as f64,
+            N::NegativeInteger(i) => i as f64,
+            N::Float(f) => f,
+        }
+    }
+
+    /// Converts to `i16` with saturating semantics, for demonstration.
+    /// You can replicate the same pattern for other numeric types.
+    pub fn to_i16_saturating(&self) -> i16 {
+        match self.n {
+            N::PositiveInteger(u) => {
+                // clamp to i16::MAX if larger
+                u.min(i16::MAX as u64) as i16
+            }
+            N::NegativeInteger(i) => {
+                if i < i16::MIN as i64 {
+                    i16::MIN
+                } else {
+                    i as i16
+                }
+            }
+            N::Float(f) => {
+                if f.is_nan() {
+                    0
+                } else {
+                    let truncated = f.trunc();
+                    if truncated > i16::MAX as f64 {
+                        i16::MAX
+                    } else if truncated < i16::MIN as f64 {
+                        i16::MIN
+                    } else {
+                        truncated as i16
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl Display for Number {
@@ -161,15 +338,26 @@ impl FromStr for Number {
     type Err = Error;
 
     fn from_str(repr: &str) -> Result<Self, Self::Err> {
+        // 1) Attempt to parse as integer first
         if let Ok(result) = de::visit_int(NumberVisitor, repr) {
             return result;
         }
-        if !de::digits_but_not_number(repr) {
-            if let Some(float) = de::parse_f64(repr) {
-                return Ok(float.into());
-            }
+
+        // 2) If integer parsing failed, check if it's "digits but not a valid number."
+        //    - If `digits_but_not_number(repr)` is true, we know the string
+        //      has some digits but is still invalid as either integer or float.
+        //    - So we immediately return a generic parse error.
+        if de::digits_but_not_number(repr) {
+            return Err(error::new(ErrorImpl::FailedToParseNumber));
         }
-        Err(error::new(ErrorImpl::FailedToParseNumber))
+
+        // 3) If it's not obviously invalid, attempt to parse as float
+        if let Some(float) = de::parse_f64(repr) {
+            Ok(float.into())
+        } else {
+            // If float parsing fails here, return an explicit float parse failure
+            Err(error::new(ErrorImpl::FailedToParseFloat))
+        }
     }
 }
 
@@ -240,6 +428,10 @@ impl N {
 }
 
 impl Number {
+    /// Provides a total ordering against another [`Number`].
+    ///
+    /// Sorts integers below floats, places negative below positive, and
+    /// treats all `NaN` values as “last.”
     pub(crate) fn total_cmp(&self, other: &Self) -> Ordering {
         self.n.total_cmp(&other.n)
     }

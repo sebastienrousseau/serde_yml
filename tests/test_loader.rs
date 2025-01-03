@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #[cfg(test)]
 mod tests {
     use serde_yml::{
@@ -424,5 +425,134 @@ mod tests {
         assert_eq!(document.events.len(), 4);
         assert!(document.error.is_none());
         assert_eq!(document.anchor_event_map.len(), 0);
+    }
+
+    #[cfg(test)]
+    mod missing_coverage_tests {
+        use serde_yml::{
+            de::Progress,
+            loader::{Document, Loader},
+            modules::error::ErrorImpl,
+        };
+
+        /// Ensures that constructing a `Loader` with `Progress::Iterable` returns `InvalidProgress`.
+        #[test]
+        fn test_loader_invalid_progress_iterable() {
+            // Create a dummy Loader that we'll wrap in `Progress::Iterable`.
+            // The actual internals won't matter since we expect an immediate error.
+            let dummy_loader = Loader {
+                parser: None,
+                parsed_document_count: 0,
+            };
+
+            // Wrapping this in `Progress::Iterable` should trigger `InvalidProgress`.
+            let progress = Progress::Iterable(dummy_loader);
+            let loader_result = Loader::new(progress);
+
+            assert!(
+            loader_result.is_err(),
+            "Expected an error (InvalidProgress) for Progress::Iterable"
+        );
+
+            if let Err(e) = loader_result {
+                match e.as_ref() {
+                    ErrorImpl::InvalidProgress => {
+                        // This is the exact variant we expect.
+                    }
+                    other => panic!(
+                    "Expected ErrorImpl::InvalidProgress, got: {:?}",
+                    other
+                ),
+                }
+            } else {
+                panic!("Expected Err(...), got Ok(...) instead.");
+            }
+        }
+
+        /// Ensures that constructing a `Loader` with `Progress::Document` returns `InvalidProgress`.
+        #[test]
+        fn test_loader_invalid_progress_document() {
+            // Create a dummy Document that we’ll wrap in `Progress::Document`.
+            // Again, we expect an immediate error without parsing.
+            let dummy_document = Document {
+                events: vec![],
+                error: None,
+                anchor_event_map: Default::default(),
+                anchor_names: Default::default(),
+            };
+
+            // Wrapping this in `Progress::Document` should trigger `InvalidProgress`.
+            let progress = Progress::Document(dummy_document);
+            let loader_result = Loader::new(progress);
+
+            assert!(
+            loader_result.is_err(),
+            "Expected an error (InvalidProgress) for Progress::Document"
+        );
+
+            if let Err(e) = loader_result {
+                match &*e {
+                    ErrorImpl::InvalidProgress => {
+                        // This is the exact variant we expect.
+                    }
+                    other => panic!(
+                    "Expected ErrorImpl::InvalidProgress, got: {:?}",
+                    other
+                ),
+                }
+            } else {
+                panic!("Expected Err(...), got Ok(...) instead.");
+            }
+        }
+
+        /// Tests handling of a `DuplicateAnchor` error.
+        /// Creates YAML with two identical anchors to trigger the error.
+        #[test]
+        fn test_loader_duplicate_anchor() {
+            let yaml = r#"---
+key1: &dup_anchor something
+key2: &dup_anchor something_else
+"#;
+            let progress = Progress::Str(yaml);
+            let mut loader =
+                Loader::new(progress).expect("Loader creation failed");
+
+            let document = loader
+                .next_document()
+                .expect("Expected a document, even if erroneous");
+
+            // The presence of an error means the first anchor was fine,
+            // but the second identical anchor triggered `DuplicateAnchor`.
+            assert!(
+                document.error.is_some(),
+                "Expected a DuplicateAnchor error in the document"
+            );
+
+            if let Some(err_arc) = document.error {
+                match &*err_arc {
+                    ErrorImpl::DuplicateAnchor(msg) => {
+                        // Confirm we got the correct variant
+                        assert!(
+                        msg.contains("line"),
+                        "DuplicateAnchor error message usually includes position info"
+                    );
+                    }
+                    other => panic!(
+                        "Expected DuplicateAnchor error, got: {:?}",
+                        other
+                    ),
+                }
+            } else {
+                panic!("Document.error was None, expected DuplicateAnchor error");
+            }
+
+            // Because of the fatal anchor error, the loader’s parser is set to None,
+            // so subsequent calls to next_document() should yield None.
+            let next_doc = loader.next_document();
+            assert!(
+            next_doc.is_none(),
+            "Expected the loader to stop parsing after DuplicateAnchor"
+        );
+        }
     }
 }

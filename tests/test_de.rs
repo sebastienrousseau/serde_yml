@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #[cfg(test)]
 mod tests {
     #![allow(
@@ -17,8 +18,7 @@ mod tests {
         },
         loader::Loader,
         modules::error::ErrorImpl,
-        Deserializer, Number,
-        DocumentAnchor,
+        Deserializer, DocumentAnchor, Number,
         Value::{self, String as SerdeString},
     };
     use std::{
@@ -856,8 +856,9 @@ mod tests {
     // *** Advanced Deserialization Tests ***
 
     #[test]
-    /// Test parsing of numbers and handling of errors.
     fn test_parse_number() {
+        // Existing tests
+
         let n = "111".parse::<Number>().unwrap();
         assert_eq!(n, Number::from(111));
 
@@ -878,12 +879,42 @@ mod tests {
         assert_eq!(n, Number::from(f64::NEG_INFINITY));
 
         let err = "null".parse::<Number>().unwrap_err();
-        assert_eq!(err.to_string(), "failed to parse YAML number");
+        assert_eq!(err.to_string(), "failed to parse YAML float");
 
         let err = " 1 ".parse::<Number>().unwrap_err();
-        assert_eq!(err.to_string(), "failed to parse YAML number");
+        assert_eq!(err.to_string(), "failed to parse YAML float");
     }
 
+    #[test]
+    fn test_parse_number_errors() {
+        // 1) For "abc", since it has no digits, it will:
+        // - Fail integer parsing
+        // - Return FailedToParseFloat as the final fallback
+        let err = "abc".parse::<Number>().unwrap_err();
+        assert_eq!(err.to_string(), "failed to parse YAML float");
+
+        // 2) For "1.2.3":
+        // - Fails integer parsing
+        // - Since de::parse_f64 handles the final float parsing,
+        // - Returns FailedToParseFloat
+        let err = "1.2.3".parse::<Number>().unwrap_err();
+        assert_eq!(err.to_string(), "failed to parse YAML float");
+
+        // 3) For very large number:
+        // - Attempts parsing as u128 and fails
+        // - Returns the u128 parsing error message
+        let err = "999999999999999999999999999999"
+            .parse::<Number>()
+            .unwrap_err();
+        assert_eq!(err.to_string(), "invalid type: integer `999999999999999999999999999999` as u128, expected a number");
+
+        // 4) For "123abc":
+        // - Fails integer parsing
+        // - Gets to float parsing
+        // - Returns FailedToParseFloat
+        let err = "123abc".parse::<Number>().unwrap_err();
+        assert_eq!(err.to_string(), "failed to parse YAML float");
+    }
     #[test]
     /// Test deserialization with a custom DeserializeSeed implementation.
     fn test_seed() {

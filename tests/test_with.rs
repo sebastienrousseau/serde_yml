@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
@@ -494,6 +495,422 @@ mod tests {
 
         let deserialized: GenericEnum<i32> =
             singleton_map::deserialize(
+                serde_yml::Deserializer::from_str(&yaml),
+            )
+            .unwrap();
+        assert_eq!(value, deserialized);
+    }
+    #[test]
+    fn test_singleton_map_unknown_variant_error() {
+        // Attempt to deserialize a map with an unknown variant.
+        let yaml = "NotARealVariant: 123\n";
+        let result: Result<MyEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+            result.is_err(),
+            "Deserializing unknown variant should fail"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_multiple_keys_error() {
+        // Attempt to deserialize a map with multiple entries; only one is allowed.
+        let yaml = "Newtype: 42\nAnotherVariant: 99\n";
+        let result: Result<MyEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+            result.is_err(),
+            "Deserializing multiple keys should fail"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_zero_key_map_error() {
+        // Attempt to deserialize an empty map, which can't match a valid variant.
+        let yaml = "{}\n";
+        let result: Result<MyEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+            result.is_err(),
+            "Deserializing an empty map should fail"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_non_map_for_variant_error() {
+        // Attempt to deserialize a sequence or other structure in place of a map.
+        let yaml = "- 1\n- 2\n";
+        let result: Result<MyEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+        result.is_err(),
+        "Deserializing a non-map structure for an enum variant should fail"
+    );
+    }
+
+    #[test]
+    fn test_singleton_map_optional_multiple_keys_error() {
+        // For `Option<MyEnum>`, a map with multiple entries is also invalid.
+        let yaml = "Unit: 0\nNewtype: 1\n";
+        let result: Result<Option<MyEnum>, _> =
+            singleton_map_optional::deserialize(
+                serde_yml::Deserializer::from_str(yaml),
+            );
+        assert!(
+        result.is_err(),
+        "Deserializing multiple keys into Option<MyEnum> should fail"
+    );
+    }
+
+    #[test]
+    fn test_singleton_map_with_unknown_variant_error() {
+        // `singleton_map_with` just delegates to `singleton_map`, so unknown variant fails.
+        let yaml = "UnknownStuff: 10\n";
+        let result: Result<MyEnum, _> = singleton_map_with::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+            result.is_err(),
+            "Unknown variant must fail for singleton_map_with"
+        );
+    }
+
+    #[test]
+    fn test_nested_singleton_map_multiple_keys_error() {
+        // For nested enums, multiple keys at the outer level is not valid
+        // in the `nested_singleton_map` approach.
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum InnerEnum {
+            A,
+            B(String),
+        }
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum OuterEnum {
+            Variant1(InnerEnum),
+            Variant2 { x: InnerEnum },
+        }
+
+        let yaml = "Variant1: A\nVariant2:\n  x: B: Yikes!\n";
+        let result: Result<OuterEnum, _> =
+            nested_singleton_map::deserialize(
+                serde_yml::Deserializer::from_str(yaml),
+            );
+        assert!(
+        result.is_err(),
+        "Deserializing multiple keys in nested_singleton_map should fail"
+    );
+    }
+
+    #[test]
+    fn test_singleton_map_recursive_extra_map_key_error() {
+        // Attempt to break recursion with an extra key in the nested map.
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum Nested {
+            A(MyEnum),
+        }
+
+        // This includes a valid variant plus an unexpected extra key.
+        let yaml = "A:\n  Newtype: 42\n  ExtraKey: 55\n";
+        let result: Result<Nested, _> =
+            singleton_map_recursive::deserialize(
+                serde_yml::Deserializer::from_str(yaml),
+            );
+        assert!(
+            result.is_err(),
+            "Extra key inside nested map must cause an error"
+        );
+    }
+
+    #[test]
+    fn test_custom_deserializer_compatibility() {
+        // Verifies that these modules still work with a manually constructed Deserializer.
+        use serde_yml::Deserializer as YamlDeserializer;
+
+        // We'll reuse `MyEnum` for brevity.
+        let yaml = "Newtype: 64\n";
+        let de = YamlDeserializer::from_str(yaml);
+        let result: MyEnum = singleton_map::deserialize(de).unwrap();
+        assert_eq!(result, MyEnum::Newtype(64));
+    }
+
+    #[test]
+    fn test_empty_map_in_option_variant() {
+        // Specifically test the case where an Option<T> is expected, but we get an empty map.
+        // That should fail for `singleton_map_optional`.
+        let yaml = "{}\n";
+        let result: Result<Option<MyEnum>, _> =
+            singleton_map_optional::deserialize(
+                serde_yml::Deserializer::from_str(yaml),
+            );
+        assert!(
+            result.is_err(),
+            "Deserializing an empty map into Option<MyEnum> must fail"
+        );
+    }
+
+    #[test]
+    fn test_nested_singleton_map_conflicting_structure() {
+        // A deeper-level structure conflict in nested_singleton_map.
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum InnerEnum {
+            A(i32),
+            B,
+        }
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum OuterEnum {
+            OuterVariant { x: InnerEnum },
+        }
+
+        let yaml = r#"OuterVariant:
+  x:
+    B: 123
+"#;
+        // Here, variant B is a unit variant, but we've provided "123" as if it's a newtype.
+        let result: Result<OuterEnum, _> =
+            nested_singleton_map::deserialize(
+                serde_yml::Deserializer::from_str(yaml),
+            );
+        assert!(
+            result.is_err(),
+            "Providing sub-fields to a unit variant should fail"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_null_value_error() {
+        // Test deserializing null value for non-Option enum
+        let yaml = "Newtype: null\n";
+        let result: Result<MyEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+            result.is_err(),
+            "Null value should fail for non-Option enum"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_wrong_variant_data_type() {
+        // Test deserializing wrong data type for variant
+        let yaml = "Newtype: \"not a number\"\n";
+        let result: Result<MyEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+            result.is_err(),
+            "Wrong data type should fail deserialization"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_recursive_cyclic_reference() {
+        // Define recursive enum structure
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum RecursiveEnum {
+            Leaf(i32),
+            Node(Box<RecursiveEnum>),
+        }
+
+        let value =
+            RecursiveEnum::Node(Box::new(RecursiveEnum::Leaf(42)));
+        let mut serializer = serde_yml::Serializer::new(Vec::new());
+        singleton_map_recursive::serialize(&value, &mut serializer)
+            .unwrap();
+        let yaml = String::from_utf8(serializer.into_inner().unwrap())
+            .unwrap();
+
+        let deserialized: RecursiveEnum =
+            singleton_map_recursive::deserialize(
+                serde_yml::Deserializer::from_str(&yaml),
+            )
+            .unwrap();
+        assert_eq!(value, deserialized);
+    }
+
+    #[test]
+    fn test_singleton_map_with_invalid_utf8() {
+        // Test handling of invalid UTF-8 in strings
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum StringEnum {
+            Text(String),
+        }
+
+        let yaml = "Text: \x7F\n"; // Valid UTF-8
+        let result: Result<StringEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(
+            result.is_err(),
+            "Invalid UTF-8 should fail deserialization"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_optional_empty_string() {
+        // Test handling of empty string in Option
+        let yaml = "\"\"\n";
+        let result: Result<Option<MyEnum>, _> =
+            singleton_map_optional::deserialize(
+                serde_yml::Deserializer::from_str(yaml),
+            );
+        assert!(
+            result.is_err(),
+            "Empty string should fail for Option<MyEnum>"
+        );
+    }
+
+    #[test]
+    fn test_nested_singleton_map_missing_inner_field() {
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        struct InnerStruct {
+            required: String,
+        }
+
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum ComplexEnum {
+            Variant { data: InnerStruct },
+        }
+
+        let yaml = "Variant:\n  data: {}\n";
+        let result: Result<ComplexEnum, _> =
+            nested_singleton_map::deserialize(
+                serde_yml::Deserializer::from_str(yaml),
+            );
+        assert!(
+            result.is_err(),
+            "Missing required inner field should fail"
+        );
+    }
+
+    #[test]
+    fn test_singleton_map_with_large_numbers() {
+        // Test handling of numbers at the boundaries
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum NumberEnum {
+            Big(i64),
+            Small(i64),
+        }
+
+        // Test serialization and deserialization of max i64
+        let value = NumberEnum::Big(i64::MAX);
+        let mut serializer = serde_yml::Serializer::new(Vec::new());
+        singleton_map::serialize(&value, &mut serializer).unwrap();
+        let yaml = String::from_utf8(serializer.into_inner().unwrap())
+            .unwrap();
+
+        let deserialized: NumberEnum = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(&yaml),
+        )
+        .unwrap();
+        assert_eq!(deserialized, NumberEnum::Big(i64::MAX));
+
+        // Test serialization and deserialization of min i64
+        let value = NumberEnum::Small(i64::MIN);
+        let mut serializer = serde_yml::Serializer::new(Vec::new());
+        singleton_map::serialize(&value, &mut serializer).unwrap();
+        let yaml = String::from_utf8(serializer.into_inner().unwrap())
+            .unwrap();
+
+        let deserialized: NumberEnum = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(&yaml),
+        )
+        .unwrap();
+        assert_eq!(deserialized, NumberEnum::Small(i64::MIN));
+
+        // Test error case: number overflow
+        let yaml = format!("Big: {}\n", u64::MAX);
+        let result: Result<NumberEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(&yaml),
+        );
+        assert!(result.is_err(), "Number overflow should fail");
+    }
+
+    #[test]
+    fn test_singleton_map_recursive_deep_nesting() {
+        // Test very deep nesting of enums
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum DeepEnum {
+            Next(Option<Box<DeepEnum>>),
+            End,
+        }
+
+        // Create a deeply nested structure
+        let mut value = DeepEnum::End;
+        for _ in 0..100 {
+            value = DeepEnum::Next(Some(Box::new(value)));
+        }
+
+        let mut serializer = serde_yml::Serializer::new(Vec::new());
+        singleton_map_recursive::serialize(&value, &mut serializer)
+            .unwrap();
+        let yaml = String::from_utf8(serializer.into_inner().unwrap())
+            .unwrap();
+
+        let deserialized: DeepEnum =
+            singleton_map_recursive::deserialize(
+                serde_yml::Deserializer::from_str(&yaml),
+            )
+            .unwrap();
+        assert_eq!(value, deserialized);
+    }
+
+    #[test]
+    fn test_singleton_map_optional_complex_none() {
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum ComplexEnum {
+            Variant { field: Option<MyEnum> },
+        }
+
+        // Test None handling in nested optional fields
+        let value = ComplexEnum::Variant { field: None };
+        let mut serializer = serde_yml::Serializer::new(Vec::new());
+        singleton_map::serialize(&value, &mut serializer).unwrap();
+        let yaml = String::from_utf8(serializer.into_inner().unwrap())
+            .unwrap();
+
+        let deserialized: ComplexEnum = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(&yaml),
+        )
+        .unwrap();
+        assert_eq!(value, deserialized);
+    }
+
+    #[test]
+    fn test_unit_variant_with_data() {
+        // Test attempting to provide data to a unit variant
+        let yaml = "Unit: 42\n";
+        let result: Result<MyEnum, _> = singleton_map::deserialize(
+            serde_yml::Deserializer::from_str(yaml),
+        );
+        assert!(result.is_err(), "Data for unit variant should fail");
+    }
+
+    #[test]
+    fn test_singleton_map_recursive_mixed_variants() {
+        // Test mixing different variant types in recursive structures
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        enum MixedEnum {
+            Unit,
+            Newtype(Box<MixedEnum>),
+            Struct { next: Option<Box<MixedEnum>> },
+        }
+
+        let value = MixedEnum::Newtype(Box::new(MixedEnum::Struct {
+            next: Some(Box::new(MixedEnum::Unit)),
+        }));
+
+        let mut serializer = serde_yml::Serializer::new(Vec::new());
+        singleton_map_recursive::serialize(&value, &mut serializer)
+            .unwrap();
+        let yaml = String::from_utf8(serializer.into_inner().unwrap())
+            .unwrap();
+
+        let deserialized: MixedEnum =
+            singleton_map_recursive::deserialize(
                 serde_yml::Deserializer::from_str(&yaml),
             )
             .unwrap();

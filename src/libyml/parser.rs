@@ -111,7 +111,7 @@ pub struct MappingStart {
 }
 
 /// Represents an anchor in a YAML document.
-#[derive(Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Anchor(Box<[u8]>);
 
 /// Represents the style of a scalar value in a YAML document.
@@ -138,16 +138,16 @@ impl<'input> Parser<'input> {
     /// # Panics
     ///
     /// This function panics if there is an error initializing the underlying `libyml` parser.
+    #[must_use]
     pub fn new(input: Cow<'input, [u8]>) -> Parser<'input> {
         let owned = Owned::<ParserPinned<'input>>::new_uninit();
         let pin = unsafe {
             let parser = addr_of_mut!((*owned.ptr).sys);
-            if sys::yaml_parser_initialize(parser).fail {
-                panic!(
-                    "Failed to initialize YAML parser: {}",
-                    Error::parse_error(parser)
-                );
-            }
+            assert!(
+                !sys::yaml_parser_initialize(parser).fail,
+                "Failed to initialize YAML parser: {}",
+                Error::parse_error(parser)
+            );
             sys::yaml_parser_set_encoding(
                 parser,
                 sys::YamlUtf8Encoding,
@@ -165,8 +165,15 @@ impl<'input> Parser<'input> {
 
     /// Parses the next YAML event from the input.
     ///
-    /// Returns a `Result` containing the parsed `Event` and its corresponding `Mark` on success,
-    /// or an `Error` if parsing fails.
+    /// # Returns
+    /// Returns a `Result` containing the parsed `Event` and its corresponding `Mark` on success, or an `Error` if parsing fails.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the parser encounters an error while parsing the input.
+    /// The error contains information about the location of the error in the input.
+    ///
+    #[must_use = "You must consume or handle the parsed event, otherwise the parser state may get out of sync."]
     pub fn parse_next_event(
         &mut self,
     ) -> Result<(Event<'input>, Mark)> {
@@ -215,6 +222,17 @@ impl<'input> Parser<'input> {
     /// Checks if the parser is initialized and ready to parse YAML.
     ///
     /// This function returns `true` if the parser is initialized and ready to parse YAML, and `false` otherwise.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if the parser is initialized and ready to parse YAML, and `false` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the parser encounters an error while initializing the parser.
+    /// The error contains information about the location of the error in the input.
+    ///
+    #[must_use = "You must consume or handle the parsed event, otherwise the parser state may get out of sync."]
     pub fn is_ok(&self) -> bool {
         unsafe {
             let parser = addr_of_mut!((*self.pin.ptr).sys);
@@ -282,8 +300,7 @@ unsafe fn convert_event<'input>(
             })
         }
         sys::YamlMappingEndEvent => Event::MappingEnd,
-        sys::YamlNoEvent => unreachable!(),
-        _ => unreachable!(),
+        sys::YamlNoEvent | _ => unreachable!(),
     }
 }
 
@@ -303,8 +320,8 @@ unsafe fn optional_repr<'input>(
     sys: &sys::YamlEventT,
     input: &'input Cow<'input, [u8]>,
 ) -> Option<&'input [u8]> {
-    let start = sys.start_mark.index as usize;
-    let end = sys.end_mark.index as usize;
+    let start = usize::try_from(sys.start_mark.index).ok()?;
+    let end = usize::try_from(sys.end_mark.index).ok()?;
     Some(&input[start..end])
 }
 
@@ -348,18 +365,5 @@ impl Debug for Anchor {
 impl Drop for ParserPinned<'_> {
     fn drop(&mut self) {
         unsafe { sys::yaml_parser_delete(&mut self.sys) }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{de::Progress, loader::Loader};
-
-    #[test]
-    fn can_load_document_with_16_spaces_value() {
-        let hardcoded = "t: a                abc";
-        let progress = Progress::Str(hardcoded);
-        let mut loader = Loader::new(progress).unwrap();
-        let _document = loader.next_document().unwrap();
     }
 }

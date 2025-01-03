@@ -52,31 +52,30 @@ impl Error {
     /// the validity of the `YamlParserT` pointer.
     pub unsafe fn parse_error(parser: *const sys::YamlParserT) -> Self {
         Error {
-            kind: unsafe { (*parser).error },
-            problem: match NonNull::new(unsafe {
-                (*parser).problem as *mut _
-            }) {
-                Some(problem) => CStr::from_ptr(problem),
-                None => CStr::from_bytes_with_nul(
-                    b"libyml parser failed but there is no error\0",
-                )
-                .expect("Error creating CStr from bytes"),
+        kind: unsafe { (*parser).error },
+
+        problem: NonNull::new((*parser).problem as *mut _).map_or_else(
+            || {
+                CStr::from_bytes_with_nul(b"libyml parser failed but there is no error\0")
+                    // Either allow this explicitly...
+                    // #[allow(clippy::expect-used)]
+                    .expect("Error creating fallback CStr")
             },
-            problem_offset: unsafe { (*parser).problem_offset },
-            problem_mark: Mark {
-                sys: unsafe { (*parser).problem_mark },
-            },
-            #[allow(clippy::manual_map)]
-            context: match NonNull::new(unsafe {
-                (*parser).context as *mut _
-            }) {
-                Some(context) => Some(CStr::from_ptr(context)),
-                None => None,
-            },
-            context_mark: Mark {
-                sys: unsafe { (*parser).context_mark },
-            },
-        }
+            CStr::from_ptr,
+        ),
+
+        problem_offset: unsafe { (*parser).problem_offset },
+        problem_mark: Mark {
+            sys: unsafe { (*parser).problem_mark },
+        },
+
+        context: NonNull::new((*parser).context as *mut _)
+            .map(CStr::from_ptr),
+
+        context_mark: Mark {
+            sys: unsafe { (*parser).context_mark },
+        },
+    }
     }
 
     /// Constructs an `Error` from a `YamlEmitterT` pointer.
@@ -89,10 +88,8 @@ impl Error {
         emitter: *const sys::YamlEmitterT,
     ) -> Self {
         Error {
-            kind: unsafe { (*emitter).error },
-            problem: match NonNull::new(unsafe {
-                (*emitter).problem as *mut _
-            }) {
+            kind: (*emitter).error,
+            problem: match NonNull::new((*emitter).problem as *mut _) {
                 Some(problem) => CStr::from_ptr(problem),
                 None => CStr::from_bytes_with_nul(
                     b"libyml emitter failed but there is no error\0",
@@ -101,23 +98,20 @@ impl Error {
             },
             problem_offset: 0,
             problem_mark: Mark {
-                sys: unsafe {
-                    MaybeUninit::<sys::YamlMarkT>::zeroed()
-                        .assume_init()
-                },
+                sys: MaybeUninit::<sys::YamlMarkT>::zeroed()
+                    .assume_init(),
             },
             context: None,
             context_mark: Mark {
-                sys: unsafe {
-                    MaybeUninit::<sys::YamlMarkT>::zeroed()
-                        .assume_init()
-                },
+                sys: MaybeUninit::<sys::YamlMarkT>::zeroed()
+                    .assume_init(),
             },
         }
     }
 
     /// Returns the mark indicating the position of the problem that caused the error.
-    pub fn mark(&self) -> Mark {
+    #[must_use = "You should use the mark to get the position of the error"]
+    pub const fn mark(&self) -> Mark {
         self.problem_mark
     }
 }
@@ -133,7 +127,7 @@ impl Display for Error {
             write!(formatter, " at position {}", self.problem_offset)?;
         }
         if let Some(context) = &self.context {
-            write!(formatter, ", {}", context)?;
+            write!(formatter, ", {context}")?;
             if (self.context_mark.sys.line != 0
                 || self.context_mark.sys.column != 0)
                 && (self.context_mark.sys.line
@@ -161,7 +155,7 @@ impl Debug for Error {
             sys::YamlEmitterError => Some("EMITTER"),
             _ => None,
         } {
-            formatter.field("kind", &format_args!("{}", kind));
+            formatter.field("kind", &format_args!("{kind}"));
         }
         formatter.field("problem", &self.problem);
         if self.problem_mark.sys.line != 0
@@ -202,7 +196,8 @@ impl Mark {
     /// # Returns
     ///
     /// Returns the index of the mark as a `u64`.
-    pub fn index(&self) -> u64 {
+    #[must_use]
+    pub const fn index(&self) -> u64 {
         self.sys.index
     }
 
@@ -213,7 +208,8 @@ impl Mark {
     /// # Returns
     ///
     /// Returns the line number of the mark as a `u64`.
-    pub fn line(&self) -> u64 {
+    #[must_use]
+    pub const fn line(&self) -> u64 {
         self.sys.line
     }
 
@@ -224,7 +220,8 @@ impl Mark {
     /// # Returns
     ///
     /// Returns the column number of the mark as a `u64`.
-    pub fn column(&self) -> u64 {
+    #[must_use]
+    pub const fn column(&self) -> u64 {
         self.sys.column
     }
 }
