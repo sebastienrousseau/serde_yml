@@ -70,7 +70,8 @@ rustdoc-args = [
     "--generate-link-to-definition",
     "--cfg", "docsrs",
     "--document-private-items",
-    "--display-warnings"
+    "-Z", "unstable-options",
+    "--display-doctest-warnings"
 ]
 # Build docs with all crate features enabled to cover the entire API.
 all-features = true
