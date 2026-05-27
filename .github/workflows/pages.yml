@@ -1,0 +1,66 @@
+name: GitHub Pages
+
+# Builds the deprecation shim's rustdoc (every public item carries
+# the `#[deprecated]` banner) and deploys it to GitHub Pages via
+# the modern Actions-based deployment flow. Replaces the legacy
+# `gh-pages` branch source.
+#
+# Preserves the custom domain `doc.serdeyml.com` via a `CNAME` file
+# emitted alongside the upload artifact.
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Single concurrent deployment — the `pages` group is shared with
+# the default deployment environment, so two pushes in flight don't
+# race each other.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build rustdoc
+        run: cargo doc --no-deps --all-features
+        env:
+          RUSTDOCFLAGS: "--cfg docsrs"
+
+      - name: Stage Pages artifact
+        run: |
+          # Top-level redirect to the crate's docs landing page.
+          cat > target/doc/index.html <<'EOF'
+          <!doctype html>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=serde_yml/index.html">
+          <title>serde_yml docs</title>
+          <link rel="canonical" href="https://docs.rs/serde_yml">
+          EOF
+          # Preserve the existing custom-domain CNAME.
+          echo 'doc.serdeyml.com' > target/doc/CNAME
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/doc
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

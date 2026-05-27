@@ -1,21 +1,29 @@
+# cargo-deny config for the serde_yml deprecation shim.
+#
+# The shim's runtime tree is small: serde + noyalib (which pulls
+# indexmap, memchr, rustc-hash, smallvec). The license allowlist
+# below covers that surface plus the standard dev-dep proc-macro
+# stack (proc-macro2, quote, syn, unicode-ident, rustversion).
+
 [licenses]
-# List of allowed licenses for dependencies
-allow = ["MIT", "Apache-2.0", "Unicode-DFS-2016"]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-3-Clause",
+    "Unicode-3.0",   # unicode-ident (modern Unicode license)
+    "Unlicense",     # memchr (dual-licensed Unlicense OR MIT)
+]
 
 [bans]
-# Lint level for when multiple versions of the same crate are detected
 multiple-versions = "warn"
-
-# The graph highlighting used when creating dotgraphs for crates with multiple versions
-# Options: "lowest-version", "simplest-path", "all"
 highlight = "all"
-
-# Certain crates/versions that will be skipped when doing duplicate detection.
 skip = []
-
-# Similarly to `skip` allows you to skip certain crates during duplicate detection, unlike skip, it also includes the entire tree of transitive dependencies starting at the specified crate, up to a certain depth, which is by default infinite
 skip-tree = []
 
 [advisories]
-# List of advisory IDs to ignore
+# RUSTSEC-2025-0068 affected serde_yml ≤ 0.0.12 (the C-FFI
+# `Serializer.emitter` segfault). The shim removes the vulnerable
+# surface entirely — verified via `cargo tree -p serde_yml | grep
+# libyml` returning no output. No advisories ignored here.
 ignore = []
