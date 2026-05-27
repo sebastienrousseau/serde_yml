@@ -13,9 +13,9 @@
 
 ---
 
-## What changed in `0.0.14`
+## What changed in `0.0.13`
 
-`serde_yml 0.0.14` is a **thin compatibility shim**. Every public
+`serde_yml 0.0.13` is a **thin compatibility shim**. Every public
 item now forwards to [`noyalib`], a pure-Rust YAML library with
 `#![forbid(unsafe_code)]` enforced workspace-wide. The previous C-FFI
 parser (`libyml`) has been **removed entirely** from this crate's
@@ -46,16 +46,16 @@ See [`MIGRATION.md`](./MIGRATION.md) for the full mapping table,
 including the small list of types that were removed and what to use
 instead.
 
-## Stop-gap: keep `serde_yml = "0.0.14"`
+## Stop-gap: keep `serde_yml = "0.0.13"`
 
-If you cannot migrate right now, depending on `serde_yml = "0.0.14"`
+If you cannot migrate right now, depending on `serde_yml = "0.0.13"`
 keeps your code compiling. You get noyalib's safe parser
 transparently, and the deprecation warnings show every call site
 that needs to move.
 
 ```toml
 [dependencies]
-serde_yml = "0.0.14"
+serde_yml = "0.0.13"
 ```
 
 ## Why migrate?
@@ -76,8 +76,8 @@ serde_yml = "0.0.14"
 
 ## MSRV
 
-`serde_yml 0.0.14` requires Rust **1.85.0** (noyalib's MSRV).
-Users on older toolchains should pin `serde_yml = "=0.0.13"` and
+`serde_yml 0.0.13` requires Rust **1.85.0** (noyalib's MSRV).
+Users on older toolchains should pin `serde_yml = "=0.0.12"` and
 plan a migration window.
 
 ## License

@@ -1,6 +1,6 @@
 # Migrating off `serde_yml`
 
-`serde_yml` is unmaintained. The `0.0.14` release is a thin
+`serde_yml` is unmaintained. The `0.0.13` release is a thin
 compatibility shim that forwards every call to
 [`noyalib`](https://crates.io/crates/noyalib), which is the
 recommended replacement.
@@ -38,7 +38,7 @@ That is the entire migration for the typical `from_str` /
 
 ---
 
-## Path B — Stay on `serde_yml = "0.0.14"` (stop-gap)
+## Path B — Stay on `serde_yml = "0.0.13"` (stop-gap)
 
 If you cannot migrate right now, the shim keeps your code compiling.
 You get noyalib's safe parser transparently, and the compiler emits
@@ -46,7 +46,7 @@ a deprecation warning at every call site so you can budget the work.
 
 ```toml
 [dependencies]
-serde_yml = "0.0.14"
+serde_yml = "0.0.13"
 ```
 
 No code changes required.
@@ -57,7 +57,7 @@ No code changes required.
 
 The common surface is preserved name-for-name:
 
-| `serde_yml` (≤ 0.0.13)              | `serde_yml` 0.0.14 shim             | Direct `noyalib` equivalent                       |
+| `serde_yml` (≤ 0.0.12)              | `serde_yml` 0.0.13 shim             | Direct `noyalib` equivalent                       |
 | ----------------------------------- | ----------------------------------- | ------------------------------------------------- |
 | `serde_yml::from_str`               | unchanged                           | `noyalib::compat::serde_yaml::from_str`           |
 | `serde_yml::from_slice`             | unchanged                           | `noyalib::compat::serde_yaml::from_slice`         |
@@ -79,7 +79,7 @@ The common surface is preserved name-for-name:
 
 ---
 
-## Removed in 0.0.14
+## Removed in 0.0.13
 
 The deep internal modules that previous versions exposed leaked
 implementation details of the C-FFI parser. They are **removed** in
@@ -130,6 +130,6 @@ opt-outs.
 
 ## MSRV change
 
-`serde_yml 0.0.14` requires **Rust 1.85.0** (noyalib's MSRV); the
+`serde_yml 0.0.13` requires **Rust 1.85.0** (noyalib's MSRV); the
 previous releases required 1.56. Users who cannot move past 1.56
-should pin `serde_yml = "=0.0.13"` and plan a migration window.
+should pin `serde_yml = "=0.0.12"` and plan a migration window.

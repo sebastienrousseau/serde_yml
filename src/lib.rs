@@ -2,7 +2,7 @@
 
 //! # ⚠️ `serde_yml` is deprecated — migrate to [`noyalib`](https://crates.io/crates/noyalib)
 //!
-//! This crate is **unmaintained**. The `0.0.14` release is a thin
+//! This crate is **unmaintained**. The `0.0.13` release is a thin
 //! compatibility shim that forwards every call to [`noyalib`], an
 //! actively-maintained, pure-Rust YAML library with
 //! `#![forbid(unsafe_code)]` enforced across the entire workspace.
@@ -40,13 +40,13 @@
 //! See [`MIGRATION.md`](https://github.com/sebastienrousseau/serde_yml/blob/master/MIGRATION.md)
 //! for the full mapping table.
 //!
-//! ## Stop-gap: keep using `serde_yml = "0.0.14"`
+//! ## Stop-gap: keep using `serde_yml = "0.0.13"`
 //!
 //! Existing call sites compile unchanged against this shim. Every
 //! item below is marked `#[deprecated]`, so the compiler will point
 //! at the spots that need updating during your migration.
 //!
-//! ## Removed in 0.0.14
+//! ## Removed in 0.0.13 (vs. 0.0.12)
 //!
 //! The deep internal modules that previous versions exposed —
 //! `serde_yml::libyml`, `serde_yml::loader`, `serde_yml::modules`,
@@ -58,10 +58,10 @@
 //! `MIGRATION.md` for the equivalence table.
 
 #![deprecated(
-    since = "0.0.14",
+    since = "0.0.13",
     note = "serde_yml is unmaintained. Migrate to `noyalib` (https://crates.io/crates/noyalib). See MIGRATION.md."
 )]
-#![doc(html_root_url = "https://docs.rs/serde_yml/0.0.14")]
+#![doc(html_root_url = "https://docs.rs/serde_yml/0.0.13")]
 
 // ── Top-level re-exports — name-for-name with serde_yml 0.0.13 ─────────
 

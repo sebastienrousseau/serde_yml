@@ -13,9 +13,9 @@ name = "serde_yml"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/serde_yml"
 # Bumped from 1.56 — `noyalib` requires Rust 1.85+ (edition 2024).
-# Users who cannot move past 1.56 should stay on `serde_yml = "=0.0.13"`.
+# Users who cannot move past 1.56 should stay on `serde_yml = "=0.0.12"`.
 rust-version = "1.85.0"
-version = "0.0.14"
+version = "0.0.13"
 include = [
     "/Cargo.toml",
     "/LICENSE-APACHE",

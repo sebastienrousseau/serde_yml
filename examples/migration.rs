@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
 // `serde_yml` is deprecated. This example shows the two valid paths
-// in 0.0.14:
+// in 0.0.13:
 //
 //  1. (Recommended) Switch directly to `noyalib`:
 //       cargo remove serde_yml
 //       cargo add noyalib --features compat-serde-yaml
 //       sed -i 's/serde_yml/noyalib::compat::serde_yaml/g' src/**/*.rs
 //
-//  2. (Stop-gap) Keep `serde_yml = "0.0.14"`; every call below
+//  2. (Stop-gap) Keep `serde_yml = "0.0.13"`; every call below
 //     forwards to noyalib through the shim. The compiler will emit
 //     a deprecation warning for each `serde_yml::*` usage,
 //     marking the call sites for migration.

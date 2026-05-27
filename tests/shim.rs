@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// Smoke tests for the `serde_yml 0.0.14` deprecation shim. The
+// Smoke tests for the `serde_yml 0.0.13` deprecation shim. The
 // public surface here is a thin re-export of
 // `noyalib::compat::serde_yaml`; these tests just verify the
 // re-exports resolve and round-trip on representative shapes so a
