@@ -69,15 +69,18 @@
 
 #[doc(inline)]
 pub use noyalib::compat::serde_yaml::{
-    from_reader, from_slice, from_str, from_value, to_string, to_value, to_writer, Deserializer,
-    Error, Location, Mapping, Number, Result, Sequence, Serializer, Tag, TaggedValue, Value,
+    from_reader, from_slice, from_str, from_value, to_string, to_value,
+    to_writer, Deserializer, Error, Location, Mapping, Number, Result,
+    Sequence, Serializer, Tag, TaggedValue, Value,
 };
 
 // ── Sub-modules — keep path-form imports working ───────────────────────
 
 /// YAML value types. Re-exported from [`noyalib::compat::serde_yaml::value`].
 pub mod value {
-    pub use noyalib::compat::serde_yaml::value::{Mapping, Number, Sequence, Tag, TaggedValue, Value};
+    pub use noyalib::compat::serde_yaml::value::{
+        Mapping, Number, Sequence, Tag, TaggedValue, Value,
+    };
 }
 
 /// YAML mapping type. Re-exported from [`noyalib::compat::serde_yaml::mapping`].
@@ -89,7 +92,7 @@ pub mod mapping {
 /// [`noyalib::compat::serde_yaml::with`].
 pub mod with {
     pub use noyalib::compat::serde_yaml::with::{
-        nested_singleton_map, singleton_map, singleton_map_optional, singleton_map_recursive,
-        singleton_map_with,
+        nested_singleton_map, singleton_map, singleton_map_optional,
+        singleton_map_recursive, singleton_map_with,
     };
 }

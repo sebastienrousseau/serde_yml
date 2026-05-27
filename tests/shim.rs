@@ -76,7 +76,8 @@ fn value_submodule_path_resolves() {
 
 #[test]
 fn mapping_submodule_path_resolves() {
-    let m: serde_yml::mapping::Mapping = serde_yml::mapping::Mapping::new();
+    let m: serde_yml::mapping::Mapping =
+        serde_yml::mapping::Mapping::new();
     assert!(m.is_empty());
 }
 
@@ -86,15 +87,17 @@ fn with_submodule_path_resolves() {
     // path still resolves through the shim.
     #[allow(unused_imports)]
     use serde_yml::with::{
-        nested_singleton_map, singleton_map, singleton_map_optional, singleton_map_recursive,
-        singleton_map_with,
+        nested_singleton_map, singleton_map, singleton_map_optional,
+        singleton_map_recursive, singleton_map_with,
     };
 }
 
 #[test]
 fn error_carries_location() {
-    let err = serde_yml::from_str::<serde_yml::Value>("a: [unclosed").unwrap_err();
-    let loc = err.location().expect("parse error must carry a location");
+    let err = serde_yml::from_str::<serde_yml::Value>("a: [unclosed")
+        .unwrap_err();
+    let loc =
+        err.location().expect("parse error must carry a location");
     assert!(loc.line() >= 1);
     assert!(loc.column() >= 1);
     let _: usize = loc.index();
