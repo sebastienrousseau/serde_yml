@@ -23,7 +23,11 @@ skip-tree = []
 
 [advisories]
 # RUSTSEC-2025-0068 affected serde_yml ≤ 0.0.12 (the C-FFI
-# `Serializer.emitter` segfault). The shim removes the vulnerable
-# surface entirely — verified via `cargo tree -p serde_yml | grep
-# libyml` returning no output. No advisories ignored here.
-ignore = []
+# `Serializer.emitter` segfault). The 0.0.13 release removes the
+# vulnerable surface entirely — verified via
+# `cargo tree -p serde_yml | grep libyml` (no output) — but the
+# RustSec advisory DB has not yet been updated to mark 0.0.13 as
+# patched, so `cargo deny` self-flags the shim. Remove this entry
+# once the advisory database accepts a PR amending
+# `patched_versions = "^0.0.13"`.
+ignore = ["RUSTSEC-2025-0068"]

@@ -1,0 +1,20 @@
+# cargo-audit configuration.
+#
+# RUSTSEC-2025-0068 flagged `serde_yml` for the C-FFI
+# `Serializer.emitter` segfault in versions ≤ 0.0.12. The 0.0.13
+# release **structurally removes the vulnerable surface**: the
+# C-FFI `libyml` parser is gone from the dependency graph,
+# `Serializer` is now a pure-Rust unit struct with no `emitter`
+# field, and the backend (`noyalib`) enforces
+# `#![forbid(unsafe_code)]` workspace-wide.
+#
+# The RustSec advisory database has not yet been updated to mark
+# 0.0.13 as patched, so `cargo audit` self-flags the shim. This
+# ignore entry should be **removed** once the advisory database
+# accepts a PR amending `patched_versions = "^0.0.13"`.
+#
+# Verification (run any time):
+#   cargo tree -p serde_yml | grep libyml   # → no output
+#   grep 'pub struct Serializer' src/lib.rs # → re-exports unit struct
+[advisories]
+ignore = ["RUSTSEC-2025-0068"]
