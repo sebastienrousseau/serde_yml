@@ -133,3 +133,62 @@ opt-outs.
 `serde_yml 0.0.13` requires **Rust 1.85.0** (noyalib's MSRV); the
 previous releases required 1.56. Users who cannot move past 1.56
 should pin `serde_yml = "=0.0.12"` and plan a migration window.
+
+---
+
+## Test and example coverage in 0.0.13
+
+The shim is wire-compatible with typical user code (`from_str` /
+`to_string` / `Value` round-trips work transparently), but the
+original library's own unit tests and examples verified the *old
+implementation's internal shape* — `Mapping`'s internal `map`
+field, the streaming `Serializer::new(writer)` constructor, the
+C-FFI `libyml` module, the `loader::Loader` event walker — which
+the noyalib backend does not expose at the same shape.
+
+### Tests retained (1 file, 9 tests, all pass)
+
+| File | Covers |
+| :--- | :--- |
+| `tests/shim.rs` | Typed round-trips (`from_str` / `to_string` / `from_slice` / `from_reader` / `from_value` / `to_value`), `value` / `mapping` / `with` sub-module path imports, `Error::location()` |
+
+### Examples retained (2 runnable + 17 sub-modules, all execute to completion)
+
+| Path | Notes |
+| :--- | :--- |
+| `examples/migration.rs` | Standalone migration demo |
+| `examples/example.rs` | Aggregator that runs the 17 sub-modules below |
+| `examples/serializer/{basic, collections, complex_nested, custom_serialization, enums, error_handling, optional_and_default, structs}.rs` | `basic.rs` was patched to use `to_writer` instead of `Serializer::new(stdout)` (the streaming-serializer constructor is not exposed by noyalib's compat layer) |
+| `examples/value/de_examples.rs` | Patched: the `!Variant 0` → `E::Variant(0)` sub-case was removed (noyalib preserves custom tags verbatim, including the leading `!`, so the legacy auto-coercion no longer applies — see "Behavioural notes" above) |
+| `examples/with/{singleton_map, singleton_map_recursive, singleton_map_optional, singleton_map_enum_variants, singleton_map_recursive_deep_nesting, singleton_map_recursive_optional, singleton_map_recursive_serialize_deserialize, singleton_map_recursive_with, nested_singleton_map}.rs` | Unchanged from the original — `with::singleton_map*` is fully re-exported |
+
+### Tests removed (legacy implementation-detail coverage)
+
+| File | Why |
+| :--- | :--- |
+| `tests/test_de.rs` | `Deserializer::from_str(s)` constructor — noyalib's `Deserializer::new` takes a `&Value` |
+| `tests/test_error.rs` | Same + `TaggedValue` literal-struct shape differs |
+| `tests/test_lib.rs` | Imports `de::Event`, `loader::Loader`, `DocumentAnchor` — all removed |
+| `tests/test_mapping.rs` | Pokes `Mapping::map` internal field, `Entry`, `DuplicateKeyError`, `into_keys`, `into_values`, `swap_remove_entry_from` |
+| `tests/test_number.rs` | `Number` doesn't impl `Serialize` / `DeserializeOwned` in the compat layer the same way |
+| `tests/test_ser.rs` | `ser::SerializerConfig` — the deep `ser` module is gone |
+| `tests/test_serde.rs` | `T: 'static` bound mismatch + `String::from(Value)` shape differs |
+| `tests/test_value.rs` | Debug-format assertions hard-code the old `Mapping`/`Tag` output |
+| `tests/test_with.rs` | `Serializer::new(writer)` + `Deserializer::from_str(s)` + `singleton_map_with::{serialize, deserialize}` aliases |
+| `tests/test_tagged.rs` | `value::tagged::nobang` — deep internal helper |
+| `tests/value/test_*.rs` (6 files) | Sub-directory tests + probe `Mapping` / `Tag` / `Index` / `libyml::tag` internals |
+| `tests/test_anchors_and_aliases.rs`, `test_loader.rs`, `tests/libyml/*`, `tests/modules/*` | C-FFI parser internals — removed in the shim |
+
+### Examples removed
+
+| Path | Why |
+| :--- | :--- |
+| `examples/libyml/*` (6 files) | Demoed the `libyml` C-FFI surface |
+| `examples/loader/*` (5 files) | `loader::Loader` + `de::Progress` |
+| `examples/modules/*` (1 file) | `modules::path::Path` |
+| `examples/value/index_examples.rs` | `value::Index` sealed trait — `noyalib::Value` implements `Index<&str>` / `Index<usize>` natively |
+| `examples/with/singleton_map_with{,_custom_serialize,_custom_serialize_deserialize}.rs` (3 files) | noyalib's `singleton_map_with` exposes `serialize_with` / `deserialize_with` (with explicit transform fn), not bare `serialize` / `deserialize` aliases |
+
+If you depended on any of these, the recommended path is to switch
+to `noyalib` directly — its public surface offers the equivalent
+functionality with a cleaner, pure-Rust shape.

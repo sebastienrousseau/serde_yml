@@ -38,6 +38,8 @@ serde = "1.0.204"
 
 [dev-dependencies]
 serde = { version = "1.0.204", features = ["derive"] }
+serde_derive = "1.0.204"
+indoc = "2.0.5"
 
 [features]
 default = []
