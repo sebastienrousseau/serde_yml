@@ -1,44 +1,47 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-//! # ⚠️ `serde_yml` is deprecated — migrate to [`noyalib`](https://crates.io/crates/noyalib)
+//! # ⚠️ `serde_yml` is deprecated — migrate to a maintained alternative
 //!
 //! This crate is **unmaintained**. The `0.0.13` release is a thin
-//! compatibility shim that forwards every call to [`noyalib`], an
-//! actively-maintained, pure-Rust YAML library with
-//! `#![forbid(unsafe_code)]` enforced across the entire workspace.
+//! compatibility shim so existing call sites keep working while you
+//! plan a migration. See [`MIGRATION.md`](https://github.com/sebastienrousseau/serde_yml/blob/master/MIGRATION.md)
+//! for the full guide.
 //!
-//! ## Why migrate?
+//! ## Maintained alternatives
 //!
-//! - **Maintained.** `serde_yml` has been archived. `noyalib` is
-//!   actively developed; security advisories and YAML 1.2
-//!   corrections flow into it.
-//! - **Safe.** `noyalib` forbids `unsafe` code. The original
-//!   `serde_yml` shipped FFI bindings to the C `libyaml` parser via
-//!   `libyml`; this shim removes that dependency entirely.
-//! - **Faster.** `noyalib` outpaces `serde_yaml_ng` (the most active
-//!   `serde_yaml` fork) by 39–64 % on representative workloads.
-//! - **YAML 1.2 spec-compliant.** Passes 406/406 cases in the
-//!   official YAML 1.2 test suite.
-//! - **No archived advisory chain.** The shim depends on `noyalib`,
-//!   not on `serde_yaml` 0.9 or `libyml` — your downstream
-//!   `cargo audit` / `cargo deny` runs no longer flag the
-//!   unmaintained chain.
+//! - **[`noyalib`](https://crates.io/crates/noyalib)** — pure-Rust,
+//!   `#![forbid(unsafe_code)]`, drop-in via the `compat-serde-yaml`
+//!   feature (zero call-site changes for typical users).
+//! - **[`serde-saphyr`](https://crates.io/crates/serde-saphyr)** —
+//!   modern parser, serde-integrated typed deserialisation. **No
+//!   `Value` DOM** — fits codebases that only call
+//!   `from_str::<MyStruct>`.
+//! - **[`yaml-rust2`](https://crates.io/crates/yaml-rust2)** —
+//!   pure-Rust parser primitives, no `serde` wrapper. Fits users
+//!   who were using the low-level `serde_yml::libyml` / `loader`
+//!   surface (removed in this shim).
 //!
-//! ## Recommended: switch directly to `noyalib`
+//! `MIGRATION.md` carries the per-crate mapping tables.
 //!
-//! ```toml
-//! # Cargo.toml
-//! - serde_yml = "0.0"
-//! + noyalib = { version = "0.0.5", features = ["compat-serde-yaml"] }
-//! ```
+//! ## Why the shim is backed by `noyalib`
 //!
-//! ```rust,ignore
-//! - use serde_yml::{from_str, to_string, Value};
-//! + use noyalib::compat::serde_yaml::{from_str, to_string, Value};
-//! ```
+//! The shim itself depends on `noyalib`'s `compat-serde-yaml`
+//! feature for its implementation. This is an implementation
+//! detail of the shim, not a recommendation that you must use
+//! `noyalib`. Two things follow:
 //!
-//! See [`MIGRATION.md`](https://github.com/sebastienrousseau/serde_yml/blob/master/MIGRATION.md)
-//! for the full mapping table.
+//! - **No archived advisory chain.** The previous C-FFI parser
+//!   (`libyml`) and `serde_yaml` 0.9 are gone from the dependency
+//!   graph entirely; downstream `cargo audit` / `cargo deny` runs
+//!   stop flagging the unmaintained chain.
+//! - **Safer defaults flow through.** `#![forbid(unsafe_code)]`,
+//!   YAML 1.2 strict booleans (the "Norway problem" fix), custom
+//!   tags preserved as `Value::Tagged` rather than coerced.
+//!
+//! If you want to evaluate `noyalib` directly, the
+//! `compat-serde-yaml` feature exposes the same surface this shim
+//! re-exports. If you'd rather pick a different alternative,
+//! `MIGRATION.md` covers `serde-saphyr` and `yaml-rust2`.
 //!
 //! ## Stop-gap: keep using `serde_yml = "0.0.13"`
 //!
@@ -53,13 +56,12 @@
 //! `serde_yml::de::{Event, Progress}`, `serde_yml::ser::SerializerConfig`,
 //! `serde_yml::value::Index`, `DocumentAnchor`, `State` — are
 //! **gone** in this release. They were implementation details of
-//! the C-FFI parser that no longer exists. Migrate to `noyalib`
-//! directly; it offers equivalent (and safer) functionality. See
-//! `MIGRATION.md` for the equivalence table.
+//! the C-FFI parser that no longer exists. See `MIGRATION.md` for
+//! the equivalence table per alternative.
 
 #![deprecated(
     since = "0.0.13",
-    note = "serde_yml is unmaintained. Migrate to `noyalib` (https://crates.io/crates/noyalib). See MIGRATION.md."
+    note = "serde_yml is unmaintained. Migrate to a maintained alternative (noyalib, serde-saphyr, or yaml-rust2). See MIGRATION.md."
 )]
 #![doc(html_root_url = "https://docs.rs/serde_yml/0.0.13")]
 
