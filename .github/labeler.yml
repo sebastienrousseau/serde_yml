@@ -1,0 +1,15 @@
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.md', 'docs/**']
+rust:
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.rs', 'Cargo.toml', 'Cargo.lock']
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/workflows/**']
+tests:
+  - changed-files:
+      - any-glob-to-any-file: ['**/tests/**', '**/*_test.rs']
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: ['Cargo.lock']
