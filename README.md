@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 OR MIT -->
 
 <p align="center">
-  <img src="https://kura.pro/serde_yml/images/logos/serde_yml.svg" alt="serde_yml logo" width="128" />
+  <img src="https://cloudcdn.pro/serde_yml/v1/logos/serde_yml.svg" alt="serde_yml logo" width="128" />
 </p>
 
 <h1 align="center">serde_yml</h1>
