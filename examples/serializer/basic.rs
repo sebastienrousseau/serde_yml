@@ -1,12 +1,12 @@
+//! Basic usage of the YAML serializer via the deprecation shim.
 //!
-//! Example for basic usage of the YAML serializer.
-//!
-//! This example demonstrates how to serialize a simple struct into YAML format
-//! using the `Serializer` provided by the `serde_yml` crate.
-//!
+//! The original example used `Serializer::new(writer)` and called
+//! `Person::serialize(&mut serializer)`. The noyalib backend that
+//! powers the 0.0.13 shim does not expose a streaming-serializer
+//! constructor at the same shape, so this example uses the
+//! equivalent `to_writer` entry point instead.
 
 use serde::Serialize;
-use serde_yml::Serializer;
 
 #[derive(Serialize)]
 struct Person {
@@ -16,7 +16,6 @@ struct Person {
 }
 
 pub(crate) fn main() {
-    // Print a message to indicate the file being executed.
     println!("\n❯ Executing examples/serializer/basic.rs");
 
     let person = Person {
@@ -25,8 +24,7 @@ pub(crate) fn main() {
         city: "New York".to_string(),
     };
 
-    let mut serializer = Serializer::new(std::io::stdout());
-    person.serialize(&mut serializer).unwrap();
+    serde_yml::to_writer(std::io::stdout(), &person).unwrap();
 
     println!("\n✅ Person serialized to YAML.");
 }

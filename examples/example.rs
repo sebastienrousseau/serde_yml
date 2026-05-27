@@ -1,52 +1,23 @@
-//! # Serde YML Examples
+//! # serde_yml examples (deprecation shim)
 //!
-//! This crate contains examples that demonstrate the usage of the Serde YML library.
+//! `serde_yml` is deprecated; the examples below exercise the public
+//! surface that the 0.0.13 shim continues to provide. The original
+//! example suite included demonstrations of the C-FFI parser
+//! (`libyml`), the low-level `loader::Loader`, and the
+//! `modules::path::Path` error helper — all three were removed
+//! because they have no Rust-only equivalent in `noyalib`. See
+//! `MIGRATION.md` for the noyalib equivalents.
 //!
-//! The examples are organized into the following modules:
-//!
-//! - `loader` - Contains the example modules for the `loader` module.
-//! - `with` - Contains the example modules for the `with` module.
-//!
+//! Run with: `cargo run --example example`.
 
-/// Contains the example modules for the `loader` module.
-mod loader;
+#![allow(deprecated)]
 
-/// Contains the example modules for the `modules` module.
-mod modules;
-
-/// Contains the example modules for the `serializer` module.
 mod serializer;
-
-/// Contains the example modules for the `value` module.
 mod value;
-
-/// Examples for the `with` module.
 mod with;
 
-/// Examples for the `tag` module.
-mod libyml;
-
-/// The main function that runs all the example modules.
-///
-/// This function is responsible for running all the example modules.
-/// It does this by calling the `main` function of each example module.
-///
 fn main() {
-    // Run the example module `loader`.
-    loader::main();
-
-    // Run the example module `modules`.
-    modules::main();
-
-    // Run the example module `serializer`.
     serializer::main();
-
-    // Run the example module `value`.
     value::main();
-
-    // Run the example module `with`.
     with::main();
-
-    // Run the example module `libyml`.
-    libyml::main();
 }

@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches: [main, feat/**]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: sebastienrousseau/pipelines/.github/workflows/rust-ci.yml@main
+    with:
+      rust-version: 'stable'
+      run-coverage: true
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  security:
+    uses: sebastienrousseau/pipelines/.github/workflows/security.yml@main
+    with:
+      language: rust
+
+  docs:
+    if: github.ref == 'refs/heads/main'
+    uses: sebastienrousseau/pipelines/.github/workflows/docs.yml@main
+    with:
+      type: rust
+      redirect-crate: serde_yml

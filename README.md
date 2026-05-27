@@ -1,638 +1,335 @@
-<!-- markdownlint-disable MD033 MD041 -->
+<!-- SPDX-License-Identifier: Apache-2.0 OR MIT -->
 
-<img src="https://kura.pro/serde_yml/images/logos/serde_yml.svg"
-alt="Serde YML logo" width="66" align="right" />
+<p align="center">
+  <img src="https://cloudcdn.pro/serde_yml/v1/logos/serde_yml.svg" alt="serde_yml logo" width="128" />
+</p>
 
-<!-- markdownlint-enable MD033 MD041 -->
+<h1 align="center">serde_yml</h1>
 
-# Serde YML (a fork of Serde YAML)
+<p align="center">
+  Deprecated YAML library for Rust. The <code>0.0.13</code> release
+  is a thin compatibility shim so existing call sites keep working
+  while you migrate to a maintained alternative of your choice.
+</p>
 
-[![Made With Love][made-with-rust]][11] [![Crates.io][crates-badge]][07] [![lib.rs][libs-badge]][12] [![Docs.rs][docs-badge]][08] [![Codecov][codecov-badge]][09] [![Build Status][build-badge]][10] [![GitHub][github-badge]][06]
+<p align="center">
+  <a href="https://crates.io/crates/serde_yml"><img src="https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=red&label=deprecated&logo=rust" alt="Crates.io (deprecated)" /></a>
+  <a href="https://docs.rs/serde_yml"><img src="https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" alt="Docs.rs" /></a>
+  <a href="./MIGRATION.md"><img src="https://img.shields.io/badge/migration-guide-66c2a5?style=for-the-badge" alt="Migration guide" /></a>
+</p>
 
-[Serde YML][00] is a Rust library for using the [Serde][01] serialization framework with data in [YAML][05] file format.
+---
 
-## Features
+## Contents
 
-- Serialization and deserialization of Rust data structures to/from YAML format
-- Support for custom structs and enums using Serde's derive macros
-- Handling of YAML's `!tag` syntax for representing enum variants
-- Direct access to YAML values through the `Value` type and related types like `Mapping` and `Sequence`
-- Comprehensive error handling with `Error`, `Location`, and `Result` types
-- Serialization to YAML using `to_string` and `to_writer` functions
-- Deserialization from YAML using `from_str`, `from_slice`, and `from_reader` functions
-- Customizable serialization and deserialization behavior using Serde's `#[serde(with = ...)]` attribute
-- Support for serializing/deserializing enums using a YAML map with a single key-value pair through the `singleton_map` module
-- Recursive application of `singleton_map` serialization/deserialization to all enums within a data structure using the `singleton_map_recursive` module
-- Serialization and deserialization of optional enum fields using the `singleton_map_optional` module
-- Handling of nested enum structures with optional inner enums using the `singleton_map_recursive` module
-- Customization of serialization and deserialization logic for enums using the `singleton_map_with` module and custom helper functions
+**Getting started**
 
-## Installation
+- [Install](#install) — stop-gap shim usage
+- [Security: RUSTSEC-2025-0068 fixed in 0.0.13](#security-rustsec-2025-0068-fixed-in-0013)
+- [Quick Start](#quick-start) — shim usage in ten lines
 
-Add this to your `Cargo.toml`:
+**Choosing a replacement**
+
+- [Maintained alternatives](#maintained-alternatives) — picking a destination crate
+- [One-minute migration paths](#one-minute-migration-paths) — diff snippets per destination
+
+**Deprecation reference**
+
+- [What changed in 0.0.13](#what-changed-in-0013) — the shim, in one paragraph
+- [What still works in 0.0.13](#what-still-works-in-0013) — surviving tests and examples
+- [What was removed in 0.0.13](#what-was-removed-in-0013) — the C-FFI surface
+- [Behavioural notes](#behavioural-notes) — two intentional deltas worth knowing
+
+**Operational**
+
+- [MSRV](#msrv) — Rust 1.85.0 floor
+- [Documentation](#documentation) — migration guide, alternative-crate docs
+- [License](#license)
+
+---
+
+## Install
+
+`serde_yml = "0.0.13"` is a stop-gap so an in-flight migration
+doesn't block your release. Existing call sites compile unchanged;
+the compiler emits a deprecation warning at each `use serde_yml::*`
+import pointing at the migration guide.
 
 ```toml
 [dependencies]
-serde = "1.0"
-serde_yml = "0.0.12"
+serde_yml = "0.0.13"
 ```
 
-## Usage
+The shim itself depends on `noyalib`'s `compat-serde-yaml` feature
+for its implementation. The previous C-FFI parser (`libyml`) and
+`serde_yaml` 0.9 are no longer in the dependency graph. Whether
+your eventual destination is `noyalib` or one of the other
+[maintained alternatives](#maintained-alternatives) is your call.
 
-Here's a quick example on how to use Serde YML to serialize and deserialize a struct to and from YAML:
+---
+
+## Security: RUSTSEC-2025-0068 fixed in 0.0.13
+
+[**RUSTSEC-2025-0068**](https://rustsec.org/advisories/RUSTSEC-2025-0068.html)
+(also [GHSA-hhw4-xg65-fp2x](https://github.com/advisories/GHSA-hhw4-xg65-fp2x))
+flagged **all `serde_yml` versions ≤ 0.0.12** as unsound — the
+`serde_yml::ser::Serializer.emitter` field could cause a
+segmentation fault. The advisory is informational severity but
+real: it stems from the C-FFI `libyaml` parser the original crate
+linked against.
+
+**Upgrading to `serde_yml = "0.0.13"` removes the vulnerable
+surface entirely:**
+
+- The C-FFI `libyml` dependency is **gone** from the graph.
+- `serde_yml::ser::Serializer` is now a re-export of a pure-Rust
+  unit struct (`pub struct Serializer;`) with **no `emitter`
+  field**. Any code that referenced `.emitter` won't compile —
+  which is exactly the desired outcome.
+- The pure-Rust backend (`noyalib`) enforces
+  `#![forbid(unsafe_code)]` across the whole workspace, so the
+  underlying unsoundness class cannot recur through the shim.
+
+Verification:
+
+```bash
+$ cargo update -p serde_yml --precise 0.0.13
+$ cargo audit
+# RUSTSEC-2025-0068 no longer flagged for serde_yml — the
+# vulnerable surface is not present in 0.0.13.
+$ cargo tree -p serde_yml | grep libyml
+# (no output — libyml is not in the dependency graph)
+```
+
+The same fix flows through to any
+[maintained alternative](#maintained-alternatives) you eventually
+migrate to. Pinning `serde_yml = "=0.0.12"` keeps the advisory in
+your audit feed; pinning `serde_yml = "0.0.13"` (or migrating
+directly) clears it.
+
+---
+
+## Quick Start
 
 ```rust
-use serde::{Serialize, Deserialize};
+#![allow(deprecated)]
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
-struct Point {
-    x: f64,
-    y: f64,
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct Config {
+    name: String,
+    port: u16,
 }
 
-fn main() -> Result<(), serde_yml::Error> {
-    let point = Point { x: 1.0, y: 2.0 };
-
-    // Serialize to YAML
-    let yaml = serde_yml::to_string(&point)?;
-    assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
-
-    // Deserialize from YAML
-    let deserialized_point: Point = serde_yml::from_str(&yaml)?;
-    assert_eq!(point, deserialized_point);
-
+fn main() -> serde_yml::Result<()> {
+    let yaml = "name: myapp\nport: 8080\n";
+    let cfg: Config = serde_yml::from_str(yaml)?;
+    let back = serde_yml::to_string(&cfg)?;
+    let round: Config = serde_yml::from_str(&back)?;
+    assert_eq!(cfg, round);
     Ok(())
 }
 ```
+
+Run the bundled examples with `cargo run --example example` (the
+aggregator) or `cargo run --example migration` (a single-file demo).
+
+---
+
+## Maintained alternatives
+
+Three crates are realistic destinations for a `serde_yml` user.
+None is being prescribed — pick the one that fits the codebase.
+
+| Crate | Latest | Migration shape | Best fit |
+| :--- | :--- | :--- | :--- |
+| **[`noyalib`](https://crates.io/crates/noyalib)** | 0.0 | Drop-in via `features = ["compat-serde-yaml"]` — zero call-site changes for typical users | Codebases that want a `serde_yml`-shaped API on a modern, safe, pure-Rust backend |
+| **[`serde-saphyr`](https://crates.io/crates/serde-saphyr)** | 0.0 | Path rename for typed code; **no `Value` DOM** | Typed-deserialise workloads (`from_str::<MyStruct>`) — the 95 % case. Doesn't fit codebases that hold dynamic `Value` trees in flight |
+| **[`yaml-rust2`](https://crates.io/crates/yaml-rust2)** | 0.9 | Not serde-integrated — lower-level parser API | Users who were on the low-level `serde_yml::libyml` / `loader` surface (removed in this shim) and want to keep working at that level |
+
+### Decision guide
+
+- **You used `serde_yml::from_str` / `to_string` / `Value` /
+  `Mapping` / `with::singleton_map*`** — pick **`noyalib`**. The
+  `compat-serde-yaml` feature was built for this exact migration:
+  one-line `Cargo.toml` change, one search-replace on imports,
+  done.
+- **You only ever called `from_str::<MyStruct>` and never touched
+  the `Value` type** — pick **`serde-saphyr`**. Smaller surface
+  than `noyalib`, modern parser.
+- **You were using `serde_yml::libyml::*` or
+  `serde_yml::loader::Loader`** — pick **`yaml-rust2`**. Those
+  surfaces are gone from this shim regardless; `yaml-rust2` is the
+  natural Rust-native equivalent for low-level YAML processing.
+
+---
+
+## One-minute migration paths
+
+Side-by-side diff snippets for each destination. The full
+function-mapping tables are in [`MIGRATION.md`](./MIGRATION.md).
+
+### → `noyalib`
+
+```diff
+-[dependencies]
+-serde_yml = "0.0"
++[dependencies]
++noyalib = { version = "0.0.5", features = ["compat-serde-yaml"] }
+```
+
+```diff
+-use serde_yml::{from_str, to_string, Value};
++use noyalib::compat::serde_yaml::{from_str, to_string, Value};
+```
+
+### → `serde-saphyr` (typed-only)
+
+```diff
+-[dependencies]
+-serde_yml = "0.0"
++[dependencies]
++serde-saphyr = "0.0"
+```
+
+```diff
+-use serde_yml::from_str;
++use serde_saphyr::from_str;
+ let cfg: MyConfig = from_str(yaml)?;
+```
+
+If your code holds a `serde_yml::Value` in flight, you cannot move
+it directly to `serde-saphyr` — there is no equivalent `Value`
+type. The two viable options are: (a) restructure to typed-only
+deserialisation, or (b) pick `noyalib` instead.
+
+### → `yaml-rust2` (low-level)
+
+```diff
+-[dependencies]
+-serde_yml = "0.0"
++[dependencies]
++yaml-rust2 = "0.9"
+```
+
+```diff
+-use serde_yml::{from_str, Value};
+-let v: Value = serde_yml::from_str(yaml)?;
++use yaml_rust2::YamlLoader;
++let docs = YamlLoader::load_from_str(yaml)?;
++let v = &docs[0];
+```
+
+`yaml-rust2` returns a `Yaml` enum (its own AST), not a
+`serde::Deserialize` value — bring your own typed-conversion code
+or hand-write the read paths. This is the right choice when you
+actually want the parser primitives.
+
+---
+
+## What changed in 0.0.13
+
+`serde_yml 0.0.13` is a thin compatibility shim. The runtime
+dependency list dropped from six crates (`libyml`, `indexmap`,
+`itoa`, `ryu`, `memchr`, `serde`) to two (`noyalib`, `serde`) —
+the C-FFI parser is no longer in the graph. Existing call sites
+compile unchanged; the compiler emits a `#[deprecated]` warning at
+each one so you can budget the migration.
+
+The shim being backed by `noyalib` internally is an
+implementation detail, not a recommendation to use `noyalib`
+specifically. The
+[Maintained alternatives](#maintained-alternatives) section above
+covers the choice.
+
+---
+
+## What still works in 0.0.13
+
+The shim is wire-compatible with typical user code. Verified by
+`cargo test --all-targets` + `cargo run --example example` +
+`cargo run --example migration`:
+
+| Surface | Status |
+| :--- | :--- |
+| `tests/shim.rs` — typed round-trips, sub-module path imports, `Error::location()` | **9 / 9 pass** |
+| `examples/example.rs` — aggregator running 17 sub-modules from `serializer/`, `value/`, `with/` | **exits 0** |
+| `examples/migration.rs` — standalone shim demo | **exits 0** |
+
+The full per-file inventory of retained / patched / removed
+tests and examples is in [`MIGRATION.md` § "Test and example
+coverage in 0.0.13"](./MIGRATION.md#test-and-example-coverage-in-0013).
+
+---
+
+## What was removed in 0.0.13
+
+The deep internal modules that previous versions exposed leaked
+implementation details of the C-FFI parser. They are **removed**
+in this shim. The right replacement depends on which alternative
+you picked:
+
+| Removed from `serde_yml` | What it was | Where it goes |
+| :--- | :--- | :--- |
+| `serde_yml::libyml::*` | Raw FFI bindings to C `libyaml` | `yaml-rust2` for low-level parsing; otherwise no equivalent (the pure-Rust replacements don't expose FFI) |
+| `serde_yml::loader::Loader` | Low-level YAML event loader | `yaml-rust2::YamlLoader`; `noyalib::load_all_as::<T>` for typed |
+| `serde_yml::de::{Event, Progress}` | Event enum + input cursor | Covered by `yaml-rust2`'s parser API or `noyalib`'s streaming `Deserializer` |
+| `serde_yml::de::DocumentAnchor` | Anchor-resolution helper | `noyalib` and `serde-saphyr` resolve anchors transparently |
+| `serde_yml::ser::{SerializerConfig, State}` | C-emitter configuration | `noyalib::ser::Config` |
+| `serde_yml::modules::path::Path` | Error-path builder | `noyalib::Error::location()` / `Error::path()` |
+| `serde_yml::value::Index` | Sealed trait for `Value` indexing | `noyalib::Value` implements `Index<&str>` / `Index<usize>` natively |
+
+The full table is in [`MIGRATION.md`](./MIGRATION.md#removed-in-0013).
+
+---
+
+## Behavioural notes
+
+The shim is backed by `noyalib`'s parser, which is intentionally
+safer than the original `serde_yml` defaults. Two behaviours flow
+through that you may need to handle:
+
+1. **Custom-tag scalars surface as `Value::Tagged`** rather than
+   being silently coerced to the inner string. Exhaustive matches
+   on the previous six-variant `Value` enum need either a
+   `Value::Tagged(_)` arm or a call to `Value::untag()` /
+   `Value::untag_ref()` before the match.
+
+2. **YAML 1.2 strict booleans by default.** `country: NO` stays
+   `"NO"` (the YAML 1.2 fix to the "Norway problem") instead of
+   becoming `false`. The legacy boolean recognition was a YAML 1.1
+   resolver behaviour.
+
+Migrations to `serde-saphyr` or `yaml-rust2` will encounter the
+same YAML 1.2 strictness (it is the spec-correct behaviour); only
+`noyalib` exposes an explicit opt-back-in via
+`ParserConfig::version(YamlVersion::V1_1)`.
+
+---
+
+## MSRV
+
+`serde_yml 0.0.13` requires **Rust 1.85.0** (matching the
+backend's MSRV). The previous releases required 1.56. Users who
+cannot move past 1.56 should pin `serde_yml = "=0.0.12"` and plan
+a migration window.
+
+---
 
 ## Documentation
 
-For full API documentation, please visit [https://docs.rs/serde-yml][08].
-
-## Rust Version Compatibility
-
-Compiler support: requires rustc 1.56.0+
-
-## Examples
-
-Serde YML provides a set of comprehensive examples. You can find them in the
-`examples` directory of the project. To run the examples, clone the repository
-and execute the following command in your terminal from the project:
-
-```shell
-cargo run --example example
-```
-
-The examples cover various scenarios, including serializing and deserializing
-structs, enums, optional fields, custom structs, and more.
-
-Here are a few notable examples:
-
-### Serializing and Deserializing Structs
-
-```rust
-use serde::{Serialize, Deserialize};
-use serde_yml;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct Point {
-    x: f64,
-    y: f64,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let point = Point { x: 1.0, y: 2.0 };
-
-    // Serialize to YAML
-    let yaml = serde_yml::to_string(&point)?;
-    assert_eq!(yaml, "x: 1.0\ny: 2.0\n");
-
-    // Deserialize from YAML
-    let deserialized_point: Point = serde_yml::from_str(&yaml)?;
-    assert_eq!(point, deserialized_point);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to serialize and deserialize a simple struct
-`Point` to and from YAML using the `serde_yml` crate.
-
-### Serializing and Deserializing Enums
-
-```rust
-use serde::{Serialize, Deserialize};
-use serde_yml;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum Shape {
-    Rectangle { width: u32, height: u32 },
-    Circle { radius: f64 },
-    Triangle { base: u32, height: u32 },
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let shapes = vec![
-        Shape::Rectangle { width: 10, height: 20 },
-        Shape::Circle { radius: 5.0 },
-        Shape::Triangle { base: 8, height: 12 },
-    ];
-
-    // Serialize to YAML
-    let yaml = serde_yml::to_string(&shapes)?;
-    println!("Serialized YAML:\n{}", yaml);
-
-    // Deserialize from YAML
-    let deserialized_shapes: Vec<Shape> = serde_yml::from_str(&yaml)?;
-    assert_eq!(shapes, deserialized_shapes);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to serialize and deserialize an enum `Shape`
-(with struct variants) to and from YAML using the `serde_yml` crate.
-
-### Serializing and Deserializing Optional Fields
-
-```rust
-use serde::{Serialize, Deserialize};
-use serde_yml;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct User {
-    name: String,
-    age: Option<u32>,
-    #[serde(default)]
-    is_active: bool,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let user = User {
-        name: "John".to_string(),
-        age: Some(30),
-        is_active: true,
-    };
-
-    // Serialize to YAML
-    let yaml = serde_yml::to_string(&user)?;
-    println!("Serialized YAML:\n{}", yaml);
-
-    // Deserialize from YAML
-    let deserialized_user: User = serde_yml::from_str(&yaml)?;
-    assert_eq!(user, deserialized_user);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to serialize and deserialize a struct `User` with
-an optional field `age` to and from YAML using the `serde_yml` crate.
-
-### Serializing and Deserializing a HashMap
-
-```rust
-use std::collections::HashMap;
-use serde_yml;
-
-fn main() -> Result<(), serde_yml::Error> {
-    let mut map = HashMap::new();
-    map.insert("name".to_string(), "John".to_string());
-    map.insert("age".to_string(), "30".to_string());
-
-    let yaml = serde_yml::to_string(&map)?;
-    println!("Serialized YAML: {}", yaml);
-
-    let deserialized_map: HashMap<String, serde_yml::Value> = serde_yml::from_str(&yaml)?;
-    println!("Deserialized map: {:?}", deserialized_map);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to serialize and deserialize a `HashMap` to and
-from YAML using the `serde_yml` crate.
-
-### Serializing and Deserializing Custom Structs
-
-```rust
-use serde::{Serialize, Deserialize};
-use serde_yml;
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Person {
-    name: String,
-    age: u32,
-    city: String,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let person = Person {
-        name: "Alice".to_string(),
-        age: 25,
-        city: "New York".to_string(),
-    };
-
-    let yaml = serde_yml::to_string(&person)?;
-    println!("Serialized YAML: {}", yaml);
-
-    let deserialized_person: Person = serde_yml::from_str(&yaml)?;
-    println!("Deserialized person: {:?}", deserialized_person);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to serialize and deserialize a custom struct
-`Person` to and from YAML using the `serde_yml` crate.
-
-### Using Serde derive
-
-It can also be used with Serde's derive macros to handle structs and enums
-defined in your program.
-
-Structs serialize in the obvious way:
-
-```rust
-use serde_derive::{Serialize, Deserialize};
-use serde_yml;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct Point {
-    x: f64,
-    y: f64,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let point = Point { x: 1.0, y: 2.0 };
-
-    let yaml = serde_yml::to_string(&point)?;
-    assert_eq!(yaml, "x: 1.0\n'y': 2.0\n");
-
-    let deserialized_point: Point = serde_yml::from_str(&yaml)?;
-    assert_eq!(point, deserialized_point);
-    Ok(())
-}
-```
-
-Enums serialize using YAML's `!tag` syntax to identify the variant name.
-
-```rust
-use serde_derive::{Serialize, Deserialize};
-use serde_yml;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum Enum {
-    Unit,
-    Newtype(usize),
-    Tuple(usize, usize, usize),
-    Struct { x: f64, y: f64 },
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let yaml = "
-        - !Newtype 1
-        - !Tuple [0, 0, 0]
-        - !Struct {x: 1.0, y: 2.0}
-    ";
-    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
-    assert_eq!(values[0], Enum::Newtype(1));
-    assert_eq!(values[1], Enum::Tuple(0, 0, 0));
-    assert_eq!(values[2], Enum::Struct { x: 1.0, y: 2.0 });
-
-    // The last two in YAML's block style instead:
-    let yaml = "
-        - !Tuple
-        - 0
-        - 0
-        - 0
-        - !Struct
-        x: 1.0
-        'y': 2.0
-    ";
-    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
-    assert_eq!(values[0], Enum::Tuple(0, 0, 0));
-    assert_eq!(values[1], Enum::Struct { x: 1.0, y: 2.0 });
-
-    // Variants with no data can be written using !Tag or just the string name.
-    let yaml = "
-        - Unit  # serialization produces this one
-        - !Unit
-    ";
-    let values: Vec<Enum> = serde_yml::from_str(yaml).unwrap();
-    assert_eq!(values[0], Enum::Unit);
-    assert_eq!(values[1], Enum::Unit);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to use Serde's derive macros to automatically
-implement the `Serialize` and `Deserialize` traits for a struct `Point`, and
-then serialize and deserialize it to and from YAML using the `serde_yml` crate.
-
-### Serializing and Deserializing Enums with Custom Serialization and Deserialization
-
-```rust
-use serde::{Deserialize, Serialize};
-use serde::de::{self, Deserializer, MapAccess, Visitor};
-use serde::ser::{SerializeMap, Serializer};
-use std::fmt;
-use serde_yml;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum MyEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
-}
-
-#[derive(PartialEq, Debug)]
-struct MyStruct {
-    field: MyEnum,
-}
-
-// Include custom Serialize and Deserialize implementations for MyStruct here
-// ...
-
-fn main() -> Result<(), serde_yml::Error> {
-    let input = MyStruct {
-        field: MyEnum::Variant2 { field: 42 },
-    };
-
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
-
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-
-    assert_eq!(input, output);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to use custom `Serialize` and `Deserialize`
-implementations for a struct containing an enum field, and how to leverage
-`serde_yml` to serialize and deserialize the struct to and from YAML.
-
-### Serializing and Deserializing Optional Enums
-
-```rust
-use serde::{Deserialize, Serialize};
-use serde_yml;
-use serde_yml::with::singleton_map_optional;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum OptionalEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct OptionalStruct {
-    #[serde(with = "singleton_map_optional")]
-    field: Option<OptionalEnum>,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let input = OptionalStruct {
-        field: Some(OptionalEnum::Variant2 { field: 42 }),
-    };
-
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
-
-    let output: OptionalStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-
-    assert_eq!(input, output);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to use the `singleton_map_optional`
-attribute to serialize and deserialize an `Option<Enum>` field as a single
-YAML mapping entry with the key being the enum variant name.
-
-### Serializing and Deserializing Nested Enums
-
-```rust
-use serde::{Deserialize, Serialize};
-use serde_yml;
-use serde_yml::with::singleton_map_recursive;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum NestedEnum {
-    Variant1(String),
-    Variant2(Option<InnerEnum>),
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum InnerEnum {
-    Inner1(i32),
-    Inner2(i32),
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct NestedStruct {
-    #[serde(with = "singleton_map_recursive")]
-    field: NestedEnum,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let input = NestedStruct {
-        field: NestedEnum::Variant2(Some(InnerEnum::Inner2(42))),
-    };
-
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
-
-    let output: NestedStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-
-    assert_eq!(input, output);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to use the `singleton_map_recursive` attribute to
-serialize and deserialize a nested enum structure where one of the enum
-variants contains an optional inner enum.
-
-### Serializing and Deserializing Enums with `singleton_map_recursive`
-
-```rust
-use serde::{Deserialize, Serialize};
-use serde_yml;
-use serde_yml::with::singleton_map_recursive;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum MyEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct MyStruct {
-    #[serde(with = "singleton_map_recursive")]
-    field: MyEnum,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let input = MyStruct {
-        field: MyEnum::Variant2 { field: 42 },
-    };
-
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
-
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-
-    assert_eq!(input, output);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to use the `singleton_map_recursive` attribute to
-serialize and deserialize an enum field as a single YAML mapping entry with the
-key being the enum variant name.
-
-### Serializing and Deserializing Enums with `singleton_map_with` and Custom Serialization
-
-```rust
-use serde::{Deserialize, Serialize};
-use serde_yml;
-use serde_yml::with::singleton_map_with;
-
-fn custom_serialize<T, S>(
-    value: &T,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    T: Serialize,
-    S: serde::Serializer,
-{
-    // Custom serialization logic
-    singleton_map_with::serialize(value, serializer)
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum MyEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct MyStruct {
-    #[serde(
-        serialize_with = "custom_serialize",
-        deserialize_with = "singleton_map_with::deserialize"
-    )]
-    field: MyEnum,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let input = MyStruct {
-        field: MyEnum::Variant2 { field: 42 },
-    };
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
-
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-    assert_eq!(input, output);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to use the `singleton_map_with` attribute in
-combination with a custom serialization function (`custom_serialize`) to
-serialize and deserialize an enum field (`MyEnum`) within a struct
-(`MyStruct`).
-
-The `custom_serialize` function is used for serialization, while the
-`singleton_map_with::deserialize` function is used for deserialization. This
-allows for additional customization of the serialization process while still
-leveraging the singleton_map_with attribute for deserialization.
-
-### Serializing and Deserializing Enums with `singleton_map_with`
-
-```rust
-use serde::{Deserialize, Serialize};
-use serde_yml;
-use serde_yml::with::singleton_map_with;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-enum MyEnum {
-    Variant1(String),
-    Variant2 { field: i32 },
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct MyStruct {
-    #[serde(with = "singleton_map_with")]
-    field: MyEnum,
-}
-
-fn main() -> Result<(), serde_yml::Error> {
-    let input = MyStruct {
-        field: MyEnum::Variant2 { field: 42 },
-    };
-    let yaml = serde_yml::to_string(&input).unwrap();
-    println!("\n✅ Serialized YAML:\n{}", yaml);
-
-    let output: MyStruct = serde_yml::from_str(&yaml).unwrap();
-    println!("\n✅ Deserialized YAML:\n{:#?}", output);
-    assert_eq!(input, output);
-
-    Ok(())
-}
-```
-
-This example demonstrates how to use the `singleton_map_with` attribute to
-serialize and deserialize an enum field (`MyEnum`) within a struct
-(`MyStruct`). The `singleton_map_with` attribute allows for additional
-customization of the serialization and deserialization process through the use
-of helper functions.
-
-## Contributing
-
-Contributions are welcome! Please submit a Pull Request on [GitHub][06].
-
-## Credits and Acknowledgements
-
-Serde YML is a continuation of the excellent work done by [David Tolnay][03] and the maintainers of the [serde-yaml][02] library. While Serde YML has evolved into a separate library, we express our sincere gratitude to them for their contributions to the Rust community.
+| Document | Covers |
+| --- | --- |
+| [`MIGRATION.md`](./MIGRATION.md) | Find/replace tables per destination, full removed-surface mapping, test/example coverage triage, MSRV note |
+| [`noyalib`](https://docs.rs/noyalib) — [GitHub](https://github.com/sebastienrousseau/noyalib) | Drop-in destination via `compat-serde-yaml` feature |
+| [`serde-saphyr`](https://docs.rs/serde-saphyr) | Typed-deserialise destination |
+| [`yaml-rust2`](https://docs.rs/yaml-rust2) | Low-level parser destination |
+| [docs.rs/serde_yml](https://docs.rs/serde_yml) | API reference for this shim — every item carries the `#[deprecated]` banner |
+
+---
 
 ## License
 
-Licensed under either of the [Apache License](LICENSE-APACHE) or the
-[MIT license](LICENSE-MIT) at your option.
+Dual-licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) or [MIT](https://opensource.org/licenses/MIT), at your option.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in this crate by you, as defined in the Apache-2.0 license, shall
-be dual licensed as above, without any additional terms or conditions.
-
-[00]: https://serdeyml.com
-[01]: https://github.com/serde-rs/serde
-[02]: https://github.com/dtolnay/serde-yaml
-[03]: https://github.com/dtolnay
-[05]: https://yaml.org/
-[06]: https://github.com/sebastienrousseau/serde_yml
-[07]: https://crates.io/crates/serde_yml
-[08]: https://docs.rs/serde_yml
-[09]: https://codecov.io/gh/sebastienrousseau/serde_yml
-[10]: https://github.com/sebastienrousseau/serde-yml/actions?query=branch%3Amaster
-[11]: https://www.rust-lang.org/
-[12]: https://lib.rs/crates/serde_yml
-[build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/serde_yml/release.yml?branch=master&style=for-the-badge&logo=github "Build Status"
-[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/serde_yml?style=for-the-badge&token=Q9KJ6XXL67&logo=codecov "Codecov"
-[crates-badge]: https://img.shields.io/crates/v/serde_yml.svg?style=for-the-badge&color=fc8d62&logo=rust "Crates.io"
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.12-orange.svg?style=for-the-badge "View on lib.rs"
-[docs-badge]: https://img.shields.io/badge/docs.rs-serde__yml-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs "Docs.rs"
-[github-badge]: https://img.shields.io/badge/github-sebastienrousseau/serde--yml-8da0cb?style=for-the-badge&labelColor=555555&logo=github "GitHub"
-[made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'
+<p align="right"><a href="#contents">Back to Top</a></p>

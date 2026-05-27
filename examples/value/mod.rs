@@ -1,14 +1,11 @@
-/// This module contains the `de` examples.
+//! Examples covering the `Value` surface that the shim still
+//! supports. `index_examples` was removed because it exercised the
+//! `serde_yml::value::Index` sealed trait, which is no longer
+//! exposed by the shim — `noyalib::Value` implements `Index<&str>`
+//! and `Index<usize>` natively; see `MIGRATION.md`.
+
 pub(crate) mod de_examples;
 
-/// This module contains the `index` examples.
-pub(crate) mod index_examples;
-
-/// The main function that runs all the example modules.
 pub(crate) fn main() {
-    // Run the example module `de_examples`.
     de_examples::main();
-
-    // Run the example module `index_examples`.
-    index_examples::main();
 }

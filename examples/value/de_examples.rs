@@ -29,19 +29,14 @@ pub(crate) fn main() {
         println!("\n✅ Deserialized Empty tuple: {:?}", result);
     }
 
-    // Example: Deserializing a newtype variant.
-    fn example_deserialize_newtype_variant() {
-        let yaml_str = "!Variant 0";
-        let value: Value = serde_yml::from_str(yaml_str).unwrap();
-
-        #[derive(Deserialize, PartialEq, Debug)]
-        enum E {
-            Variant(i32),
-        }
-
-        let result: E = serde_yml::from_value(value).unwrap();
-        println!("\n✅ Deserialized newtype variant: {:?}", result);
-    }
+    // NOTE: The original example showed `!Variant 0` (YAML
+    // custom-tag scalar) deserialising to `E::Variant(0)`. The
+    // noyalib backend preserves custom tags verbatim — including
+    // the leading `!` in the variant name — so this idiom no longer
+    // round-trips through the shim. To deserialise a tagged
+    // newtype variant, either rename the YAML tag to match the
+    // variant exactly or use serde's `#[serde(rename = "!Variant")]`
+    // on the enum arm. See `MIGRATION.md` § "Behavioural notes".
 
     // Example: Deserializing a struct with multiple fields.
     fn example_deserialize_struct_with_fields() {
@@ -107,7 +102,6 @@ key2: value2
     // Execute the examples
     example_deserialize_empty_tuple_struct();
     example_deserialize_empty_tuple();
-    example_deserialize_newtype_variant();
     example_deserialize_struct_with_fields();
     example_deserialize_sequence();
     example_deserialize_map();
