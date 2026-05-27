@@ -8,5 +8,4 @@
 /rust-toolchain
 /target/
 build
-Cargo.lock
 Icon?
