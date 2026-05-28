@@ -94,18 +94,46 @@ Verification:
 
 ```bash
 $ cargo update -p serde_yml --precise 0.0.13
-$ cargo audit
-# RUSTSEC-2025-0068 no longer flagged for serde_yml — the
-# vulnerable surface is not present in 0.0.13.
 $ cargo tree -p serde_yml | grep libyml
 # (no output — libyml is not in the dependency graph)
 ```
 
-The same fix flows through to any
+The same structural fix flows through to any
 [maintained alternative](#maintained-alternatives) you eventually
-migrate to. Pinning `serde_yml = "=0.0.12"` keeps the advisory in
-your audit feed; pinning `serde_yml = "0.0.13"` (or migrating
-directly) clears it.
+migrate to.
+
+### `cargo audit` will still warn — here's why and how to handle it
+
+The RustSec advisory database has chosen **not** to mark `0.0.13` as
+patched. The decision was made on the basis that `serde_yml` is
+unmaintained regardless of which version you pick — a position that
+applies to the *crate* as a whole rather than to a specific *code
+path*. Practical consequence: `cargo audit` and `cargo deny` will
+emit RUSTSEC-2025-0068 against `serde_yml = "0.0.13"` even though
+the unsound surface no longer exists in this release.
+
+This repo's own CI suppresses the warning via [`.cargo/audit.toml`](./.cargo/audit.toml)
+and [`deny.toml`](./deny.toml). If you're a downstream user who
+wants the same suppression in your own project, copy the snippet
+below — and feel free to remove it whenever you migrate fully.
+
+```toml
+# .cargo/audit.toml — at the workspace root
+[advisories]
+# RUSTSEC-2025-0068 affects serde_yml's C-FFI surface (`libyml`).
+# The 0.0.13 deprecation shim removes that surface entirely; verify
+# locally with `cargo tree -p serde_yml | grep libyml` (no output).
+# The advisory database tracks the crate's unmaintained status, not
+# code presence — so we ignore the advisory ourselves and document
+# the structural fix here.
+ignore = ["RUSTSEC-2025-0068"]
+```
+
+For `cargo deny`, add the same `RUSTSEC-2025-0068` ID to your
+`deny.toml`'s `[advisories] ignore` list with the same rationale.
+
+The cleanest long-term path is still to migrate off `serde_yml`
+entirely — the maintained alternatives are listed above.
 
 ---
 

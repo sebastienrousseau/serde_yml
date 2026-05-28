@@ -4,7 +4,7 @@
 compatibility shim so existing call sites keep working while you
 migrate to a maintained alternative.
 
-> ## ⚠️ Security: RUSTSEC-2025-0068 is fixed in 0.0.13
+> ## ⚠️ Security: RUSTSEC-2025-0068 is structurally fixed in 0.0.13
 >
 > [RUSTSEC-2025-0068](https://rustsec.org/advisories/RUSTSEC-2025-0068.html)
 > flagged all `serde_yml ≤ 0.0.12` as unsound — the
@@ -14,10 +14,16 @@ migrate to a maintained alternative.
 > removes the vulnerable surface entirely** — the C-FFI dependency
 > is gone, `Serializer` is now a pure-Rust unit struct with no
 > `emitter` field, and the backend (`noyalib`) enforces
-> `#![forbid(unsafe_code)]` workspace-wide. Pinning
-> `serde_yml = "=0.0.12"` keeps the advisory in your audit feed;
-> pinning `serde_yml = "0.0.13"` (or migrating directly to a
-> maintained alternative) clears it.
+> `#![forbid(unsafe_code)]` workspace-wide.
+>
+> **`cargo audit` will still warn anyway.** The RustSec advisory
+> database tracks the crate's unmaintained status across all
+> versions and has chosen not to mark `0.0.13` as patched. The
+> warning is a maintainer-status signal at this point, not a
+> code-presence signal. To suppress it in your own project, copy
+> the snippet from the
+> [README's "cargo audit" section](./README.md#cargo-audit-will-still-warn--heres-why-and-how-to-handle-it),
+> or migrate fully to one of the maintained alternatives below.
 
 The shim itself depends on
 [`noyalib`](https://crates.io/crates/noyalib)'s `compat-serde-yaml`
